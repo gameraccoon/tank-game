@@ -1,0 +1,45 @@
+{
+    "version": "d_PHgGpxgPQW",
+    "world": {
+        "entity_manager": {
+            "components": {
+                "SpriteCreatorComponent": [
+                    {
+                        "descriptions": [
+                            {
+                                "params": {
+                                    "anchor": {
+                                        "x": 0.5,
+                                        "y": 0.5
+                                    },
+                                    "size": {
+                                        "x": 60.0,
+                                        "y": 60.0
+                                    }
+                                },
+                                "path": "resources/textures/arrow.png"
+                            }
+                        ]
+                    }
+                ],
+                "TransformComponent": [
+                    {
+                        "location": {
+                            "x": 147.48782348632813,
+                            "y": 197.73196411132813
+                        },
+                        "rotation": {
+                            "v": 0.0
+                        }
+                    }
+                ]
+            },
+            "entities": [
+                1
+            ]
+        },
+        "world_components": {
+            "components": null
+        }
+    }
+}

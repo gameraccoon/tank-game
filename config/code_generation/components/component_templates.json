@@ -1,0 +1,37 @@
+[
+	{
+		"name": "component_includes"
+	},
+	{
+		"name": "component_factory_register"
+	},
+	{
+		"name": "imgui/component_inspector_window_includes"
+	},
+	{
+		"name": "imgui/component_inspector_window_register"
+	},
+	{
+		"name": "serialization/json/component_json_serializer_includes",
+		"blacklist": ["transient"]
+	},
+	{
+		"name": "serialization/json/component_json_serializer_register",
+		"blacklist": ["transient"]
+	},
+	{
+		"name": "editor/component_edit_factory_includes",
+		"blacklist": ["transient"]
+	},
+	{
+		"name": "editor/component_factory_register"
+	},
+	{
+		"name": "editor/component_edit_factory_register",
+		"blacklist": ["transient"]
+	},
+	{
+		"name": "editor/component_editable_item",
+		"blacklist": ["transient"]
+	}
+]

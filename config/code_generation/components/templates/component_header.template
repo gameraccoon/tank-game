@@ -1,0 +1,27 @@
+#pragma once
+
+{attribute_includes}
+
+/**
+ * {component_description}
+ */
+class {class_name}
+{{
+public:
+	{class_name}() noexcept = default;
+
+	{attribute_getters}
+
+	{attribute_getters_ref}
+
+	{attribute_setters}
+
+public:
+	[[nodiscard]] static constexpr StringId GetTypeId() {{ return STR_TO_ID("{class_name}"); }}
+
+private:
+	{attribute_fields}
+
+	friend class {class_name}JsonSerializer;
+	friend class {class_name}ImguiWidget;
+}};

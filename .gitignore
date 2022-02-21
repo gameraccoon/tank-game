@@ -1,0 +1,46 @@
+# cmake files
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+
+# generated binaries
+*.exe
+
+# optional level data
+*.lbg.json
+*.pbg.json
+
+# vs files
+*.user
+*.sdf
+*.ilk
+*.pdb
+*.suo
+*.opensdf
+*.ipch
+*.db
+*.opendb
+*.vcxproj.filters
+*.vcxproj
+*.sln
+
+# generated code
+*.generated.cpp
+*.generated.h
+
+# jetbrains ide files
+.idea/
+
+# other
+*.log
+log.txt
+*_log.txt
+.vs
+*.obj
+*.tlog
+*.lib
+*.cache
+/bin
+/build
+__pycache__
+/cmake-build-*

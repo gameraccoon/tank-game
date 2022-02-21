@@ -1,0 +1,12 @@
+#include "Base/precomp.h"
+
+#include "componentregistration.h"
+
+{editor/component_edit_factory_includes}
+
+{component_includes}
+
+void ComponentRegistration::RegisterToEditFactory(std::map<StringId, std::unique_ptr<AbstractEditFactory>>& factories)
+{{
+	{editor/component_edit_factory_register}
+}}
