@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/HapGame.h"
+#include "GameLogic/TankGame.h"
 
 #include "Base/Types/TemplateHelpers.h"
 
@@ -33,12 +33,12 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-HapGame::HapGame(int width, int height)
+TankGame::TankGame(int width, int height)
 	: Game(width, height)
 {
 }
 
-void HapGame::start(ArgumentsParser& arguments)
+void TankGame::start(ArgumentsParser& arguments)
 {
 	SCOPED_PROFILER("HapGame::start");
 
@@ -55,17 +55,17 @@ void HapGame::start(ArgumentsParser& arguments)
 	Game::start(arguments, workerThreadCount);
 }
 
-void HapGame::setKeyboardKeyState(int key, bool isPressed)
+void TankGame::setKeyboardKeyState(int key, bool isPressed)
 {
 	getInputData().keyboardKeyStates.updateState(key, isPressed);
 }
 
-void HapGame::setMouseKeyState(int key, bool isPressed)
+void TankGame::setMouseKeyState(int key, bool isPressed)
 {
 	getInputData().mouseKeyStates.updateState(key, isPressed);
 }
 
-void HapGame::initSystems()
+void TankGame::initSystems()
 {
 	SCOPED_PROFILER("HapGame::initSystems");
 	getPreFrameSystemsManager().registerSystem<ControlSystem>(getWorldHolder(), getInputData());
@@ -82,7 +82,7 @@ void HapGame::initSystems()
 #endif // IMGUI_ENABLED
 }
 
-void HapGame::initResources()
+void TankGame::initResources()
 {
 	SCOPED_PROFILER("HapGame::initResources");
 	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");

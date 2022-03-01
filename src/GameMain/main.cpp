@@ -6,7 +6,7 @@
 
 #include <raccoon-ecs/error_handling.h>
 
-#include "GameLogic/HapGame.h"
+#include "GameLogic/TankGame.h"
 
 int main(int argc, char** argv)
 {
@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 
 	ArgumentsParser arguments(argc, argv);
 
-	HapGame game(800, 600);
+	TankGame game(800, 600);
 	game.start(arguments);
 
 	return 0;

@@ -181,7 +181,7 @@ void MainWindow::on_actionNew_World_triggered()
 void MainWindow::on_actionOpen_World_triggered()
 {
 	std::string fileName = QFileDialog::getOpenFileName(this,
-		tr("Open World"), "../resources/maps", tr("Stealth Game World Files (*.json)")).toStdString();
+		tr("Open World"), "../resources/maps", tr("Tank Game World Files (*.json)")).toStdString();
 
 	if (fileName.empty())
 	{
@@ -199,7 +199,7 @@ void MainWindow::on_actionOpen_World_triggered()
 void MainWindow::on_actionSave_World_As_triggered()
 {
 	std::string fileName = QFileDialog::getSaveFileName(this,
-		tr("Save World"), "../resources/maps", tr("Stealth Game World Files (*.json)")).toStdString();
+		tr("Save World"), "../resources/maps", tr("Tank Game World Files (*.json)")).toStdString();
 
 	if (fileName.empty())
 	{

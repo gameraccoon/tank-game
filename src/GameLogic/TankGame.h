@@ -8,10 +8,10 @@
 #include "GameLogic/Imgui/ImguiDebugData.h"
 #endif
 
-class HapGame : public Game
+class TankGame : public Game
 {
 public:
-	HapGame(int width, int height);
+	TankGame(int width, int height);
 
 	void start(ArgumentsParser& arguments);
 	void setKeyboardKeyState(int key, bool isPressed) override;
