@@ -1,4 +1,5 @@
 {
 	"atlases" : [
+		"resources/atlas/game-textures.json"
 	]
 }
