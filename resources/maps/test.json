@@ -1,5 +1,5 @@
 {
-    "version": "d_PHgGpxgPQW",
+    "version": "d_cxPc32w3CM",
     "world": {
         "entity_manager": {
             "components": {
@@ -13,11 +13,11 @@
                                         "y": 0.5
                                     },
                                     "size": {
-                                        "x": 60.0,
-                                        "y": 60.0
+                                        "x": 16.0,
+                                        "y": 16.0
                                     }
                                 },
-                                "path": "resources/textures/arrow.png"
+                                "path": "resources/textures/tile-base.png"
                             }
                         ]
                     }

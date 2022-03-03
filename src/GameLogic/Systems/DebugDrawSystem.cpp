@@ -168,9 +168,9 @@ void DebugDrawSystem::update()
 void DebugDrawSystem::init()
 {
 	SCOPED_PROFILER("DebugDrawSystem::initResources");
-	mCollisionSpriteHandle = mResourceManager.lockSprite("resources/textures/collision.png");
-	mNavmeshSpriteHandle = mResourceManager.lockSprite("resources/textures/testTexture.png");
-	mPointTextureHandle = mResourceManager.lockSprite("resources/textures/collision.png");
-	mLineTextureHandle = mResourceManager.lockSprite("resources/textures/testTexture.png");
+	mCollisionSpriteHandle = mResourceManager.lockSprite("resources/textures/protection-field-2.png");
+	mNavmeshSpriteHandle = mResourceManager.lockSprite("resources/textures/explosive-small-2.png");
+	mPointTextureHandle = mResourceManager.lockSprite("resources/textures/protection-field-2.png");
+	mLineTextureHandle = mResourceManager.lockSprite("resources/textures/explosive-small-2.png");
 	mFontHandle = mResourceManager.lockResource<Graphics::Font>("resources/fonts/prstart.ttf", 16);
 }
