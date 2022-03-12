@@ -17,6 +17,7 @@
 #include "GameData/Components/BackgroundTextureComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 
+#include "HAL/Graphics/Sprite.h"
 #include "GameLogic/Render/RenderAccessor.h"
 
 #include <glm/matrix.hpp>
@@ -101,7 +102,7 @@ void RenderSystem::drawBackground(RenderData& renderData, World& world, Vector2D
 	{
 		if (!backgroundTexture->getSprite().spriteHandle.isValid())
 		{
-			backgroundTexture->getSpriteRef().spriteHandle = mResourceManager.lockSprite(backgroundTexture->getSpriteDesc().path);
+			backgroundTexture->getSpriteRef().spriteHandle = mResourceManager.lockResource<Graphics::Sprite>(backgroundTexture->getSpriteDesc().path);
 			backgroundTexture->getSpriteRef().params = backgroundTexture->getSpriteDesc().params;
 		}
 

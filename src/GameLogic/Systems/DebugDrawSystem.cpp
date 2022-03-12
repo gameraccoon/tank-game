@@ -18,6 +18,7 @@
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 
 #include "HAL/Graphics/Font.h"
+#include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
 
@@ -168,9 +169,9 @@ void DebugDrawSystem::update()
 void DebugDrawSystem::init()
 {
 	SCOPED_PROFILER("DebugDrawSystem::initResources");
-	mCollisionSpriteHandle = mResourceManager.lockSprite("resources/textures/protection-field-2.png");
-	mNavmeshSpriteHandle = mResourceManager.lockSprite("resources/textures/explosive-small-2.png");
-	mPointTextureHandle = mResourceManager.lockSprite("resources/textures/protection-field-2.png");
-	mLineTextureHandle = mResourceManager.lockSprite("resources/textures/explosive-small-2.png");
-	mFontHandle = mResourceManager.lockResource<Graphics::Font>("resources/fonts/prstart.ttf", 16);
+	mCollisionSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/protection-field-2.png"));
+	mNavmeshSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
+	mPointTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/protection-field-2.png"));
+	mLineTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
+	mFontHandle = mResourceManager.lockResource<Graphics::Font>(ResourcePath("resources/fonts/prstart.ttf"), 16);
 }
