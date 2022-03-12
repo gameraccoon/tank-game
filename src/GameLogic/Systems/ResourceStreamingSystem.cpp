@@ -98,6 +98,38 @@ void ResourceStreamingSystem::update()
 	entityManager.forEachComponentSetWithEntity<AnimationGroupCreatorComponent>(
 			[this, &entityManager](Entity entity, AnimationGroupCreatorComponent* animationGroupCreator)
 	{
+		const size_t animGroupCount = animationGroupCreator->getAnimationGroups().size();
+		if (animationGroupCreator->getAnimationGroupHandles().size() < animGroupCount)
+		{
+			animationGroupCreator->getAnimationGroupHandlesRef().resize(animGroupCount);
+		}
+
+		bool animGroupsLoaded = true;
+		for (size_t i = 0; i < animGroupCount; ++i)
+		{
+			const ResourcePath& groupPath = animationGroupCreator->getAnimationGroups()[i];
+			ResourceHandle animGroupHandle;
+			if (animationGroupCreator->getAnimationGroupHandles()[i].isValid())
+			{
+				animGroupHandle = animationGroupCreator->getAnimationGroupHandles()[i];
+			}
+			else
+			{
+				animGroupHandle = mResourceManager.lockAnimationGroup(groupPath);
+				animationGroupCreator->getAnimationGroupHandlesRef()[i] = animGroupHandle;
+			}
+
+			const Graphics::AnimationGroup* group = mResourceManager.tryGetResource<Graphics::AnimationGroup>(animGroupHandle);
+			if (group == nullptr)
+			{
+				animGroupsLoaded = false;
+			}
+		}
+
+		if (!animGroupsLoaded)
+		{
+			return;
+		}
 		AnimationGroupsComponent* animationGroups = entityManager.scheduleAddComponent<AnimationGroupsComponent>(entity);
 
 		auto [animationClips] = entityManager.getEntityComponents<AnimationClipsComponent>(entity);
@@ -114,10 +146,9 @@ void ResourceStreamingSystem::update()
 		}
 		auto& spriteDatas = spriteRender->getSpriteDatasRef();
 
-		size_t i = 0;
-		for (const ResourcePath& groupPath : animationGroupCreator->getAnimationGroups())
+		for (size_t i = 0; i < animGroupCount; ++i)
 		{
-			ResourceHandle animGroupHandle = mResourceManager.lockAnimationGroup(groupPath);
+			const ResourceHandle animGroupHandle = animationGroupCreator->getAnimationGroupHandles()[i];
 			const Graphics::AnimationGroup* group = mResourceManager.tryGetResource<Graphics::AnimationGroup>(animGroupHandle);
 			AnimationGroup<StringId> animationGroup;
 			animationGroup.currentState = group->getDefaultState();
@@ -139,8 +170,6 @@ void ResourceStreamingSystem::update()
 			spriteRender->setMaxSpriteId(id);
 
 			clipDatas.emplace_back(std::move(clip));
-
-			++i;
 		}
 
 		entityManager.scheduleRemoveComponent<AnimationGroupCreatorComponent>(entity);
