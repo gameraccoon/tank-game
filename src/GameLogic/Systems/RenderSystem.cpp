@@ -15,6 +15,7 @@
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/Components/BackgroundTextureComponent.generated.h"
+#include "GameData/Components/TileGridComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 
 #include "HAL/Graphics/Sprite.h"
@@ -70,6 +71,11 @@ void RenderSystem::update()
 		drawBackground(*renderData, world, drawShift, workingRect);
 	}
 
+	{
+		SCOPED_PROFILER("draw tile grid layer 0");
+		drawTileGridLayer(*renderData, world, drawShift, 0);
+	}
+
 	if (!renderMode || renderMode->getIsDrawVisibleEntitiesEnabled())
 	{
 		SCOPED_PROFILER("draw visible entities");
@@ -89,6 +95,11 @@ void RenderSystem::update()
 				quadData.alpha = 1.0f;
 			}
 		});
+	}
+
+	{
+		SCOPED_PROFILER("draw tile grid layer 1");
+		drawTileGridLayer(*renderData, world, drawShift, 1);
 	}
 
 	renderAccessor->submitData(std::move(renderData));
@@ -117,4 +128,45 @@ void RenderSystem::drawBackground(RenderData& renderData, World& world, Vector2D
 		bgRenderData.size = windowSize;
 		bgRenderData.uv = Graphics::QuadUV(uvShift, uvShift + tiles);
 	}
+}
+
+void RenderSystem::drawTileGridLayer(RenderData& renderData, World& world, const Vector2D drawShift, const size_t layerIdx)
+{
+	world.getEntityManager().forEachComponentSet<const TileGridComponent, const TransformComponent>(
+		[&drawShift, &renderData, layerIdx](const TileGridComponent* tileGrid, const TransformComponent* transform)
+	{
+		const TileGridParams& tileGridData = tileGrid->getGridData();
+		if (tileGridData.layers.size() <= layerIdx)
+		{
+			return;
+		}
+		const std::vector<size_t>& layer = tileGridData.layers[layerIdx];
+
+		const Vector2D location = transform->getLocation() + drawShift;
+		const Vector2D tileSize = Vector2D{ static_cast<float>(tileGridData.originalTileSize.x), static_cast<float>(tileGridData.originalTileSize.y) };
+
+		for (size_t i = 0, iSize = layer.size(); i < iSize; ++i)
+		{
+			const size_t tileIndex = layer[i];
+			if (tileIndex == TileSetParams::EmptyTileIndex)
+			{
+				continue;
+			}
+
+			if (tileGridData.tiles.size() <= tileIndex)
+			{
+				continue;
+			}
+
+			const TileSetParams::Tile& tile = tileGridData.tiles[tileIndex];
+
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData.layers);
+			quadData.spriteHandle = tile.spriteHandle;
+			quadData.position = location + Vector2D::HadamardProduct(tileSize, Vector2D{ static_cast<float>(i % tileGridData.gridSize.x), static_cast<float>(i / tileGridData.gridSize.y) });
+			quadData.size = tileSize;
+			quadData.anchor = ZERO_VECTOR;
+			quadData.rotation = 0;
+			quadData.alpha = 1.0f;
+		}
+	});
 }

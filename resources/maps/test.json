@@ -1,5 +1,5 @@
 {
-    "version": "d_cxPc32w3CM",
+    "version": "d_J8WcVXW49G",
     "world": {
         "entity_manager": {
             "components": {
@@ -22,6 +22,16 @@
                         ]
                     }
                 ],
+                "TileGridCreatorComponent": [
+                    null,
+                    {
+                        "gridPath": "resources/tilesets/level1-map.tmj",
+                        "size": {
+                            "x": 100.0,
+                            "y": 100.0
+                        }
+                    }
+                ],
                 "TransformComponent": [
                     {
                         "location": {
@@ -31,11 +41,21 @@
                         "rotation": {
                             "v": 0.0
                         }
+                    },
+                    {
+                        "location": {
+                            "x": 219.0,
+                            "y": 219.0
+                        },
+                        "rotation": {
+                            "v": 0.0
+                        }
                     }
                 ]
             },
             "entities": [
-                1
+                1,
+                2
             ]
         },
         "world_components": {

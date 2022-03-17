@@ -1,0 +1,20 @@
+{
+	"component": "tileGridCreator",
+	"description": "Component that stores data needed to create a tile grid",
+	"attributes": [
+		{
+			"name": "gridPath",
+			"type": "std::string",
+			"includes": [
+				"<string>"
+			],
+			"flags": ["get_by_ref"]
+		},
+		{
+			"name": "size",
+			"type": "Vector2D",
+			"default": " = ZERO_VECTOR",
+			"includes": ["\"GameData/Geometry/Vector2D.h\""]
+		}
+	]
+}

@@ -32,6 +32,7 @@ public:
 
 private:
 	void drawBackground(RenderData& renderData, World& world, Vector2D drawShift, Vector2D windowSize);
+	void drawTileGridLayer(RenderData& renderData, World& world, Vector2D drawShift, size_t layerIdx);
 
 private:
 	WorldHolder& mWorldHolder;

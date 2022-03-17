@@ -1,0 +1,21 @@
+{
+	"component": "tileGrid",
+	"description": "Component that stores info about a tiled grid",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "gridData",
+			"type": "TileGridParams",
+			"includes": [
+				"\"GameData/Resources/TileGridParams.h\""
+			],
+			"flags": ["get_by_ref"]
+		},
+		{
+			"name": "size",
+			"type": "Vector2D",
+			"default": " = ZERO_VECTOR",
+			"includes": ["\"GameData/Geometry/Vector2D.h\""]
+		}
+	]
+}

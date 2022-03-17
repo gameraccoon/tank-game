@@ -10,10 +10,13 @@
 #include "GameData/Components/AnimationGroupsComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/SpriteRenderComponent.generated.h"
+#include "GameData/Components/TileGridComponent.generated.h"
+#include "GameData/Components/TileGridCreatorComponent.generated.h"
 
 #include "HAL/Graphics/Sprite.h"
 #include "GameLogic/Resources/SpriteAnimationClip.h"
-#include "GameLogic/Resources//AnimationGroup.h"
+#include "GameLogic/Resources/AnimationGroup.h"
+#include "GameLogic/Resources/TileGrid.h"
 
 ResourceStreamingSystem::ResourceStreamingSystem(
 		WorldHolder& worldHolder,
@@ -142,6 +145,25 @@ void ResourceStreamingSystem::update()
 		}
 
 		entityManager.scheduleRemoveComponent<AnimationGroupCreatorComponent>(entity);
+	});
+	entityManager.executeScheduledActions();
+
+	// load tile grids
+	entityManager.forEachComponentSetWithEntity<TileGridCreatorComponent>(
+			[this, &entityManager](Entity entity, TileGridCreatorComponent* tileGridCreator)
+	{
+		TileGridComponent* tileGrid = entityManager.scheduleAddComponent<TileGridComponent>(entity);
+
+		ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(ResourcePath(tileGridCreator->getGridPath()));
+		const Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<Graphics::TileGrid>(tileGridHandle);
+		if (tileGridResource == nullptr) {
+			return;
+		}
+
+		tileGrid->setGridData(tileGridResource->getTileGridParams());
+		tileGrid->setSize(tileGridCreator->getSize());
+
+		entityManager.scheduleRemoveComponent<TileGridCreatorComponent>(entity);
 	});
 	entityManager.executeScheduledActions();
 }
