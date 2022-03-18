@@ -107,9 +107,21 @@ namespace Graphics
 		{
 			for (size_t& tileIdxRef : layer)
 			{
-				auto it = tileSet->getTileSetParams().indexesConversion.find(tileIdxRef);
-				if (it != tileSet->getTileSetParams().indexesConversion.end()) {
-					tileIdxRef = it->second - tileGridLoadData->firstTileId;
+				if (tileIdxRef == 0)
+				{
+					tileIdxRef = TileSetParams::EmptyTileIndex;
+				}
+				else
+				{
+					auto it = tileSet->getTileSetParams().indexesConversion.find(tileIdxRef - tileGridLoadData->firstTileId);
+					if (it != tileSet->getTileSetParams().indexesConversion.end())
+					{
+						tileIdxRef = it->second;
+					}
+					else
+					{
+						ReportError("Unknown tile index %u", tileIdxRef);
+					}
 				}
 			}
 		}
