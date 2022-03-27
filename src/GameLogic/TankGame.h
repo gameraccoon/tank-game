@@ -11,7 +11,7 @@
 class TankGame : public Game
 {
 public:
-	TankGame(int width, int height);
+	using Game::Game;
 
 	void start(ArgumentsParser& arguments);
 	void initResources() override;

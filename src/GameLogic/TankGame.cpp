@@ -33,11 +33,6 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-TankGame::TankGame(int width, int height)
-	: Game(width, height)
-{
-}
-
 void TankGame::start(ArgumentsParser& arguments)
 {
 	SCOPED_PROFILER("HapGame::start");
