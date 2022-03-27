@@ -55,16 +55,6 @@ void TankGame::start(ArgumentsParser& arguments)
 	Game::start(arguments, workerThreadCount);
 }
 
-void TankGame::setKeyboardKeyState(int key, bool isPressed)
-{
-	getInputData().keyboardKeyStates.updateState(key, isPressed);
-}
-
-void TankGame::setMouseKeyState(int key, bool isPressed)
-{
-	getInputData().mouseKeyStates.updateState(key, isPressed);
-}
-
 void TankGame::initSystems()
 {
 	SCOPED_PROFILER("HapGame::initSystems");
