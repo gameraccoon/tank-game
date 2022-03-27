@@ -15,7 +15,14 @@ TestChecklist BaseTestCase::start(const ArgumentsParser& arguments)
 {
 	mOneFrame = arguments.hasArgument("one-frame");
 
+	ComponentsRegistration::RegisterComponents(getComponentFactory());
+	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
+
 	initTestCase(arguments);
+
+	Game::preStart(arguments, 3);
+	Game::start();
+	Game::onGameShutdown();
 
 	return std::move(mTestChecklist);
 }
@@ -32,16 +39,8 @@ void BaseTestCase::fixedTimeUpdate(float dt)
 	if (mTicksCount >= mTicksToFinish)
 	{
 		finalizeTestCase();
-		getEngine().quit();
+		getEngine()->quit();
 	}
-}
-
-void BaseTestCase::startGame(const ArgumentsParser& arguments)
-{
-	ComponentsRegistration::RegisterComponents(getComponentFactory());
-	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
-
-	Game::start(arguments, 3);
 }
 
 void BaseTestCase::finalizeTestCase()

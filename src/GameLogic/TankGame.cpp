@@ -33,9 +33,9 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankGame::start(ArgumentsParser& arguments)
+void TankGame::preStart(ArgumentsParser& arguments)
 {
-	SCOPED_PROFILER("HapGame::start");
+	SCOPED_PROFILER("TankGame::start");
 
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
@@ -47,12 +47,15 @@ void TankGame::start(ArgumentsParser& arguments)
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
 
-	Game::start(arguments, workerThreadCount);
+	Game::preStart(arguments, workerThreadCount);
 }
 
 void TankGame::initSystems()
 {
-	SCOPED_PROFILER("HapGame::initSystems");
+	SCOPED_PROFILER("TankGame::initSystems");
+
+	AssertFatal(getEngine(), "TankGame created without Engine. We're going to crash");
+
 	getPreFrameSystemsManager().registerSystem<ControlSystem>(getWorldHolder(), getInputData());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
@@ -63,13 +66,13 @@ void TankGame::initSystems()
 	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getTime(), getResourceManager());
 
 #ifdef IMGUI_ENABLED
-	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, getEngine());
+	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *getEngine());
 #endif // IMGUI_ENABLED
 }
 
 void TankGame::initResources()
 {
-	SCOPED_PROFILER("HapGame::initResources");
+	SCOPED_PROFILER("TankGame::initResources");
 	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
 	Game::initResources();
 }

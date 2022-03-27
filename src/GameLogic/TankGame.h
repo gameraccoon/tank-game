@@ -13,7 +13,7 @@ class TankGame : public Game
 public:
 	using Game::Game;
 
-	void start(ArgumentsParser& arguments);
+	void preStart(ArgumentsParser& arguments);
 	void initResources() override;
 
 private:
