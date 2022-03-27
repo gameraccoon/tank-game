@@ -4,6 +4,8 @@
 
 #include "Base/Random/Random.h"
 
+#include "HAL/Base/Engine.h"
+
 #include <raccoon-ecs/error_handling.h>
 
 #include "GameLogic/TankGame.h"
@@ -17,8 +19,10 @@ int main(int argc, char** argv)
 #endif // RACCOON_ECS_DEBUG_CHECKS_ENABLED
 
 	ArgumentsParser arguments(argc, argv);
+	HAL::Engine engine(800, 600);
+	ResourceManager resourceManager;
 
-	TankGame game(800, 600);
+	TankGame game(&engine, resourceManager);
 	game.preStart(arguments);
 	game.start();
 	game.onGameShutdown();

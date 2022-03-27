@@ -8,10 +8,12 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 
+#include "HAL/Base/Engine.h"
+
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/TestChecklist.h"
 
-using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>()>>;
+using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>(HAL::Engine*, ResourceManager&)>>;
 
 static CasesMap GetCases()
 {
@@ -78,7 +80,9 @@ int main(int argc, char** argv)
 	auto caseIt = cases.find(arguments.getArgumentValue("case"));
 	if (caseIt != cases.end())
 	{
-		std::unique_ptr<BaseTestCase> testCase = caseIt->second();
+		HAL::Engine engine(800, 600);
+		ResourceManager resourceManager;
+		std::unique_ptr<BaseTestCase> testCase = caseIt->second(&engine, resourceManager);
 		TestChecklist checklist = testCase->start(arguments);
 		bool isSuccessful = ValidateChecklist(checklist);
 		return isSuccessful ? 0 : 1;
