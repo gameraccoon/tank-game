@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/TankGame.h"
+#include "GameLogic/Game/TankGame.h"
 
 #include "Base/Types/TemplateHelpers.h"
 
@@ -47,7 +47,7 @@ void TankGame::preStart(ArgumentsParser& arguments)
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
 
-	Game::preStart(arguments, workerThreadCount);
+	Game::preStart(arguments);
 }
 
 void TankGame::initSystems()
