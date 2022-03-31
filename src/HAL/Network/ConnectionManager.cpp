@@ -3,22 +3,24 @@
 #include "HAL/Network/ConnectionManager.h"
 
 #include <unordered_set>
+#include <mutex>
 
 namespace HAL
 {
-	struct ConnectionMananger::Impl
+	struct ConnectionManager::Impl
 	{
 		struct OpenPortData
 		{
 			std::unordered_set<ConnectionId> openConnections;
-			std::vector<std::pair<ConnectionId, ConnectionMananger::Message>> receivedMessages;
+			std::vector<std::pair<ConnectionId, ConnectionManager::Message>> receivedMessages;
 		};
 
-		std::unordered_map<u16, std::unique_ptr<OpenPortData>> openPorts;
-		std::unordered_map<ConnectionId, ConnectionId> openConnections;
-		std::unordered_map<ConnectionId, u16> portByClientConnection;
-		std::vector<std::pair<ConnectionId, ConnectionMananger::Message>> receivedClientMessages;
-		ConnectionId nextConnectionId = 0;
+		static inline std::unordered_map<u16, std::unique_ptr<OpenPortData>> openPorts;
+		static inline std::unordered_map<ConnectionId, ConnectionId> openConnections;
+		static inline std::unordered_map<ConnectionId, u16> portByClientConnection;
+		static inline std::vector<std::pair<ConnectionId, ConnectionManager::Message>> receivedClientMessages;
+		static inline ConnectionId nextConnectionId = 0;
+		static inline std::mutex dataMutex;
 
 		static void removeMessagesForConnection(std::vector<std::pair<ConnectionId, Message>>& messages, ConnectionId connection)
 		{
@@ -26,7 +28,7 @@ namespace HAL
 				std::remove_if(
 					messages.begin(),
 					messages.end(),
-					[connection](const std::pair<ConnectionId, ConnectionMananger::Message>& messagePair)
+					[connection](const std::pair<ConnectionId, ConnectionManager::Message>& messagePair)
 					{
 						return messagePair.first == connection;
 					}
@@ -52,32 +54,35 @@ namespace HAL
 		}
 	};
 
-	ConnectionMananger::ConnectionMananger()
+	ConnectionManager::ConnectionManager()
 		: mPimpl(HS_NEW Impl())
 	{
 	}
 
-	ConnectionMananger::~ConnectionMananger() = default;
+	ConnectionManager::~ConnectionManager() = default;
 
-	ConnectionMananger::OpenPortResult ConnectionMananger::startListeningToPort(u16 port)
+	ConnectionManager::OpenPortResult ConnectionManager::startListeningToPort(u16 port)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (mPimpl->openPorts.find(port) != mPimpl->openPorts.end())
 		{
-			return ConnectionMananger::OpenPortResult{ConnectionMananger::OpenPortResult::Status::AlreadyOpened};
+			return ConnectionManager::OpenPortResult{ConnectionManager::OpenPortResult::Status::AlreadyOpened};
 		}
 
 		mPimpl->openPorts.emplace(port, std::make_unique<Impl::OpenPortData>());
 
-		return ConnectionMananger::OpenPortResult{ConnectionMananger::OpenPortResult::Status::Success};
+		return ConnectionManager::OpenPortResult{ConnectionManager::OpenPortResult::Status::Success};
 	}
 
-	bool ConnectionMananger::isPortOpen(u16 port) const
+	bool ConnectionManager::isPortOpen(u16 port) const
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		return mPimpl->openPorts.contains(port);
 	}
 
-	void ConnectionMananger::stopListeningToPort(u16 port)
+	void ConnectionManager::stopListeningToPort(u16 port)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		auto portDataIt = mPimpl->openPorts.find(port);
 		if (portDataIt == mPimpl->openPorts.end())
 		{
@@ -98,51 +103,55 @@ namespace HAL
 		mPimpl->openPorts.erase(portDataIt);
 	}
 
-	ConnectionMananger::ConnectResult ConnectionMananger::connectToServer(IpV4Address address, u16 port)
+	ConnectionManager::ConnectResult ConnectionManager::connectToServer(IpV4Address address, u16 port)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (address != LocalhostV4)
 		{
 			ReportFatalError("Real network connections are not supported yet, use 127.0.0.1 to simulate local connection");
-			return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Failure, InvalidConnectionId};
+			return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId};
 		}
 
 		const ConnectionId clientConnectionId = mPimpl->addServerConnectionAndReturnClientConnectionId(port);
 
 		if (clientConnectionId != InvalidConnectionId)
 		{
-			return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Success, clientConnectionId};
+			return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Success, clientConnectionId};
 		}
 
 		ReportError("Port %u is closed", port);
-		return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Failure, InvalidConnectionId};
+		return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId};
 	}
 
-	ConnectionMananger::ConnectResult ConnectionMananger::connectToServer(IpV6Address address, u16 port)
+	ConnectionManager::ConnectResult ConnectionManager::connectToServer(IpV6Address address, u16 port)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (address != LocalhostV6)
 		{
 			ReportFatalError("Real network connections are not supported yet, use 127.0.0.1 to simulate local connection");
-			return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Failure, InvalidConnectionId};
+			return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId};
 		}
 
 		const ConnectionId clientConnectionId = mPimpl->addServerConnectionAndReturnClientConnectionId(port);
 
 		if (clientConnectionId != InvalidConnectionId)
 		{
-			return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Success, clientConnectionId};
+			return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Success, clientConnectionId};
 		}
 
 		ReportError("Port %u is closed", port);
-		return ConnectionMananger::ConnectResult{ConnectionMananger::ConnectResult::Status::Failure, InvalidConnectionId};
+		return ConnectionManager::ConnectResult{ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId};
 	}
 
-	bool ConnectionMananger::isConnectionOpen(ConnectionId connection) const
+	bool ConnectionManager::isConnectionOpen(ConnectionId connection) const
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		return mPimpl->openConnections.contains(connection);
 	}
 
-	void ConnectionMananger::dropConnection(ConnectionId connection)
+	void ConnectionManager::dropConnection(ConnectionId connection)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (auto connectionPairIt = mPimpl->openConnections.find(connection); connectionPairIt != mPimpl->openConnections.end())
 		{
 			ConnectionId clientSideConnectionId = InvalidConnectionId;
@@ -187,8 +196,9 @@ namespace HAL
 		}
 	}
 
-	ConnectionMananger::SendMessageResult ConnectionMananger::sendMessage(ConnectionId connectionId, Message&& message, MessageReliability reliability)
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessage(ConnectionId connectionId, Message&& message, MessageReliability reliability)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (reliability != MessageReliability::Reliable)
 		{
 			ReportError("Only MessageReliability::Reliable is supported at the moment");
@@ -198,7 +208,7 @@ namespace HAL
 		if (connectionIt == mPimpl->openConnections.end())
 		{
 			ReportError("Trying to send a message to a closed connection");
-			return ConnectionMananger::SendMessageResult{ConnectionMananger::SendMessageResult::Status::ConnectionClosed};
+			return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::ConnectionClosed};
 		}
 
 		if (auto portIt = mPimpl->portByClientConnection.find(connectionId); portIt != mPimpl->portByClientConnection.end())
@@ -207,7 +217,7 @@ namespace HAL
 			if (auto portDataIt = mPimpl->openPorts.find(portIt->second); portDataIt != mPimpl->openPorts.end())
 			{
 				portDataIt->second->receivedMessages.emplace_back(connectionIt->second, std::move(message));
-				return ConnectionMananger::SendMessageResult{ConnectionMananger::SendMessageResult::Status::Success};
+				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 			}
 			else
 			{
@@ -218,14 +228,15 @@ namespace HAL
 		{
 			// server-to-client
 			mPimpl->receivedClientMessages.emplace_back(connectionIt->second, std::move(message));
-			return ConnectionMananger::SendMessageResult{ConnectionMananger::SendMessageResult::Status::Success};
+			return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 		}
 
-		return ConnectionMananger::SendMessageResult{ConnectionMananger::SendMessageResult::Status::UnknownFailure};
+		return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::UnknownFailure};
 	}
 
-	std::vector<std::pair<ConnectionId, ConnectionMananger::Message>> ConnectionMananger::consumeReceivedMessages(u16 port)
+	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedMessages(u16 port)
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		if (auto it = mPimpl->openPorts.find(port); it != mPimpl->openPorts.end())
 		{
 			return std::move(it->second->receivedMessages);
@@ -235,8 +246,9 @@ namespace HAL
 		return {};
 	}
 
-	std::vector<std::pair<ConnectionId, ConnectionMananger::Message>> ConnectionMananger::consumeReceivedClientMessages()
+	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedClientMessages()
 	{
+		std::lock_guard l(mPimpl->dataMutex);
 		return std::move(mPimpl->receivedClientMessages);
 	}
 }

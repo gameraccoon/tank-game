@@ -20,7 +20,7 @@ ControlSystem::ControlSystem(WorldHolder& worldHolder, const InputData& inputDat
 {
 }
 
-void UpdateRenderStateOnPressed(const HAL::KeyStatesMap& keys, int key, bool& value)
+static void UpdateRenderStateOnPressed(const HAL::KeyStatesMap& keys, int key, bool& value)
 {
 	if (keys.isJustPressed(key))
 	{

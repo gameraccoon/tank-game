@@ -1,6 +1,7 @@
 #include "Base/precomp.h"
 
 #include <ctime>
+#include <chrono>
 
 #include <raccoon-ecs/error_handling.h>
 
@@ -10,7 +11,7 @@
 
 #include "HAL/Base/Engine.h"
 
-#include "GameLogic/Game/TankGame.h"
+#include "GameLogic/Game/TankClientGame.h"
 #include "GameLogic/Game/ApplicationData.h"
 
 int main(int argc, char** argv)
@@ -31,10 +32,17 @@ int main(int argc, char** argv)
 	engine.releaseRenderContext();
 	applicationData.renderThread.startThread(resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
 
-	TankGame game(&engine, resourceManager, applicationData.threadPool);
-	game.preStart(arguments, applicationData.renderThread.getAccessor());
-	game.start(); // this call waits until the game is being shut down
-	game.onGameShutdown();
+	TankClientGame clientGame(&engine, resourceManager, applicationData.threadPool);
+
+	std::thread serverThread([&resourceManager, &applicationData, &arguments]{
+		applicationData.serverThreadFunction(resourceManager, applicationData.threadPool, arguments);
+	});
+
+	clientGame.preStart(arguments, applicationData.renderThread.getAccessor());
+	clientGame.start(); // this call waits until the game is being shut down
+	clientGame.onGameShutdown();
+
+	serverThread.join();
 
 	applicationData.shutdownThreads(); // this call waits for the threads to be joined
 

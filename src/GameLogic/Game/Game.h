@@ -33,7 +33,7 @@ public:
 
 	void dynamicTimePreFrameUpdate(float dt) final;
 	void fixedTimeUpdate(float dt) override;
-	void dynamicTimePostFrameUpdate(float dt) final;
+	void dynamicTimePostFrameUpdate(float dt) override;
 	void setKeyboardKeyState(int key, bool isPressed) override;
 	void setMouseKeyState(int key, bool isPressed) override;
 	void initResources() override;

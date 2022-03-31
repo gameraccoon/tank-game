@@ -22,20 +22,14 @@ namespace HAL
 	ConcurrentAccessDetector gSDLAccessDetector;
 #endif
 
-	static const float ONE_SECOND_TICKS = 1000.0f;
-	static const float ONE_TICK_SECONDS = 1.0f / ONE_SECOND_TICKS;
-	static const Uint32 ONE_FRAME_TICKS = 16;
-	static const float ONE_FRAME_SEC = ONE_FRAME_TICKS * ONE_TICK_SECONDS;
-
 	struct Engine::Impl
 	{
 		Internal::SDLInstance mSdl;
 		Internal::Window mWindow;
-		Internal::GlContext mGlContext;
+		Internal::GlContext mGlContext{mWindow};
 		Graphics::Renderer mRenderer;
 		Uint32 mLastFrameTicks;
-		IGame* mGame;
-		bool mQuit;
+		IGame* mGame = nullptr;
 
 		float mMouseX;
 		float mMouseY;
@@ -44,11 +38,7 @@ namespace HAL
 		Impl(int windowWidth, int windowHeight) noexcept
 			: mSdl(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE)
 			, mWindow(windowWidth, windowHeight)
-			, mGlContext(mWindow)
-			, mRenderer()
 			, mLastFrameTicks(SDL_GetTicks())
-			, mGame(nullptr)
-			, mQuit(false)
 			, mMouseX(static_cast<float>(windowWidth) * 0.5f)
 			, mMouseY(static_cast<float>(windowHeight) * 0.5f)
 		{
@@ -101,11 +91,6 @@ namespace HAL
 		return Vector2D(mPimpl->mMouseX, mPimpl->mMouseY);
 	}
 
-	void Engine::quit()
-	{
-		mPimpl->mQuit = true;
-	}
-
 	void Engine::start(IGame* game)
 	{
 		mPimpl->mGame = game;
@@ -155,7 +140,7 @@ namespace HAL
 
 	void Engine::Impl::start()
 	{
-		while (!mQuit)
+		while (!mGame->shouldQuitGame())
 		{
 			parseEvents();
 
@@ -202,7 +187,7 @@ namespace HAL
 		{
 			switch (event.type) {
 			case SDL_QUIT:
-				mQuit = true;
+				mGame->quitGame();
 				break;
 			case SDL_KEYDOWN:
 				mGame->setKeyboardKeyState(event.key.keysym.sym, true);

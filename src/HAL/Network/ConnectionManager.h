@@ -11,7 +11,7 @@
 
 namespace HAL
 {
-	class ConnectionMananger
+	class ConnectionManager
 	{
 	public:
 		static constexpr ConnectionId InvalidConnectionId = std::numeric_limits<ConnectionId>::max();
@@ -80,12 +80,13 @@ namespace HAL
 		static constexpr IpV6Address LocalhostV6 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
 
 	public:
-		ConnectionMananger();
-		~ConnectionMananger();
-		ConnectionMananger(const ConnectionMananger&) = delete;
-		ConnectionMananger& operator=(const ConnectionMananger&) = delete;
-		ConnectionMananger(ConnectionMananger&&) = delete;
-		ConnectionMananger& operator=(ConnectionMananger&&) = delete;
+		ConnectionManager();
+		~ConnectionManager();
+
+		ConnectionManager(const ConnectionManager&) = delete;
+		ConnectionManager& operator=(const ConnectionManager&) = delete;
+		ConnectionManager(ConnectionManager&&) = delete;
+		ConnectionManager& operator=(ConnectionManager&&) = delete;
 
 		OpenPortResult startListeningToPort(u16 port);
 		[[nodiscard]] bool isPortOpen(u16 port) const;

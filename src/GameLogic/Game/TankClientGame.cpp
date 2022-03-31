@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/Game/TankGame.h"
+#include "GameLogic/Game/TankClientGame.h"
 
 #include "Base/Types/TemplateHelpers.h"
 
@@ -9,6 +9,7 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
+#include "GameData/Components/RenderAccessorComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
 
@@ -22,6 +23,7 @@
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
+#include "GameLogic/Systems/ClientNetworkSystem.h"
 
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Systems/ImguiSystem.h"
@@ -33,28 +35,29 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankGame::preStart(ArgumentsParser& arguments)
+void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessor& renderAccessor)
 {
-	SCOPED_PROFILER("TankGame::start");
+	SCOPED_PROFILER("TankClientGame::preStart");
 
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
 	initSystems();
 
-	const int workerThreadCount = 3;
-
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
+
+	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
+	renderAccessorComponent->setAccessor(&renderAccessor);
 
 	Game::preStart(arguments);
 }
 
-void TankGame::initSystems()
+void TankClientGame::initSystems()
 {
-	SCOPED_PROFILER("TankGame::initSystems");
+	SCOPED_PROFILER("TankClientGame::initSystems");
 
-	AssertFatal(getEngine(), "TankGame created without Engine. We're going to crash");
+	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
 	getPreFrameSystemsManager().registerSystem<ControlSystem>(getWorldHolder(), getInputData());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
@@ -64,15 +67,25 @@ void TankGame::initSystems()
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getTime(), getResourceManager(), getThreadPool());
 	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getTime(), getResourceManager());
+	getPostFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mConnectionManager, mShouldQuitGameNextTick);
 
 #ifdef IMGUI_ENABLED
 	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *getEngine());
 #endif // IMGUI_ENABLED
 }
 
-void TankGame::initResources()
+void TankClientGame::initResources()
 {
-	SCOPED_PROFILER("TankGame::initResources");
+	SCOPED_PROFILER("TankGameClient::initResources");
 	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
 	Game::initResources();
+}
+
+void TankClientGame::dynamicTimePostFrameUpdate(float dt)
+{
+	Game::dynamicTimePostFrameUpdate(dt);
+	if (mShouldQuitGameNextTick)
+	{
+		mShouldQuitGame = true;
+	}
 }
