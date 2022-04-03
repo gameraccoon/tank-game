@@ -71,7 +71,7 @@ void ApplicationData::shutdownThreads()
 void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments)
 {
 	TankServerGame serverGame(resourceManager, threadPool);
-	constexpr auto oneFrameDuration = HAL::Engine::ONE_FRAME_DURATION;
+	constexpr auto oneFrameDuration = HAL::Engine::ONE_FIXED_UPDATE_DURATION;
 
 	serverGame.preStart(arguments);
 	auto lastFrameTime = std::chrono::steady_clock::now() - oneFrameDuration;
@@ -83,6 +83,13 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 		auto passedTime = timeNow - lastFrameTime;
 		if (passedTime >= oneFrameDuration)
 		{
+			// if we exceeded max frame ticks last frame, that likely mean we were staying on a breakpoint
+			// readjust to normal ticking speed
+			if (passedTime > HAL::Engine::MAX_FRAME_DURATION)
+			{
+				passedTime = HAL::Engine::ONE_FIXED_UPDATE_DURATION;
+			}
+
 			const float lastFrameDurationSec = std::chrono::duration<float>(passedTime).count();
 
 			serverGame.dynamicTimePreFrameUpdate(lastFrameDurationSec);
@@ -90,7 +97,7 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 			int iterations = 0;
 			while (passedTime >= oneFrameDuration)
 			{
-				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FRAME_SEC);
+				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FIXED_UPDATE_SEC);
 				passedTime -= oneFrameDuration;
 				++iterations;
 			}
