@@ -80,6 +80,7 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 	{
 		auto timeNow = std::chrono::steady_clock::now();
 
+		int iterations = 0;
 		auto passedTime = timeNow - lastFrameTime;
 		if (passedTime >= oneFrameDuration)
 		{
@@ -94,7 +95,6 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 
 			serverGame.dynamicTimePreFrameUpdate(lastFrameDurationSec);
 
-			int iterations = 0;
 			while (passedTime >= oneFrameDuration)
 			{
 				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FIXED_UPDATE_SEC);
@@ -104,11 +104,11 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 
 			serverGame.dynamicTimePostFrameUpdate(lastFrameDurationSec);
 			lastFrameTime = timeNow - passedTime;
+		}
 
-			if (iterations <= 1)
-			{
-				std::this_thread::yield();
-			}
+		if (iterations <= 1)
+		{
+			std::this_thread::yield();
 		}
 	}
 	serverGame.onGameShutdown();
