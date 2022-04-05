@@ -21,6 +21,8 @@ namespace GameDataLoader
 
 	void SaveWorld(World& world, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
+		SCOPED_PROFILER("SaveWorld");
+
 		namespace fs = std::filesystem;
 		fs::path levelPath(levelName);
 
@@ -57,6 +59,8 @@ namespace GameDataLoader
 
 	void LoadWorld(World& world, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
+		SCOPED_PROFILER("LoadWorld");
+
 		namespace fs = std::filesystem;
 		fs::path levelPath(levelName);
 
@@ -91,6 +95,8 @@ namespace GameDataLoader
 
 	void SaveGameData(const GameData& gameData, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
+		SCOPED_PROFILER("SaveGameData");
+
 		namespace fs = std::filesystem;
 		fs::path gameDataPath(gameDataName);
 
@@ -122,6 +128,8 @@ namespace GameDataLoader
 
 	void LoadGameData(GameData& gameData, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
+		SCOPED_PROFILER("LoadGameData");
+
 		namespace fs = std::filesystem;
 		fs::path gameDataPath(gameDataName);
 
