@@ -32,6 +32,8 @@ public:
 	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments);
 
 private:
+#ifdef ENABLE_SCOPED_PROFILER
 	std::vector<std::pair<size_t, ScopedProfilerThreadData::Records>> mScopedProfileRecords;
 	std::mutex mScopedProfileRecordsMutex;
+#endif // ENABLE_SCOPED_PROFILER
 };

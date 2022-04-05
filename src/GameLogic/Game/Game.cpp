@@ -125,7 +125,9 @@ void Game::initResources()
 
 void Game::onGameShutdown()
 {
+#ifdef ENABLE_SCOPED_PROFILER
 	ProfileDataWriter::PrintFrameDurationStatsToFile(mFrameDurationsOutputPath, mFrameDurations);
+#endif // ENABLE_SCOPED_PROFILER
 
 	mPreFrameSystemsManager.shutdown();
 	mGameLogicSystemsManager.shutdown();
