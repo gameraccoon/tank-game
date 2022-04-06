@@ -26,16 +26,15 @@ int main(int argc, char** argv)
 
 	ApplicationData applicationData(arguments.getIntArgumentValue("profile-systems", ApplicationData::DefaultWorkerThreadCount));
 	HAL::Engine engine(800, 600);
-	ResourceManager resourceManager;
 
 	// switch render context to render thread
 	engine.releaseRenderContext();
-	applicationData.renderThread.startThread(resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
+	applicationData.renderThread.startThread(applicationData.resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
 
-	TankClientGame clientGame(&engine, resourceManager, applicationData.threadPool);
+	TankClientGame clientGame(&engine, applicationData.resourceManager, applicationData.threadPool);
 
-	std::thread serverThread([&resourceManager, &applicationData, &arguments]{
-		applicationData.serverThreadFunction(resourceManager, applicationData.threadPool, arguments);
+	std::thread serverThread([&applicationData, &arguments]{
+		applicationData.serverThreadFunction(applicationData.resourceManager, applicationData.threadPool, arguments);
 	});
 
 	clientGame.preStart(arguments, applicationData.renderThread.getAccessor());

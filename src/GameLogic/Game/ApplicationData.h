@@ -15,18 +15,20 @@ public:
 	static constexpr int DefaultWorkerThreadCount = 3;
 	const int MainThreadId = 0;
 	const int WorkerThreadsCount = DefaultWorkerThreadCount;
-	const int ServerThreadId = WorkerThreadsCount + 1;
-	const int RenderThreadId = ServerThreadId + 1;
+	const int RenderThreadId = WorkerThreadsCount + 1;
+	const int ResourceLoadingThreadId = RenderThreadId + 1;
+	const int ServerThreadId = ResourceLoadingThreadId + 1;
 	std::string ScopedProfileOutputPath = "./scoped_profile.json";
 
 	ThreadPool threadPool;
 	RenderThreadManager renderThread;
+	ResourceManager resourceManager;
 
 public:
 	ApplicationData(int threadsCount);
 
 	void writeProfilingData();
-	void workingThreadSaveProfileData();
+	void threadSaveProfileData(int threadIndex);
 	void shutdownThreads();
 
 	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments);

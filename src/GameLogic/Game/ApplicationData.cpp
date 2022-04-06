@@ -10,10 +10,12 @@
 
 ApplicationData::ApplicationData(int threadsCount)
 	: WorkerThreadsCount(threadsCount)
-	, ServerThreadId(threadsCount + 1)
-	, RenderThreadId(threadsCount + 2)
-	, threadPool(threadsCount, [this]{ workingThreadSaveProfileData(); })
+	, RenderThreadId(threadsCount + 1)
+	, ResourceLoadingThreadId(threadsCount + 2)
+	, ServerThreadId(threadsCount + 3)
+	, threadPool(threadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); })
 {
+	resourceManager.startLoadingThread([this]{ threadSaveProfileData(ResourceLoadingThreadId); });
 }
 
 void ApplicationData::writeProfilingData()
@@ -41,8 +43,9 @@ void ApplicationData::writeProfilingData()
 
 		data.threadNames.resize(RenderThreadId + 1);
 		data.threadNames[MainThreadId] = "Main Thread";
-		data.threadNames[ServerThreadId] = "Server Thread";
 		data.threadNames[RenderThreadId] = "Render Thread";
+		data.threadNames[ResourceLoadingThreadId] = "Resource Loading Thread";
+		data.threadNames[ServerThreadId] = "Server Thread";
 		for (int i = 0; i < WorkerThreadsCount; ++i)
 		{
 			// zero is reserved for main thread
@@ -54,11 +57,11 @@ void ApplicationData::writeProfilingData()
 #endif // ENABLE_SCOPED_PROFILER
 }
 
-void ApplicationData::workingThreadSaveProfileData()
+void ApplicationData::threadSaveProfileData([[maybe_unused]] int threadIndex)
 {
 #ifdef ENABLE_SCOPED_PROFILER
 	std::lock_guard l(mScopedProfileRecordsMutex);
-	mScopedProfileRecords.emplace_back(ThreadPool::GetThisThreadId(), gtlScopedProfilerData.getAllRecords());
+	mScopedProfileRecords.emplace_back(threadIndex, gtlScopedProfilerData.getAllRecords());
 #endif // ENABLE_SCOPED_PROFILER
 }
 
@@ -66,6 +69,7 @@ void ApplicationData::shutdownThreads()
 {
 	threadPool.shutdown();
 	renderThread.shutdownThread();
+	resourceManager.stopLoadingThread();
 }
 
 void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments)
