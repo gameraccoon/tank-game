@@ -1,6 +1,3 @@
-[submodule "editor/Qt-Advanced-Docking-System"]
-	path = editor/Qt-Advanced-Docking-System
-	url = ../Qt-Advanced-Docking-System.git
 [submodule "external/sources/imgui"]
 	path = external/sources/imgui
 	url = ../../ocornut/imgui.git

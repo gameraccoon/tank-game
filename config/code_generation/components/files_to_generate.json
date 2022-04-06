@@ -47,32 +47,6 @@
 		"blacklist": ["transient"]
 	},
 	{
-		"name_template": "{class_name}EditFactory.generated.h",
-		"template": "editor/component_edit_factory_header",
-		"output_dir": "editor/src/componenteditcontent/generated/",
-		"blacklist": ["transient"]
-	},
-	{
-		"name_template": "{class_name}EditFactory.generated.cpp",
-		"template": "editor/component_edit_factory_source",
-		"output_dir": "editor/src/componenteditcontent/generated/",
-		"blacklist": ["transient"]
-	},
-	{
-		"name_template": "Change{class_name}{attribute_name_capital}Command.generated.h",
-		"template": "editor/attribute_edit_command_header",
-		"output_dir": "editor/src/editorcommands/generated/",
-		"flags": ["per_attribute"],
-		"blacklist": ["transient", "custom_editor"]
-	},
-	{
-		"name_template": "Change{class_name}{attribute_name_capital}Command.generated.cpp",
-		"template": "editor/attribute_edit_command_source",
-		"output_dir": "editor/src/editorcommands/generated/",
-		"flags": ["per_attribute"],
-		"blacklist": ["transient", "custom_editor"]
-	},
-	{
 		"name_template": "ComponentFactoryRegistration.generated.cpp",
 		"template": "components_factory_registration_source",
 		"output_dir": "src/GameData/ComponentRegistration/",
@@ -88,18 +62,6 @@
 		"name_template": "ComponentJsonSerializerRegistration.generated.cpp",
 		"template": "serialization/json/components_json_serializer_registration_source",
 		"output_dir": "src/GameData/ComponentRegistration/",
-		"flags": ["list"]
-	},
-	{
-		"name_template": "componentregistration.generated.cpp",
-		"template": "editor/components_registration_source",
-		"output_dir": "editor/src/componenteditcontent/",
-		"flags": ["list"]
-	},
-	{
-		"name_template": "editablecomponentsset.generated.cpp",
-		"template": "editor/editable_components_set_source",
-		"output_dir": "editor/src/componenteditcontent/",
 		"flags": ["list"]
 	}
 ]

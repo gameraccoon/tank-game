@@ -1,29 +1,9 @@
 {
-    "version": "d_J8WcVXW49G",
+    "version": "d_fJvP7JQw99",
     "world": {
         "entity_manager": {
             "components": {
-                "SpriteCreatorComponent": [
-                    {
-                        "descriptions": [
-                            {
-                                "params": {
-                                    "anchor": {
-                                        "x": 0.5,
-                                        "y": 0.5
-                                    },
-                                    "size": {
-                                        "x": 16.0,
-                                        "y": 16.0
-                                    }
-                                },
-                                "path": "resources/textures/tile-base.png"
-                            }
-                        ]
-                    }
-                ],
                 "TileGridCreatorComponent": [
-                    null,
                     {
                         "gridPath": "resources/tilesets/level1-map.tmj",
                         "size": {
@@ -35,17 +15,8 @@
                 "TransformComponent": [
                     {
                         "location": {
-                            "x": 147.48782348632813,
-                            "y": 197.73196411132813
-                        },
-                        "rotation": {
-                            "v": 0.0
-                        }
-                    },
-                    {
-                        "location": {
-                            "x": 219.0,
-                            "y": 219.0
+                            "x": 287.0,
+                            "y": 205.0
                         },
                         "rotation": {
                             "v": 0.0
@@ -54,7 +25,6 @@
                 ]
             },
             "entities": [
-                1,
                 2
             ]
         },

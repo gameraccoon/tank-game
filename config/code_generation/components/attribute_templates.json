@@ -56,26 +56,5 @@
 		"params": [],
 		"blacklist": ["transient"],
 		"whitelist": ["defaulted"]
-	},
-	{
-		"name": "editor/attribute_edit_fields",
-		"params": [],
-		"blacklist": ["transient"]
-	},
-	{
-		"name": "editor/attribute_edit_command_includes",
-		"params": [],
-		"blacklist": ["transient", "custom_editor"]
-	},
-	{
-		"name": "editor/attribute_edit_initialization",
-		"params": [],
-		"blacklist": ["transient", "custom_editor"]
-	},
-	{
-		"name": "editor/editable_attribute_includes",
-		"params": ["not_empty", "sort", "remove_duplicates"],
-		"value_to_empty_test": "attribute_includes",
-		"blacklist": ["transient", "custom_editor"]
 	}
 ]
