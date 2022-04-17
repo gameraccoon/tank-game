@@ -12,6 +12,7 @@
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
 #include "GameData/Components/CharacterStateComponent.generated.h"
+#include "GameData/Components/ClientGameDataComponent.generated.h"
 
 
 ControlSystem::ControlSystem(WorldHolder& worldHolder, const InputData& inputData) noexcept
@@ -65,7 +66,26 @@ void ControlSystem::processPlayerInput()
 {
 	const HAL::KeyStatesMap& keyStates = mInputData.keyboardKeyStates;
 	//const HAL::KeyStatesMap& mouseKeyStates = mInputData.mouseKeyStates;
-	//World& world = mWorldHolder.getWorld();
+	World& world = mWorldHolder.getWorld();
+
+	const auto [clientGameData] = world.getWorldComponents().getComponents<ClientGameDataComponent>();
+
+	if (clientGameData == nullptr)
+	{
+		return;
+	}
+
+	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
+	if (!controlledEntity.isValid())
+	{
+		return;
+	}
+
+	auto [movement] = world.getEntityManager().getEntityComponents<MovementComponent>(controlledEntity.getEntity());
+	if (movement == nullptr)
+	{
+		return;
+	}
 
 	//bool isRunPressed = keyStates.isPressed(SDLK_LSHIFT) || keyStates.isPressed(SDLK_RSHIFT);
 
@@ -91,4 +111,6 @@ void ControlSystem::processPlayerInput()
 	{
 		movementDirection += DOWN_DIRECTION;
 	}
+
+	movement->setMoveDirection(movementDirection.unit());
 }

@@ -1,0 +1,26 @@
+{
+	"component": "inputHistory",
+	"description": "Component that stores input history",
+	"attributes": [
+		{
+			"name": "movementInputs",
+			"type": "std::array<Vector2D, 62>",
+			"includes": [
+				"<array>",
+				"\"GameData/Geometry/Vector2D.h\"",
+				"\"Base/Types/BasicTypes.h\""
+			],
+			"flags": ["get_by_ref"]
+		},
+		{
+			"name": "movementInputsLastIdx",
+			"type": "size_t",
+			"default": " = mMovementInputs.size() - 1"
+		},
+		{
+			"name": "movementInputsFilledSize",
+			"type": "size_t",
+			"default": " = 0"
+		}
+	]
+}

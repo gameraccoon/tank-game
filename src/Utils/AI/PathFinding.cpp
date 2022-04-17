@@ -389,7 +389,7 @@ namespace PathFinding
 			PathPoint firstPoint;
 			firstPoint.polygon = finishPolygon;
 			firstPoint.previous = INVALID_POLYGON;
-			// we are moving from finish to start, to then rewind the path
+			// we are moving from finish to start, to then unwind the path
 			firstPoint.pos = finish;
 			firstPoint.scores.g = 0.0f;
 			firstPoint.scores.h = (start - finish).size();

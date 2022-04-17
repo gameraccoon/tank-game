@@ -1,0 +1,24 @@
+{
+	"component": "clientGameData",
+	"description": "Game component that stores client-side info of one client",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "controlledPlayer",
+			"type": "OptionalEntity",
+			"includes": [
+				"\"GameData/EcsDefinitions.h\""
+			],
+			"flags": ["transient"]
+		},
+		{
+			"name": "clientConnectionId",
+			"type": "ConnectionId",
+			"default": " = InvalidConnectionId",
+			"includes": [
+				"\"GameData/Network/ConnectionId.h\""
+			],
+			"flags": ["transient"]
+		}
+	]
+}

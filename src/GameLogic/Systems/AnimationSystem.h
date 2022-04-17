@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <raccoon-ecs/system.h>
 
 #include "GameLogic/SharedManagers/WorldHolder.h"

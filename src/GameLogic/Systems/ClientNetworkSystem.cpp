@@ -2,21 +2,27 @@
 
 #include "GameLogic/Systems/ClientNetworkSystem.h"
 
-#include <sdl/SDL_keycode.h>
-#include <sdl/SDL_mouse.h>
+#include "Base/Types/Serialization.h"
 
-#include "GameData/World.h"
-#include "GameData/GameData.h"
-#include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/Components/ClientGameDataComponent.generated.h"
+#include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
-#include "GameData/Components/CharacterStateComponent.generated.h"
+#include "GameData/Components/InputHistoryComponent.generated.h"
+#include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
+#include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/GameData.h"
+#include "GameData/Network/NetworkMessageIds.h"
+#include "GameData/World.h"
+
+#include "HAL/Network/ConnectionManager.h"
+
+#include "GameLogic/SharedManagers/WorldHolder.h"
 
 
-ClientNetworkSystem::ClientNetworkSystem(WorldHolder& worldHolder, HAL::ConnectionManager& connectionManager, const bool& shouldQuitGame) noexcept
+ClientNetworkSystem::ClientNetworkSystem(WorldHolder& worldHolder, const bool& shouldQuitGame) noexcept
 	: mWorldHolder(worldHolder)
-	, mConnectionManager(connectionManager)
 	, mShouldQuitGameRef(shouldQuitGame)
 {
 }
@@ -25,17 +31,38 @@ void ClientNetworkSystem::update()
 {
 	SCOPED_PROFILER("ClientNetworkSystem::update");
 
-	if (mConnectionId == HAL::ConnectionManager::InvalidConnectionId || !mConnectionManager.isConnectionOpen(mConnectionId))
+	World& world = mWorldHolder.getWorld();
+	GameData& gameData = mWorldHolder.getGameData();
+
+	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
+	auto [clientGameData] = world.getWorldComponents().getComponents<ClientGameDataComponent>();
+
+	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
+
+	if (connectionManager == nullptr || clientGameData == nullptr)
 	{
-		const auto result = mConnectionManager.connectToServer(HAL::ConnectionManager::LocalhostV4, 12345);
+		return;
+	}
+
+	ConnectionId connectionId = clientGameData->getClientConnectionId();
+	if (connectionId == InvalidConnectionId || !connectionManager->isConnectionOpen(connectionId))
+	{
+		const auto result = connectionManager->connectToServer(HAL::ConnectionManager::LocalhostV4, 12345);
 		if (result.status == HAL::ConnectionManager::ConnectResult::Status::Success)
 		{
-			mConnectionId = result.connectionId;
+			connectionId = result.connectionId;
+			clientGameData->setClientConnectionId(connectionId);
 		}
 	}
 
-	if (mShouldQuitGameRef && mConnectionId != HAL::ConnectionManager::InvalidConnectionId && mConnectionManager.isConnectionOpen(mConnectionId))
+	if (connectionId == InvalidConnectionId || !connectionManager->isConnectionOpen(connectionId))
 	{
-		mConnectionManager.sendMessage(mConnectionId, HAL::ConnectionManager::Message{0, {}});
+		return;
+	}
+
+	if (mShouldQuitGameRef)
+	{
+		connectionManager->sendMessage(connectionId, HAL::ConnectionManager::Message{static_cast<u32>(NetworkMessageId::Disconnect), {}});
+		return;
 	}
 }

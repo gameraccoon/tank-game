@@ -1,0 +1,14 @@
+{
+	"component": "networkId",
+	"description": "Component that stores network identificator of an entity",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "id",
+			"type": "u32",
+			"includes": [
+				"\"Base/Types/BasicTypes.h\""
+			]
+		}
+	]
+}

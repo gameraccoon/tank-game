@@ -1,8 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <raccoon-ecs/system.h>
 
 #include "HAL/EngineFwd.h"

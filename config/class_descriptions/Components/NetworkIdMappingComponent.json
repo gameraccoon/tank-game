@@ -1,0 +1,17 @@
+{
+	"component": "networkIdMapping",
+	"description": "Component that stores network network identificators and their mappings to entities",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "networkIdToEntity",
+			"type": "std::unordered_map<u32, Entity>",
+			"includes": [
+				"<unordered_map>",
+				"\"Base/Types/BasicTypes.h\"",
+				"\"GameData/EcsDefinitions.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <limits>
 #include <memory>
 #include <array>
 
@@ -14,8 +13,6 @@ namespace HAL
 	class ConnectionManager
 	{
 	public:
-		static constexpr ConnectionId InvalidConnectionId = std::numeric_limits<ConnectionId>::max();
-
 		struct OpenPortResult
 		{
 			enum class Status
