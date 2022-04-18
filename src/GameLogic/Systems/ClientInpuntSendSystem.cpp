@@ -61,7 +61,14 @@ void ClientInputSendSystem::update()
 
 	EntityManager& entityManager = world.getEntityManager();
 
+	size_t entitiesCount = entityManager.getMatchingEntitiesCount<const InputHistoryComponent, const NetworkIdComponent>();
+	if (entitiesCount == 0)
+	{
+		return;
+	}
+
 	std::vector<std::byte> inputHistoryMessageData;
+	inputHistoryMessageData.reserve(1 + entitiesCount * (4 + 1 + 10 * (4 + 4)));
 	entityManager.forEachComponentSet<const InputHistoryComponent, const NetworkIdComponent>(
 		[&inputHistoryMessageData](const InputHistoryComponent* inputHistory, const NetworkIdComponent* networkId)
 	{

@@ -21,9 +21,10 @@
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 
-#include "HAL/Base/Engine.h"
-
+#include "Utils/Application/ArgumentsParser.h"
 #include "Utils/World/GameDataLoader.h"
+
+#include "HAL/Base/Engine.h"
 
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"

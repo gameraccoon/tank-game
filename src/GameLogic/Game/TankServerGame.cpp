@@ -17,6 +17,7 @@
 
 #include "HAL/Base/Engine.h"
 
+#include "Utils/Application/ArgumentsParser.h"
 #include "Utils/World/GameDataLoader.h"
 
 #include "GameLogic/Systems/AnimationSystem.h"
