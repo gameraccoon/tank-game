@@ -4,22 +4,17 @@
 	"attributes": [
 		{
 			"name": "movementInputs",
-			"type": "std::array<Vector2D, 62>",
+			"type": "std::vector<Vector2D>",
 			"includes": [
-				"<array>",
+				"<vector>",
 				"\"GameData/Geometry/Vector2D.h\"",
 				"\"Base/Types/BasicTypes.h\""
 			],
 			"flags": ["get_by_ref"]
 		},
 		{
-			"name": "movementInputsLastIdx",
-			"type": "size_t",
-			"default": " = mMovementInputs.size() - 1"
-		},
-		{
-			"name": "movementInputsFilledSize",
-			"type": "size_t",
+			"name": "lastInputFrameIdx",
+			"type": "u32",
 			"default": " = 0"
 		}
 	]

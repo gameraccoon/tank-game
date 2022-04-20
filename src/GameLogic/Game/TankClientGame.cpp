@@ -97,7 +97,7 @@ void TankClientGame::initSystems()
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
 	getPreFrameSystemsManager().registerSystem<ControlSystem>(getWorldHolder(), getInputData());
-	getGameLogicSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());

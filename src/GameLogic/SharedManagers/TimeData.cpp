@@ -4,8 +4,9 @@
 
 #include <cmath>
 
-void TimeData::update(float deltaTime)
+void TimeData::update(float deltaTime, u32 framesCount)
 {
 	dt = deltaTime;
 	currentTimestamp.increaseByFloatTime(dt);
+	frameNumber += framesCount;
 }

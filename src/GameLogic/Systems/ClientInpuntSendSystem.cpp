@@ -15,10 +15,12 @@
 #include "GameData/World.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
+#include "GameLogic/SharedManagers/TimeData.h"
 
 
-ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder) noexcept
+ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder, const TimeData& timeData) noexcept
 	: mWorldHolder(worldHolder)
+	, mTimeData(timeData)
 {
 }
 
@@ -28,19 +30,13 @@ void ClientInputSendSystem::update()
 
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
+	const u32 currentFrameIndex = mTimeData.frameNumber;
 
 	world.getEntityManager().forEachComponentSet<InputHistoryComponent, const MovementComponent>(
-		[](InputHistoryComponent* inputHistory, const MovementComponent* movement)
+		[currentFrameIndex](InputHistoryComponent* inputHistory, const MovementComponent* movement)
 	{
-		auto& inputs = inputHistory->getMovementInputsRef();
-		size_t nextInput = inputHistory->getMovementInputsLastIdx() + 1;
-		if (nextInput >= inputs.size())
-		{
-			nextInput = 0;
-		}
-
-		inputs[nextInput] = movement->getMoveDirection();
-		inputHistory->setMovementInputsFilledSize(std::min(inputHistory->getMovementInputsFilledSize() + 1, inputs.size()));
+		inputHistory->getMovementInputsRef().push_back(movement->getMoveDirection());
+		inputHistory->setLastInputFrameIdx(currentFrameIndex);
 	});
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
@@ -73,17 +69,17 @@ void ClientInputSendSystem::update()
 		[&inputHistoryMessageData](const InputHistoryComponent* inputHistory, const NetworkIdComponent* networkId)
 	{
 		Serialization::WriteNumber<u32>(inputHistoryMessageData, networkId->getId());
-		const size_t inputsToSend = std::min(inputHistory->getMovementInputsFilledSize(), static_cast<size_t>(10));
+		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputFrameIdx());
+
+		const size_t inputsSize = inputHistory->getMovementInputs().size();
+		const size_t inputsToSend = std::min(inputsSize, static_cast<size_t>(10));
 
 		Serialization::WriteNumber<u8>(inputHistoryMessageData, inputsToSend);
-		const size_t lastIndex = inputHistory->getMovementInputsLastIdx();
-		const size_t arraySize = inputHistory->getMovementInputs().size();
 
+		const size_t offset = inputsSize - inputsToSend;
 		for (size_t i = 0; i < inputsToSend; ++i)
 		{
-			const size_t offset = inputsToSend - i - 1;
-			const size_t index = (lastIndex + arraySize - offset) % arraySize;
-			const Vector2D input = inputHistory->getMovementInputs()[index];
+			const Vector2D input = inputHistory->getMovementInputs()[offset + i];
 			Serialization::WriteNumber<f32>(inputHistoryMessageData, input.x);
 			Serialization::WriteNumber<f32>(inputHistoryMessageData, input.y);
 		}
@@ -94,7 +90,7 @@ void ClientInputSendSystem::update()
 		connectionManager->sendMessage(
 			connectionId,
 			HAL::ConnectionManager::Message{
-				static_cast<u32>(NetworkMessageId::PlayerMove),
+				static_cast<u32>(NetworkMessageId::PlayerInput),
 				std::move(inputHistoryMessageData)
 			}
 		);

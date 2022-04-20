@@ -7,6 +7,6 @@ enum class NetworkMessageId : u32
 	Connect = 0,
 	Disconnect = 1,
 	Ping = 2,
-	PlayerMove = 3,
+	PlayerInput = 3,
 	PositionReplication = 4,
 };
