@@ -78,12 +78,12 @@ void TankServerGame::initSystems()
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
+	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
-	getGameLogicSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
 }
 
 void TankServerGame::initResources()
