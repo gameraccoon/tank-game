@@ -45,13 +45,10 @@ void RenderSystem::update()
 
 	const auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
 	Vector2D workingRect = worldCachedData->getScreenSize();
-	Vector2D cameraLocation = worldCachedData->getCameraPos();
 
 	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
 
-	Vector2D halfWindowSize = workingRect * 0.5f;
-
-	Vector2D drawShift = halfWindowSize - cameraLocation;
+	Vector2D drawShift = ZERO_VECTOR;
 
 	RenderAccessor* renderAccessor = nullptr;
 	if (auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>(); renderAccessorCmp != nullptr)

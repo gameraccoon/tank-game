@@ -47,16 +47,11 @@ void DebugDrawSystem::update()
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
 
-	auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
-	const Vector2D workingRect = worldCachedData->getScreenSize();
-	const Vector2D cameraLocation = worldCachedData->getCameraPos();
-
 	EntityManager& entityManager = world.getEntityManager();
 
 	auto [renderMode] = gameData.getGameComponents().getComponents<const RenderModeComponent>();
 
-	const Vector2D screenHalfSize = workingRect * 0.5f;
-	const Vector2D drawShift = screenHalfSize - cameraLocation;
+	const Vector2D drawShift = ZERO_VECTOR;
 
 	RenderAccessor* renderAccessor = nullptr;
 	if (auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>(); renderAccessorCmp != nullptr)
@@ -111,7 +106,7 @@ void DebugDrawSystem::update()
 
 			for (const auto& worldPoint : debugDraw->getWorldPoints())
 			{
-				Vector2D screenPos = worldPoint.pos - cameraLocation + screenHalfSize;
+				Vector2D screenPos = worldPoint.pos + drawShift;
 
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 				quadData.position = screenPos;
@@ -131,8 +126,8 @@ void DebugDrawSystem::update()
 			for (const auto& worldLineSegment : debugDraw->getWorldLineSegments())
 			{
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				Vector2D screenPosStart = worldLineSegment.startPos - cameraLocation + screenHalfSize;
-				Vector2D screenPosEnd = worldLineSegment.endPos - cameraLocation + screenHalfSize;
+				Vector2D screenPosStart = worldLineSegment.startPos + drawShift;
+				Vector2D screenPosEnd = worldLineSegment.endPos + drawShift;
 				Vector2D diff = screenPosEnd - screenPosStart;
 				quadData.position = (screenPosStart + screenPosEnd) * 0.5f;
 				quadData.rotation = diff.rotation().getValue();
