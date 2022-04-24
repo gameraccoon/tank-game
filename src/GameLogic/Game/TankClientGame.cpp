@@ -10,16 +10,16 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 
+#include "GameData/Components/CharacterStateComponent.generated.h"
+#include "GameData/Components/ClientGameDataComponent.generated.h"
+#include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/InputHistoryComponent.generated.h"
+#include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
+#include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/ClientGameDataComponent.generated.h"
-#include "GameData/Components/CharacterStateComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/World/GameDataLoader.h"
@@ -33,6 +33,7 @@
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"
+#include "GameLogic/Systems/InputSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
@@ -96,8 +97,9 @@ void TankClientGame::initSystems()
 
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
-	getPreFrameSystemsManager().registerSystem<ControlSystem>(getWorldHolder(), getInputData());
+	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData(), getTime());
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mShouldQuitGameNextTick);
+	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());

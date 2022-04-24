@@ -22,6 +22,7 @@
 
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
+#include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
@@ -79,6 +80,7 @@ void TankServerGame::initSystems()
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
+	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
