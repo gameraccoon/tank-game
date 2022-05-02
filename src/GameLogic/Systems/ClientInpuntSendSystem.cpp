@@ -30,13 +30,17 @@ void ClientInputSendSystem::update()
 
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
-	const u32 currentFrameIndex = mTimeData.frameNumber;
+	const u32 currentFrameIndex = mTimeData.lastFixedUpdateIndex;
+	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
 
 	world.getEntityManager().forEachComponentSet<InputHistoryComponent, const MovementComponent>(
-		[currentFrameIndex](InputHistoryComponent* inputHistory, const MovementComponent* movement)
+		[currentFrameIndex, updatesThisFrame](InputHistoryComponent* inputHistory, const MovementComponent* movement)
 	{
-		inputHistory->getMovementInputsRef().push_back(movement->getMoveDirection());
-		inputHistory->setLastInputFrameIdx(currentFrameIndex);
+		for (u32 i = 0; i < updatesThisFrame; ++i)
+		{
+			inputHistory->getMovementInputsRef().push_back(movement->getMoveDirection());
+		}
+		inputHistory->setLastInputFrameIdx(currentFrameIndex + updatesThisFrame - 1);
 	});
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();

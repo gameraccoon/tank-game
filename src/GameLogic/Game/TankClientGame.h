@@ -18,7 +18,7 @@ public:
 
 	void preStart(ArgumentsParser& arguments, RenderAccessor& renderAccessor);
 	void initResources() override;
-	void dynamicTimePostFrameUpdate(float dt) override;
+	void dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates) override;
 
 	bool shouldQuitGame() const override { return mShouldQuitGame; }
 	void quitGame() override { mShouldQuitGameNextTick = true; }

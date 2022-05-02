@@ -97,16 +97,19 @@ void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, Thr
 
 			const float lastFrameDurationSec = std::chrono::duration<float>(passedTime).count();
 
-			serverGame.dynamicTimePreFrameUpdate(lastFrameDurationSec);
-
 			while (passedTime >= oneFrameDuration)
 			{
-				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FIXED_UPDATE_SEC);
 				passedTime -= oneFrameDuration;
 				++iterations;
 			}
 
-			serverGame.dynamicTimePostFrameUpdate(lastFrameDurationSec);
+			serverGame.dynamicTimePreFrameUpdate(lastFrameDurationSec, iterations);
+			for (int i = 0; i < iterations; ++i)
+			{
+				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FIXED_UPDATE_SEC);
+			}
+			serverGame.dynamicTimePostFrameUpdate(lastFrameDurationSec, iterations);
+
 			lastFrameTime = timeNow - passedTime;
 		}
 

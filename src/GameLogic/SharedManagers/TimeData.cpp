@@ -4,9 +4,10 @@
 
 #include <cmath>
 
-void TimeData::update(float deltaTime, u32 framesCount)
+void TimeData::fixedUpdate(float deltaTime, u32 updatesCount)
 {
-	dt = deltaTime;
-	currentTimestamp.increaseByFloatTime(dt);
-	frameNumber += framesCount;
+	lastFixedUpdateDt = deltaTime;
+	lastUpdateDt = deltaTime;
+	lastFixedUpdateTimestamp.increaseByFloatTime(deltaTime);
+	countFixedTimeUpdatesThisFrame += updatesCount;
 }

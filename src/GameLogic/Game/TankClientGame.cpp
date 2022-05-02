@@ -98,9 +98,9 @@ void TankClientGame::initSystems()
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData(), getTime());
+	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), getTime());
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
@@ -121,9 +121,9 @@ void TankClientGame::initResources()
 	Game::initResources();
 }
 
-void TankClientGame::dynamicTimePostFrameUpdate(float dt)
+void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
 {
-	Game::dynamicTimePostFrameUpdate(dt);
+	Game::dynamicTimePostFrameUpdate(dt, processedFixedUpdates);
 	if (mShouldQuitGameNextTick)
 	{
 		mShouldQuitGame = true;

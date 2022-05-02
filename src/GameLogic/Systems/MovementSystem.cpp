@@ -17,7 +17,7 @@ void MovementSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
 	World& world = mWorldHolder.getWorld();
-	const GameplayTimestamp timestampNow = mTime.currentTimestamp;
+	const GameplayTimestamp timestampNow = mTime.lastFixedUpdateTimestamp;
 
 	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
 		[timestampNow](MovementComponent* movement, TransformComponent* transform)
