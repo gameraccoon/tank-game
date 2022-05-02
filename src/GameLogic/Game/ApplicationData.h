@@ -28,7 +28,7 @@ public:
 	ApplicationData(int threadsCount);
 
 	void writeProfilingData();
-	void threadSaveProfileData(int threadIndex);
+	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();
 
 	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments);
