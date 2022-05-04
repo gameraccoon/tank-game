@@ -6,13 +6,16 @@
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
+#include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
+
+#include "Utils/Network/CompressedInput.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
 #include "GameLogic/SharedManagers/TimeData.h"
@@ -33,12 +36,15 @@ void ClientInputSendSystem::update()
 	const u32 currentFrameIndex = mTimeData.lastFixedUpdateIndex;
 	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
 
-	world.getEntityManager().forEachComponentSet<InputHistoryComponent, const MovementComponent>(
-		[currentFrameIndex, updatesThisFrame](InputHistoryComponent* inputHistory, const MovementComponent* movement)
+	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
+	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
+
+	world.getEntityManager().forEachComponentSet<InputHistoryComponent>(
+		[currentFrameIndex, updatesThisFrame, &gameplayInputState](InputHistoryComponent* inputHistory)
 	{
 		for (u32 i = 0; i < updatesThisFrame; ++i)
 		{
-			inputHistory->getMovementInputsRef().push_back(movement->getMoveDirection());
+			inputHistory->getInputsRef().push_back(gameplayInputState);
 		}
 		inputHistory->setLastInputFrameIdx(currentFrameIndex + updatesThisFrame - 1);
 	});
@@ -75,18 +81,12 @@ void ClientInputSendSystem::update()
 		Serialization::WriteNumber<u32>(inputHistoryMessageData, networkId->getId());
 		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputFrameIdx());
 
-		const size_t inputsSize = inputHistory->getMovementInputs().size();
+		const size_t inputsSize = inputHistory->getInputs().size();
 		const size_t inputsToSend = std::min(inputsSize, static_cast<size_t>(10));
 
 		Serialization::WriteNumber<u8>(inputHistoryMessageData, inputsToSend);
 
-		const size_t offset = inputsSize - inputsToSend;
-		for (size_t i = 0; i < inputsToSend; ++i)
-		{
-			const Vector2D input = inputHistory->getMovementInputs()[offset + i];
-			Serialization::WriteNumber<f32>(inputHistoryMessageData, input.x);
-			Serialization::WriteNumber<f32>(inputHistoryMessageData, input.y);
-		}
+		Utils::WriteInputHistory(inputHistoryMessageData, inputHistory->getInputs(), inputsToSend);
 	});
 
 	if (!inputHistoryMessageData.empty())

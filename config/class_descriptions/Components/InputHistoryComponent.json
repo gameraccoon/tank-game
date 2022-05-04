@@ -1,14 +1,14 @@
 {
 	"component": "inputHistory",
 	"description": "Component that stores input history",
+	"flags": ["transient"],
 	"attributes": [
 		{
-			"name": "movementInputs",
-			"type": "std::vector<Vector2D>",
+			"name": "inputs",
+			"type": "std::vector<GameplayInput::FrameState>",
 			"includes": [
 				"<vector>",
-				"\"GameData/Geometry/Vector2D.h\"",
-				"\"Base/Types/BasicTypes.h\""
+				"\"GameData/Input/GameplayInput.h\""
 			],
 			"flags": ["get_by_ref"]
 		},
