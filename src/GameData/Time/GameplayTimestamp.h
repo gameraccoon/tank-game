@@ -17,18 +17,15 @@ public:
 
 	[[nodiscard]] bool isInitialized() const noexcept;
 
-	[[nodiscard]] bool operator==(GameplayTimestamp other) const noexcept;
-	[[nodiscard]] bool operator!=(GameplayTimestamp other) const noexcept;
-	[[nodiscard]] bool operator<(GameplayTimestamp other) const noexcept;
-	[[nodiscard]] bool operator<=(GameplayTimestamp other) const noexcept;
-	[[nodiscard]] bool operator>(GameplayTimestamp other) const noexcept;
-	[[nodiscard]] bool operator>=(GameplayTimestamp other) const noexcept;
+	auto operator<=>(const GameplayTimestamp& other) const noexcept = default;
 
 	void increaseByFloatTime(float passedTime) noexcept;
 	[[nodiscard]] GameplayTimestamp getIncreasedByFloatTime(float passedTime) const noexcept;
 
 	friend void to_json(nlohmann::json& outJson, const GameplayTimestamp timestamp);
 	friend void from_json(const nlohmann::json& json, GameplayTimestamp& outTimestamp);
+
+	TimeValueType getRawValue() const { return mTimestamp; }
 
 public:
 	static constexpr float TimeMultiplier = 300.0f;

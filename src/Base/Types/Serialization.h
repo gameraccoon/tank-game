@@ -44,7 +44,7 @@ namespace Serialization
 	}
 
 	template<typename Int>
-	Int ReadNumber(ByteStream& inOutByteStream, size_t& cursorPos)
+	Int ReadNumber(const ByteStream& inOutByteStream, size_t& cursorPos)
 	{
 		static_assert(std::is_arithmetic_v<Int>, "Type should be ariphmetic to be deserialized with ReadNumber");
 		static_assert(sizeof(std::array<std::byte, sizeof(Int)>) == sizeof(Int), "Unexpected std::array layout");
