@@ -41,7 +41,7 @@ void ApplicationData::writeProfilingData()
 			data.scopedProfilerDatas.emplace_back(threadId, std::move(records));
 		}
 
-		data.threadNames.resize(RenderThreadId + 1);
+		data.threadNames.resize(ServerThreadId + 1);
 		data.threadNames[MainThreadId] = "Main Thread";
 		data.threadNames[RenderThreadId] = "Render Thread";
 		data.threadNames[ResourceLoadingThreadId] = "Resource Loading Thread";
