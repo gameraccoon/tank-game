@@ -15,7 +15,10 @@
 		{
 			"name": "lastInputFrameIdx",
 			"type": "u32",
-			"default": " = 0"
+			"includes": [
+				"<limits>"
+			],
+			"default": " = std::numeric_limits<u32>::max()"
 		}
 	]
 }

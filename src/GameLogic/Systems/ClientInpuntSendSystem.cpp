@@ -2,20 +2,16 @@
 
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
 
-#include "Base/Types/Serialization.h"
-
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
-#include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
-#include "Utils/Network/CompressedInput.h"
+#include "Utils/Network/Messages/PlayerInputMessage.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
 #include "GameLogic/SharedManagers/TimeData.h"
@@ -32,6 +28,7 @@ void ClientInputSendSystem::update()
 	SCOPED_PROFILER("ClientInputSendSystem::update");
 
 	World& world = mWorldHolder.getWorld();
+	EntityManager& entityManager = world.getEntityManager();
 	GameData& gameData = mWorldHolder.getGameData();
 	const u32 currentFrameIndex = mTimeData.lastFixedUpdateIndex;
 	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
@@ -65,38 +62,8 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-	EntityManager& entityManager = world.getEntityManager();
-
-	size_t entitiesCount = entityManager.getMatchingEntitiesCount<const InputHistoryComponent, const NetworkIdComponent>();
-	if (entitiesCount == 0)
-	{
-		return;
-	}
-
-	std::vector<std::byte> inputHistoryMessageData;
-	inputHistoryMessageData.reserve(1 + entitiesCount * (4 + 1 + 10 * (4 + 4)));
-	entityManager.forEachComponentSet<const InputHistoryComponent, const NetworkIdComponent>(
-		[&inputHistoryMessageData](const InputHistoryComponent* inputHistory, const NetworkIdComponent* networkId)
-	{
-		Serialization::WriteNumber<u32>(inputHistoryMessageData, networkId->getId());
-		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputFrameIdx());
-
-		const size_t inputsSize = inputHistory->getInputs().size();
-		const size_t inputsToSend = std::min(inputsSize, static_cast<size_t>(10));
-
-		Serialization::WriteNumber<u8>(inputHistoryMessageData, inputsToSend);
-
-		Utils::WriteInputHistory(inputHistoryMessageData, inputHistory->getInputs(), inputsToSend);
-	});
-
-	if (!inputHistoryMessageData.empty())
-	{
-		connectionManager->sendMessage(
-			connectionId,
-			HAL::ConnectionManager::Message{
-				static_cast<u32>(NetworkMessageId::PlayerInput),
-				std::move(inputHistoryMessageData)
-			}
-		);
-	}
+	connectionManager->sendMessage(
+		connectionId,
+		Network::CreatePlayerInputMessage(entityManager)
+	);
 }
