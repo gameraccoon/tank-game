@@ -85,7 +85,7 @@ void TankServerGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder(), getTime());
-	getGameLogicSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
+	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 }
 
 void TankServerGame::initResources()
