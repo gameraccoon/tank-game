@@ -16,7 +16,8 @@ public:
 	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool);
 
 	void preStart(const ArgumentsParser& arguments);
-	void initResources() override;
+	void initResources() final;
+	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
 	bool shouldQuitGame() const override { return mShouldQuitGame; }
 	void quitGame() override { mShouldQuitGame = true; }
@@ -26,5 +27,6 @@ private:
 
 private:
 	HAL::ConnectionManager mConnectionManager;
+	std::vector<World> mPreviousFrameWorlds;
 	bool mShouldQuitGame = false;
 };

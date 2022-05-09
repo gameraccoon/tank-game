@@ -11,6 +11,8 @@
 World::World(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
 	: mEntityManager(componentFactory, entityGenerator)
 	, mWorldComponents(componentFactory)
+	, mNotRewindableEntityManager(componentFactory, entityGenerator)
+	, mNotRewindableComponents(componentFactory)
 {
 }
 
@@ -31,4 +33,22 @@ void World::fromJson(const nlohmann::json& json, const Json::ComponentSerializat
 void World::clearCaches()
 {
 	mEntityManager.clearCaches();
+	mNotRewindableEntityManager.clearCaches();
+}
+
+void World::addNewFrameToTheHistory()
+{
+	SCOPED_PROFILER("World::addNewFrameToTheHistory");
+	mFrameHistory.emplace_back(mEntityManager.clone(), mWorldComponents.clone());
+}
+
+void World::trimOldFrames(size_t oldFramesLeft)
+{
+	SCOPED_PROFILER("World::trimOldFrames");
+	if (oldFramesLeft > mFrameHistory.size())
+	{
+		ReportError("Can't leave more frames than already exist");
+		return;
+	}
+	mFrameHistory.erase(mFrameHistory.begin(), mFrameHistory.begin() + (mFrameHistory.size() - oldFramesLeft));
 }

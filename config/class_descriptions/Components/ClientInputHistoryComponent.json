@@ -1,0 +1,15 @@
+{
+	"component": "clientInputHistory",
+	"description": "Component that stores local input history of a client",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "inputs",
+			"type": "Input::InputHistory",
+			"includes": [
+				"\"GameData/Input/InputHistory.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

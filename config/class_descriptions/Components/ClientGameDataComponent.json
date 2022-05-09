@@ -8,8 +8,7 @@
 			"type": "OptionalEntity",
 			"includes": [
 				"\"GameData/EcsDefinitions.h\""
-			],
-			"flags": ["transient"]
+			]
 		},
 		{
 			"name": "clientConnectionId",
@@ -17,8 +16,7 @@
 			"default": " = InvalidConnectionId",
 			"includes": [
 				"\"GameData/Network/ConnectionId.h\""
-			],
-			"flags": ["transient"]
+			]
 		}
 	]
 }

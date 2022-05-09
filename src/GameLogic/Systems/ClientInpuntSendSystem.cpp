@@ -36,7 +36,7 @@ void ClientInputSendSystem::update()
 	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
 	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
 
-	world.getEntityManager().forEachComponentSet<InputHistoryComponent>(
+	entityManager.forEachComponentSet<InputHistoryComponent>(
 		[currentFrameIndex, updatesThisFrame, &gameplayInputState](InputHistoryComponent* inputHistory)
 	{
 		for (u32 i = 0; i < updatesThisFrame; ++i)
@@ -64,6 +64,6 @@ void ClientInputSendSystem::update()
 
 	connectionManager->sendMessage(
 		connectionId,
-		Network::CreatePlayerInputMessage(entityManager)
+		Network::CreatePlayerInputMessage(world)
 	);
 }

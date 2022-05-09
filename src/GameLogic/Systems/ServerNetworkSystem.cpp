@@ -49,7 +49,7 @@ void ServerNetworkSystem::update()
 
 	auto newMessages = connectionManager->consumeReceivedMessages(12345);
 
-	for (auto&& [_, message] : newMessages)
+	for (auto&& [connectionId, message] : newMessages)
 	{
 		switch (static_cast<NetworkMessageId>(message.type))
 		{
@@ -58,7 +58,7 @@ void ServerNetworkSystem::update()
 			break;
 		case NetworkMessageId::PlayerInput:
 		{
-			Network::ApplyPlayerInputMessage(world, std::move(message));
+			Network::ApplyPlayerInputMessage(world, std::move(message), connectionId);
 			break;
 		}
 		default:

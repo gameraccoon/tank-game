@@ -28,6 +28,7 @@ private:
 
 private:
 	HAL::ConnectionManager mConnectionManager;
+	std::vector<World> mPreviousFrameWorlds;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 

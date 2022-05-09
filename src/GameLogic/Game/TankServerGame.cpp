@@ -58,7 +58,6 @@ void TankServerGame::preStart(const ArgumentsParser& arguments)
 		transform->setLocation(Vector2D(50, 50));
 		MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
 		movement->setOriginalSpeed(20.0f);
-		worldEntityManager.addComponent<InputHistoryComponent>(controlledEntity);
 		worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
 		NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
 		networkId->setId(0);
@@ -93,4 +92,12 @@ void TankServerGame::initResources()
 	SCOPED_PROFILER("TankServerGame::initResources");
 	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
 	Game::initResources();
+}
+
+void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
+{
+	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
+	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
+	// copy current world into the history vector
+	getWorldHolder().getWorld().addNewFrameToTheHistory();
 }

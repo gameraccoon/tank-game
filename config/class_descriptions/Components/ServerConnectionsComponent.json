@@ -1,0 +1,27 @@
+{
+	"component": "serverConnections",
+	"description": "Game component that stores information about clients on the server",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "controlledPlayers",
+			"type": "std::unordered_map<ConnectionId, OptionalEntity>",
+			"includes": [
+				"<unordered_map>",
+				"\"GameData/EcsDefinitions.h\"",
+				"\"GameData/Network/ConnectionId.h\""
+			],
+			"flags": ["get_by_ref"]
+		},
+		{
+			"name": "inputs",
+			"type": "std::unordered_map<ConnectionId, Input::InputHistory>",
+			"includes": [
+				"<unordered_map>",
+				"\"GameData/Input/InputHistory.h\"",
+				"\"GameData/Network/ConnectionId.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}
