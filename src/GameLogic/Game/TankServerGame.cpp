@@ -13,6 +13,7 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
@@ -74,6 +75,29 @@ void TankServerGame::preStart(const ArgumentsParser& arguments)
 	Game::preStart(arguments);
 }
 
+void TankServerGame::initResources()
+{
+	SCOPED_PROFILER("TankServerGame::initResources");
+	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
+	Game::initResources();
+}
+
+void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+{
+	SCOPED_PROFILER("TankServerGame::dynamicTimePreFrameUpdate");
+	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
+
+	processInputCorrections();
+}
+
+void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
+{
+	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
+	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
+	// copy current world into the history vector
+	getWorldHolder().getWorld().addNewFrameToTheHistory();
+}
+
 void TankServerGame::initSystems()
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
@@ -87,17 +111,56 @@ void TankServerGame::initSystems()
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 }
 
-void TankServerGame::initResources()
+void TankServerGame::processInputCorrections()
 {
-	SCOPED_PROFILER("TankServerGame::initResources");
-	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
-	Game::initResources();
-}
+	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	const u32 lastProcessedUpdateIdx = getTime().lastFixedUpdateIndex;
+	// first update input for that diverged from with prediction for at least one client
+	u32 firstUpdateToRewind = lastProcessedUpdateIdx + 1;
+	// index of first frame when we don't have input from some client yet
+	u32 firstNotConfirmedUpdateIdx = lastProcessedUpdateIdx;
 
-void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
-{
-	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
-	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
-	// copy current world into the history vector
-	getWorldHolder().getWorld().addNewFrameToTheHistory();
+	constexpr u32 MAX_STORED_UPDATES_COUNT = 60;
+	constexpr u32 MIN_STORED_UPDATES_COUNT = 0;
+
+	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
+	{
+		const u32 lastInputUpdateIdx = inputHistory.lastInputUpdateIdx;
+		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastInputUpdateIdx);
+		// will wrap after ~8.5 years of gameplay
+		const u32 inputFromFutureCount = ((lastInputUpdateIdx > lastProcessedUpdateIdx) ? lastInputUpdateIdx - lastProcessedUpdateIdx : 0);
+		const size_t iEnd = std::min(inputHistory.inputs.size(), inputHistory.inputs.size() - static_cast<size_t>(inputFromFutureCount));
+		for (size_t i = 1; i < iEnd; ++i)
+		{
+			if (inputHistory.inputs[i] != inputHistory.inputs[i - 1])
+			{
+				firstUpdateToRewind = std::min(firstUpdateToRewind, lastInputUpdateIdx - static_cast<u32>(i));
+				break;
+			}
+		}
+	}
+
+	// limit amount of frames to a predefined value
+	firstNotConfirmedUpdateIdx = std::max(firstNotConfirmedUpdateIdx + MAX_STORED_UPDATES_COUNT, lastProcessedUpdateIdx) - MAX_STORED_UPDATES_COUNT;
+
+	// ToDo: correction logic goes here
+	if (firstUpdateToRewind < lastProcessedUpdateIdx + 1)
+	{
+		//LogInfo("%d last frames should be corrected", lastProcessedUpdateIdx + 1 - firstUpdateToRewind);
+	}
+
+	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
+	{
+		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
+		const u32 firstIdxFrame = inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size();
+		const size_t firstIdxToKeep = std::max(firstIdxFrame, firstNotConfirmedUpdateIdx) - firstIdxFrame;
+
+		if (!inputHistory.inputs.empty() && firstIdxToKeep > 0)
+		{
+			inputHistory.inputs.erase(inputHistory.inputs.begin(), inputHistory.inputs.begin() + std::min(firstIdxToKeep, inputHistory.inputs.size() - MIN_STORED_UPDATES_COUNT));
+		}
+	}
+
+	AssertFatal(lastProcessedUpdateIdx >= firstNotConfirmedUpdateIdx, "firstNotConfirmedFrameIdx can't be greater than lastProcessedUpdateIdx");
+	getWorldHolder().getWorld().trimOldFrames(std::max(MIN_STORED_UPDATES_COUNT, lastProcessedUpdateIdx + MIN_STORED_UPDATES_COUNT - firstNotConfirmedUpdateIdx));
 }

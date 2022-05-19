@@ -13,7 +13,7 @@
 			"flags": ["get_by_ref"]
 		},
 		{
-			"name": "lastInputFrameIdx",
+			"name": "lastInputUpdateIdx",
 			"type": "u32",
 			"includes": [
 				"<limits>"

@@ -43,7 +43,7 @@ public:
 
 	std::vector<FrameState>& getFrameHistoryRef() { return mFrameHistory; }
 	void addNewFrameToTheHistory();
-	void trimOldFrames(size_t oldFramesLeft = 0);
+	void trimOldFrames(size_t oldFramesLeft);
 
 private:
 	EntityManager mEntityManager;

@@ -28,7 +28,7 @@ namespace Network
 
 		inputHistoryMessageData.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
-		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputFrameIdx());
+		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputUpdateIdx());
 		Serialization::WriteNumber<u8>(inputHistoryMessageData, inputsToSend);
 
 		Utils::WriteInputHistory(inputHistoryMessageData, inputHistory->getInputs(), inputsToSend);
@@ -75,39 +75,35 @@ namespace Network
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
 		std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
-		auto it = serverConnections->getInputsRef().find(connectionId);
-		if (it != serverConnections->getInputsRef().end())
+		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
+		const u32 lastStoredFrameIndex = inputHistory.lastInputUpdateIdx;
+		if (hasNewInput(lastStoredFrameIndex, frameIndex))
 		{
-			Input::InputHistory& inputHistory = it->second;
-			const u32 lastStoredFrameIndex = inputHistory.lastInputFrameIdx;
-			if (hasNewInput(lastStoredFrameIndex, frameIndex))
+			const size_t newFramesCount = frameIndex - lastStoredFrameIndex;
+			const size_t newInputsCount = std::min(newFramesCount, receivedInputsCount);
+			const size_t resultsOriginalSize = inputHistory.inputs.size();
+			const size_t resultsNewSize = resultsOriginalSize + newFramesCount;
+
+			inputHistory.inputs.resize(resultsNewSize);
+
+			// add new elements to the end of the array
+			const size_t firstIndexToWrite = resultsNewSize - newInputsCount;
+			const size_t firstIndexToRead = receivedInputsCount - newInputsCount;
+			for (size_t writeIdx = firstIndexToWrite, readIdx = firstIndexToRead; writeIdx < resultsNewSize; ++writeIdx, ++readIdx)
 			{
-				const size_t newFramesCount = frameIndex - lastStoredFrameIndex;
-				const size_t newInputsCount = std::min(newFramesCount, receivedInputsCount);
-				const size_t resultsOriginalSize = inputHistory.inputs.size();
-				const size_t resultsNewSize = resultsOriginalSize + newFramesCount;
-
-				inputHistory.inputs.resize(resultsNewSize);
-
-				// add new elements to the end of the array
-				const size_t firstIndexToWrite = resultsNewSize - newInputsCount;
-				const size_t firstIndexToRead = receivedInputsCount - newInputsCount;
-				for (size_t writeIdx = firstIndexToWrite, readIdx = firstIndexToRead; writeIdx < resultsNewSize; ++writeIdx, ++readIdx)
-				{
-					inputHistory.inputs[writeIdx] = receivedFrameStates[readIdx];
-				}
-
-				// if we have a gap in the inputs, fill it with the last input that we had before or the first input after
-				const size_t firstMissingIndex = resultsNewSize - newFramesCount;
-				const size_t indexToFillFrom = (resultsOriginalSize > 0) ? (resultsOriginalSize - 1) : firstIndexToWrite;
-				const GameplayInput::FrameState& inputToFillWith = inputHistory.inputs[indexToFillFrom];
-				for (size_t idx = firstMissingIndex; idx < firstIndexToWrite; ++idx)
-				{
-					inputHistory.inputs[idx] = inputToFillWith;
-				}
-
-				inputHistory.lastInputFrameIdx = frameIndex;
+				inputHistory.inputs[writeIdx] = receivedFrameStates[readIdx];
 			}
+
+			// if we have a gap in the inputs, fill it with the last input that we had before or the first input after
+			const size_t firstMissingIndex = resultsNewSize - newFramesCount;
+			const size_t indexToFillFrom = (resultsOriginalSize > 0) ? (resultsOriginalSize - 1) : firstIndexToWrite;
+			const GameplayInput::FrameState& inputToFillWith = inputHistory.inputs[indexToFillFrom];
+			for (size_t idx = firstMissingIndex; idx < firstIndexToWrite; ++idx)
+			{
+				inputHistory.inputs[idx] = inputToFillWith;
+			}
+
+			inputHistory.lastInputUpdateIdx = frameIndex;
 		}
 	}
 }

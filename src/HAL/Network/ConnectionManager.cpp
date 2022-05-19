@@ -199,9 +199,18 @@ namespace HAL
 	ConnectionManager::SendMessageResult ConnectionManager::sendMessage(ConnectionId connectionId, Message&& message, MessageReliability reliability)
 	{
 		std::lock_guard l(mPimpl->dataMutex);
-		if (reliability != MessageReliability::Reliable)
+		if (reliability == MessageReliability::ReliableAllowReordering)
 		{
-			ReportError("Only MessageReliability::Reliable is supported at the moment");
+			ReportError("MessageReliability::ReliableAllowReordering is not supported at the moment");
+		}
+
+		if (reliability == MessageReliability::Unreliable || reliability == MessageReliability::UnreliableAllowSkip)
+		{
+			if (std::rand() % 2000 == 0)
+			{
+				// imitate sending and loosing
+				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
+			}
 		}
 
 		auto connectionIt = mPimpl->openConnections.find(connectionId);

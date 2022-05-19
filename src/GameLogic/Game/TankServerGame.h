@@ -17,6 +17,7 @@ public:
 
 	void preStart(const ArgumentsParser& arguments);
 	void initResources() final;
+	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
 	bool shouldQuitGame() const override { return mShouldQuitGame; }
@@ -24,6 +25,7 @@ public:
 
 private:
 	void initSystems();
+	void processInputCorrections();
 
 private:
 	HAL::ConnectionManager mConnectionManager;

@@ -28,23 +28,19 @@ void ClientInputSendSystem::update()
 	SCOPED_PROFILER("ClientInputSendSystem::update");
 
 	World& world = mWorldHolder.getWorld();
-	EntityManager& entityManager = world.getEntityManager();
 	GameData& gameData = mWorldHolder.getGameData();
-	const u32 currentFrameIndex = mTimeData.lastFixedUpdateIndex;
+	const u32 lastUpdateIndex = mTimeData.lastFixedUpdateIndex;
 	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
 
 	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
 	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
 
-	entityManager.forEachComponentSet<InputHistoryComponent>(
-		[currentFrameIndex, updatesThisFrame, &gameplayInputState](InputHistoryComponent* inputHistory)
+	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+	for (u32 i = 0; i < updatesThisFrame; ++i)
 	{
-		for (u32 i = 0; i < updatesThisFrame; ++i)
-		{
-			inputHistory->getInputsRef().push_back(gameplayInputState);
-		}
-		inputHistory->setLastInputFrameIdx(currentFrameIndex + updatesThisFrame - 1);
-	});
+		inputHistory->getInputsRef().push_back(gameplayInputState);
+	}
+	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame - 1);
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
 	auto [clientGameData] = world.getWorldComponents().getComponents<ClientGameDataComponent>();
@@ -64,6 +60,7 @@ void ClientInputSendSystem::update()
 
 	connectionManager->sendMessage(
 		connectionId,
-		Network::CreatePlayerInputMessage(world)
+		Network::CreatePlayerInputMessage(world),
+		HAL::ConnectionManager::MessageReliability::Unreliable
 	);
 }

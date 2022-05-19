@@ -45,10 +45,8 @@ void World::addNewFrameToTheHistory()
 void World::trimOldFrames(size_t oldFramesLeft)
 {
 	SCOPED_PROFILER("World::trimOldFrames");
-	if (oldFramesLeft > mFrameHistory.size())
+	if (mFrameHistory.size() > oldFramesLeft)
 	{
-		ReportError("Can't leave more frames than already exist");
-		return;
+		mFrameHistory.erase(mFrameHistory.begin(), mFrameHistory.begin() + (mFrameHistory.size() - oldFramesLeft));
 	}
-	mFrameHistory.erase(mFrameHistory.begin(), mFrameHistory.begin() + (mFrameHistory.size() - oldFramesLeft));
 }
