@@ -42,10 +42,6 @@
 #include "GameLogic/Systems/ImguiSystem.h"
 #endif // IMGUI_ENABLED
 
-#ifdef ENABLE_SCOPED_PROFILER
-#include "Utils/Profiling/ProfileDataWriter.h"
-#endif // ENABLE_SCOPED_PROFILER
-
 #include "GameLogic/Initialization/StateMachines.h"
 
 void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)

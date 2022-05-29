@@ -22,9 +22,6 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/World/GameDataLoader.h"
-#ifdef ENABLE_SCOPED_PROFILER
-#include "Utils/Profiling/ProfileDataWriter.h"
-#endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Initialization/StateMachines.h"
 #include "GameLogic/Render/RenderAccessor.h"
@@ -128,6 +125,8 @@ void TankServerGame::initSystems(bool shouldRender)
 
 void TankServerGame::processInputCorrections()
 {
+	SCOPED_PROFILER("TankServerGame::processInputCorrections");
+
 	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 	const u32 lastProcessedUpdateIdx = getTime().lastFixedUpdateIndex;
 	// first update input for that diverged from with prediction for at least one client
