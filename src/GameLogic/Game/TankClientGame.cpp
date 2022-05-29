@@ -48,7 +48,7 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessor& renderAccessor)
+void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)
 {
 	SCOPED_PROFILER("TankClientGame::preStart");
 
@@ -61,7 +61,7 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessor& render
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
 
 	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
-	renderAccessorComponent->setAccessor(&renderAccessor);
+	renderAccessorComponent->setAccessor(renderAccessor);
 
 	EntityManager& worldEntityManager = getWorldHolder().getWorld().getEntityManager();
 	Entity controlledEntity = worldEntityManager.addEntity();

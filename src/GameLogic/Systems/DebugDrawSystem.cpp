@@ -53,16 +53,13 @@ void DebugDrawSystem::update()
 
 	const Vector2D drawShift = ZERO_VECTOR;
 
-	RenderAccessor* renderAccessor = nullptr;
-	if (auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>(); renderAccessorCmp != nullptr)
-	{
-		renderAccessor = renderAccessorCmp->getAccessor();
-	}
-
-	if (renderAccessor == nullptr)
+	auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>();
+	if (renderAccessorCmp == nullptr || !renderAccessorCmp->getAccessor().has_value())
 	{
 		return;
 	}
+
+	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 
@@ -158,7 +155,7 @@ void DebugDrawSystem::update()
 		RemoveOldDrawElement(debugDraw->getWorldLineSegmentsRef(), mTime.lastFixedUpdateTimestamp);
 	}
 
-	renderAccessor->submitData(std::move(renderData));
+	renderAccessor.submitData(std::move(renderData));
 }
 
 void DebugDrawSystem::init()

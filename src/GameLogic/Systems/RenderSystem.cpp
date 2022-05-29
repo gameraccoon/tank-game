@@ -45,21 +45,18 @@ void RenderSystem::update()
 
 	const auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
 	Vector2D workingRect = worldCachedData->getScreenSize();
-
-	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
-
-	Vector2D drawShift = ZERO_VECTOR;
-
-	RenderAccessor* renderAccessor = nullptr;
-	if (auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>(); renderAccessorCmp != nullptr)
-	{
-		renderAccessor = renderAccessorCmp->getAccessor();
-	}
-
-	if (renderAccessor == nullptr)
+	auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>();
+	if (renderAccessorCmp == nullptr || !renderAccessorCmp->getAccessor().has_value())
 	{
 		return;
 	}
+
+	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
+	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
+
+	Vector2D drawShift = ZERO_VECTOR;
+
+
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 
@@ -99,7 +96,7 @@ void RenderSystem::update()
 		drawTileGridLayer(*renderData, world, drawShift, 1);
 	}
 
-	renderAccessor->submitData(std::move(renderData));
+	renderAccessor.submitData(std::move(renderData));
 }
 
 void RenderSystem::drawBackground(RenderData& renderData, World& world, Vector2D drawShift, Vector2D windowSize)

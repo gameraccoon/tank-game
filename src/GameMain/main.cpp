@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 	// switch render context to render thread
 	engine.releaseRenderContext();
 	applicationData.renderThread.startThread(applicationData.resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
+	RenderAccessor& renderAccessor = applicationData.renderThread.getAccessor();
 
 	TankClientGame clientGame(&engine, applicationData.resourceManager, applicationData.threadPool);
 
@@ -37,7 +38,7 @@ int main(int argc, char** argv)
 		applicationData.serverThreadFunction(applicationData.resourceManager, applicationData.threadPool, arguments);
 	});
 
-	clientGame.preStart(arguments, applicationData.renderThread.getAccessor());
+	clientGame.preStart(arguments, RenderAccessorGameRef(renderAccessor, 0));
 	clientGame.start(); // this call waits until the game is being shut down
 	clientGame.onGameShutdown();
 

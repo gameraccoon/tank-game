@@ -2,21 +2,21 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "GameLogic/Game/Game.h"
+#include "GameData/Render/RenderAccessorGameRef.h"
 
+#include "GameLogic/Game/Game.h"
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Imgui/ImguiDebugData.h"
 #endif
 
 class ArgumentsParser;
-class RenderAccessor;
 
 class TankClientGame : public Game
 {
 public:
 	using Game::Game;
 
-	void preStart(ArgumentsParser& arguments, RenderAccessor& renderAccessor);
+	void preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
 	void initResources() override;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates) override;
 
