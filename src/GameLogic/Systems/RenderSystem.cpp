@@ -43,20 +43,20 @@ void RenderSystem::update()
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
 
-	const auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
-	Vector2D workingRect = worldCachedData->getScreenSize();
 	auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>();
 	if (renderAccessorCmp == nullptr || !renderAccessorCmp->getAccessor().has_value())
 	{
 		return;
 	}
 
-	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
 	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 
-	Vector2D drawShift = ZERO_VECTOR;
+	const auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
+	const Vector2D workingRect = worldCachedData->getScreenSize();
 
+	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
 
+	const Vector2D drawShift = worldCachedData->getDrawShift();
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 

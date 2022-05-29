@@ -30,12 +30,13 @@ int main(int argc, char** argv)
 	// switch render context to render thread
 	engine.releaseRenderContext();
 	applicationData.renderThread.startThread(applicationData.resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
+	applicationData.renderThread.setAmountOfRenderedGameInstances(2);
 	RenderAccessor& renderAccessor = applicationData.renderThread.getAccessor();
 
 	TankClientGame clientGame(&engine, applicationData.resourceManager, applicationData.threadPool);
 
-	std::thread serverThread([&applicationData, &arguments]{
-		applicationData.serverThreadFunction(applicationData.resourceManager, applicationData.threadPool, arguments);
+	std::thread serverThread([&applicationData, &arguments, &renderAccessor]{
+		applicationData.serverThreadFunction(applicationData.resourceManager, applicationData.threadPool, arguments, RenderAccessorGameRef(renderAccessor, 1));
 	});
 
 	clientGame.preStart(arguments, RenderAccessorGameRef(renderAccessor, 0));

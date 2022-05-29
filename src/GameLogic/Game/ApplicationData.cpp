@@ -7,6 +7,7 @@
 #endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Game/TankServerGame.h"
+#include "GameLogic/Render/RenderAccessor.h"
 
 ApplicationData::ApplicationData(int threadsCount)
 	: WorkerThreadsCount(threadsCount)
@@ -72,12 +73,12 @@ void ApplicationData::shutdownThreads()
 	resourceManager.stopLoadingThread();
 }
 
-void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments)
+void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
 {
 	TankServerGame serverGame(resourceManager, threadPool);
 	constexpr auto oneFrameDuration = HAL::Engine::ONE_FIXED_UPDATE_DURATION;
 
-	serverGame.preStart(arguments);
+	serverGame.preStart(arguments, renderAccessor);
 	auto lastFrameTime = std::chrono::steady_clock::now() - oneFrameDuration;
 
 	while (!serverGame.shouldQuitGame())

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <optional>
+
+#include "GameData/Render/RenderAccessorGameRef.h"
+
 #include "HAL/Base/Engine.h"
 
 #include "Utils/Multithreading/ThreadPool.h"
@@ -32,7 +36,7 @@ public:
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();
 
-	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments);
+	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 
 private:
 #ifdef ENABLE_SCOPED_PROFILER

@@ -13,44 +13,54 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/Components/WorldCachedDataComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/World/GameDataLoader.h"
-
-#include "GameLogic/Systems/AnimationSystem.h"
-#include "GameLogic/Systems/CharacterStateSystem.h"
-#include "GameLogic/Systems/ControlSystem.h"
-#include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
-#include "GameLogic/Systems/MovementSystem.h"
-#include "GameLogic/Systems/ResourceStreamingSystem.h"
-#include "GameLogic/Systems/ServerNetworkSystem.h"
-
 #ifdef ENABLE_SCOPED_PROFILER
 #include "Utils/Profiling/ProfileDataWriter.h"
 #endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Initialization/StateMachines.h"
+#include "GameLogic/Render/RenderAccessor.h"
+#include "GameLogic/Systems/AnimationSystem.h"
+#include "GameLogic/Systems/CharacterStateSystem.h"
+#include "GameLogic/Systems/ControlSystem.h"
+#include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
+#include "GameLogic/Systems/MovementSystem.h"
+#include "GameLogic/Systems/RenderSystem.h"
+#include "GameLogic/Systems/ResourceStreamingSystem.h"
+#include "GameLogic/Systems/ServerNetworkSystem.h"
 
 TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool)
 	: Game(nullptr, resourceManager, threadPool)
 {
 }
 
-void TankServerGame::preStart(const ArgumentsParser& arguments)
+void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
 {
 	SCOPED_PROFILER("TankServerGame::preStart");
 
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	initSystems();
+	initSystems(renderAccessor.has_value());
 
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
+
+	// if we do debug rendering of server state
+	if (renderAccessor.has_value())
+	{
+		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
+		renderAccessorComponent->setAccessor(renderAccessor);
+		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setDrawShift(Vector2D(300.0f, 0.0f));
+	}
 
 	EntityManager& worldEntityManager = getWorldHolder().getWorld().getEntityManager();
 	Entity controlledEntity = worldEntityManager.addEntity();
@@ -98,7 +108,7 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
 }
 
-void TankServerGame::initSystems()
+void TankServerGame::initSystems(bool shouldRender)
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
@@ -109,6 +119,11 @@ void TankServerGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder(), getTime());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
+
+	if (shouldRender)
+	{
+		getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getTime(), getResourceManager(), getThreadPool());
+	}
 }
 
 void TankServerGame::processInputCorrections()
