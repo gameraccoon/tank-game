@@ -5,13 +5,15 @@
 #include <sdl/SDL_keycode.h>
 #include <sdl/SDL_mouse.h>
 
-#include "GameData/World.h"
+#include "GameData/Components/ClientGameDataComponent.generated.h"
+#include "GameData/Components/GameplayInputComponent.generated.h"
+#include "GameData/Components/GameplayInputComponent.generated.h"
+#include "GameData/Components/ImguiComponent.generated.h"
+#include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/InputBindings.h"
-#include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Components/RenderModeComponent.generated.h"
-#include "GameData/Components/ImguiComponent.generated.h"
-#include "GameData/Components/GameplayInputComponent.generated.h"
+#include "GameData/World.h"
 
 #include "HAL/InputControllersData.h"
 
@@ -94,8 +96,23 @@ void InputSystem::processGameplayInput()
 	World& world = mWorldHolder.getWorld();
 	const GameplayTimestamp currentTimestamp = mTime.lastFixedUpdateTimestamp.getIncreasedByFloatTime(mTime.lastFixedUpdateDt);
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
+	EntityManager& entityManager = world.getEntityManager();
 
-	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
+	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+
+	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
+
+	if (!controlledEntity.isValid())
+	{
+		return;
+	}
+
+	auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(controlledEntity.getEntity());
+	if (gameplayInput == nullptr)
+	{
+		gameplayInput = entityManager.addComponent<GameplayInputComponent>(controlledEntity.getEntity());
+	}
+
 	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
 
 	// Debug keybindings (static variable just for now, it should be data-driven and stored somewhere)

@@ -29,22 +29,13 @@ void ClientInputSendSystem::update()
 
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
+	EntityManager& entityManager = world.getEntityManager();
 	const u32 lastUpdateIndex = mTimeData.lastFixedUpdateIndex;
 	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
 
-	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
-	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
-
-	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
-	for (u32 i = 0; i < updatesThisFrame; ++i)
-	{
-		inputHistory->getInputsRef().push_back(gameplayInputState);
-	}
-	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame - 1);
-
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
-	auto [clientGameData] = world.getWorldComponents().getComponents<ClientGameDataComponent>();
 
+	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
 
 	if (connectionManager == nullptr || clientGameData == nullptr)
@@ -57,6 +48,28 @@ void ClientInputSendSystem::update()
 	{
 		return;
 	}
+
+
+	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
+
+	if (!controlledEntity.isValid())
+	{
+		return;
+	}
+
+	auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(controlledEntity.getEntity());
+	if (gameplayInput == nullptr)
+	{
+		gameplayInput = entityManager.addComponent<GameplayInputComponent>(controlledEntity.getEntity());
+	}
+	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
+
+	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+	for (u32 i = 0; i < updatesThisFrame; ++i)
+	{
+		inputHistory->getInputsRef().push_back(gameplayInputState);
+	}
+	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame - 1);
 
 	connectionManager->sendMessage(
 		connectionId,

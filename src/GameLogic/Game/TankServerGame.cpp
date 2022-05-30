@@ -7,15 +7,10 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 
-#include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
@@ -46,33 +41,19 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	initSystems(renderAccessor.has_value());
+	const bool shouldRender = renderAccessor.has_value();
+
+	initSystems(shouldRender);
 
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
 
 	// if we do debug rendering of server state
-	if (renderAccessor.has_value())
+	if (shouldRender)
 	{
 		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
 		renderAccessorComponent->setAccessor(renderAccessor);
 		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setDrawShift(Vector2D(300.0f, 0.0f));
-	}
-
-	EntityManager& worldEntityManager = getWorldHolder().getWorld().getEntityManager();
-	Entity controlledEntity = worldEntityManager.addEntity();
-	{
-		TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
-		transform->setLocation(Vector2D(50, 50));
-		MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-		movement->setOriginalSpeed(20.0f);
-		worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
-		NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
-		networkId->setId(0);
-	}
-	{
-		NetworkIdMappingComponent* networkIdMapping = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-		networkIdMapping->getNetworkIdToEntityRef().emplace(0, controlledEntity);
 	}
 	{
 		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().getOrAddComponent<ConnectionManagerComponent>();
@@ -97,9 +78,19 @@ void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 	processInputCorrections();
 }
 
+void TankServerGame::fixedTimeUpdate(float dt)
+{
+	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
+
+	updateInputForLastFrame(getTime().lastFixedUpdateIndex + 1);
+
+	Game::fixedTimeUpdate(dt);
+}
+
 void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
+
 	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
 	// copy current world into the history vector
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
@@ -177,4 +168,36 @@ void TankServerGame::processInputCorrections()
 
 	AssertFatal(lastProcessedUpdateIdx >= firstNotConfirmedUpdateIdx, "firstNotConfirmedFrameIdx can't be greater than lastProcessedUpdateIdx");
 	getWorldHolder().getWorld().trimOldFrames(std::max(MIN_STORED_UPDATES_COUNT, lastProcessedUpdateIdx + MIN_STORED_UPDATES_COUNT - firstNotConfirmedUpdateIdx));
+}
+
+void TankServerGame::updateInputForLastFrame(u32 inputUpdateIndex)
+{
+	SCOPED_PROFILER("TankServerGame::updateInputForLastFrame");
+	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
+	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
+	{
+		if (optionalEntity.isValid())
+		{
+			auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(optionalEntity.getEntity());
+			if (gameplayInput == nullptr)
+			{
+				gameplayInput = entityManager.addComponent<GameplayInputComponent>(optionalEntity.getEntity());
+			}
+			const Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
+			if (!inputHistory.inputs.empty())
+			{
+				if (inputUpdateIndex > inputHistory.lastInputUpdateIdx)
+				{
+					inputUpdateIndex = inputHistory.lastInputUpdateIdx;
+				}
+
+				if (inputUpdateIndex + inputHistory.inputs.size() > inputHistory.lastInputUpdateIdx)
+				{
+					size_t index = inputUpdateIndex - (inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
+					gameplayInput->setCurrentFrameState(inputHistory.inputs[index]);
+				}
+			}
+		}
+	}
 }

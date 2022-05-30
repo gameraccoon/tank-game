@@ -14,8 +14,6 @@
 
 #include "Utils/Network/CompressedInput.h"
 
-#include "HAL/Network/ConnectionManager.h"
-
 namespace Network
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world)

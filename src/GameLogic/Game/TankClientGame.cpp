@@ -41,7 +41,6 @@
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Systems/ImguiSystem.h"
 #endif // IMGUI_ENABLED
-
 #include "GameLogic/Initialization/StateMachines.h"
 
 void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)

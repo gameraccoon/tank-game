@@ -2,6 +2,8 @@
 
 #include <optional>
 
+#include "Base/Types/BasicTypes.h"
+
 #include "GameData/Render/RenderAccessorGameRef.h"
 
 #include "HAL/Network/ConnectionManager.h"
@@ -21,6 +23,7 @@ public:
 	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 	void initResources() final;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
+	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
 	bool shouldQuitGame() const override { return mShouldQuitGame; }
@@ -29,9 +32,9 @@ public:
 private:
 	void initSystems(bool shouldRender);
 	void processInputCorrections();
+	void updateInputForLastFrame(u32 inputUpdateIndex);
 
 private:
 	HAL::ConnectionManager mConnectionManager;
-	std::vector<World> mPreviousFrameWorlds;
 	bool mShouldQuitGame = false;
 };

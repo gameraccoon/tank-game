@@ -6,7 +6,6 @@
 #include <sdl/SDL_mouse.h>
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
-#include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
@@ -27,29 +26,23 @@ void ControlSystem::update()
 {
 	SCOPED_PROFILER("ControlSystem::update");
 	World& world = mWorldHolder.getWorld();
+	EntityManager& entityManager = world.getEntityManager();
 
-	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-
-	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
-
-	if (!controlledEntity.isValid())
+	entityManager.forEachComponentSetWithEntity<const GameplayInputComponent, MovementComponent>(
+		[&entityManager](Entity entity, const GameplayInputComponent* gameplayInput, MovementComponent* movement)
 	{
-		return;
-	}
+		const GameplayInput::FrameState& inputState = gameplayInput->getCurrentFrameState();
 
-	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
-	const GameplayInput::FrameState& inputState = gameplayInput->getCurrentFrameState();
+		const bool isShootPressed = inputState.isKeyActive(GameplayInput::InputKey::Shoot);
 
-	const bool isShootPressed = inputState.isKeyActive(GameplayInput::InputKey::Shoot);
+		const Vector2D movementDirection(inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical));
 
-	const Vector2D movementDirection(inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical));
+		movement->setMoveDirection(movementDirection);
 
-	if (auto [characterState] = world.getEntityManager().getEntityComponents<CharacterStateComponent>(controlledEntity.getEntity()); characterState != nullptr)
-	{
-		characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, !movementDirection.isZeroLength());
-		characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isShootPressed);
-	}
-
-	auto [movement] = world.getEntityManager().getEntityComponents<MovementComponent>(controlledEntity.getEntity());
-	movement->setMoveDirection(movementDirection);
+		if (auto [characterState] = entityManager.getEntityComponents<CharacterStateComponent>(entity); characterState != nullptr)
+		{
+			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, !movementDirection.isZeroLength());
+			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isShootPressed);
+		}
+	});
 }

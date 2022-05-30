@@ -16,6 +16,8 @@
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/Messages/ConnectMessage.h"
+
 #include "HAL/Network/ConnectionManager.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
@@ -52,6 +54,12 @@ void ClientNetworkSystem::update()
 		{
 			connectionId = result.connectionId;
 			clientGameData->setClientConnectionId(connectionId);
+
+			connectionManager->sendMessage(
+				connectionId,
+				Network::CreateConnectMessage(world),
+				HAL::ConnectionManager::MessageReliability::Reliable
+			);
 		}
 	}
 

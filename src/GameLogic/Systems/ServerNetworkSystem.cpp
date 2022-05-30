@@ -5,6 +5,7 @@
 #include "Base/Types/Serialization.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -14,6 +15,7 @@
 #include "HAL/Network/ConnectionManager.h"
 
 #include "Utils/Network/CompressedInput.h"
+#include "Utils/Network/Messages/ConnectMessage.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
@@ -53,14 +55,15 @@ void ServerNetworkSystem::update()
 	{
 		switch (static_cast<NetworkMessageId>(message.type))
 		{
+		case NetworkMessageId::Connect:
+			Network::ApplyConnectMessage(world, std::move(message), connectionId);
+			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;
 			break;
 		case NetworkMessageId::PlayerInput:
-		{
 			Network::ApplyPlayerInputMessage(world, std::move(message), connectionId);
 			break;
-		}
 		default:
 			ReportError("Unhandled message");
 		}
