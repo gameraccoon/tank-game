@@ -51,13 +51,14 @@ TEST(ConnectionManager, SendMessageToOpenPortAndRecieve)
 	HAL::ConnectionManager connectionManagerServer;
 	HAL::ConnectionManager connectionManagerClient;
 	connectionManagerServer.startListeningToPort(48630);
+	connectionManagerServer.setDebugDelayMilliseconds(0);
 	auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::IpV4Address{127, 0, 0, 1}, 48630);
 	ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 	auto messageSendResult = connectionManagerClient.sendMessage(connectionResult.connectionId, HAL::ConnectionManager::Message{1, testMessageData});
 	ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
 
 	{
-		auto messages = connectionManagerServer.consumeReceivedClientMessages();
+		auto messages = connectionManagerServer.consumeReceivedClientMessages(connectionResult.connectionId);
 		EXPECT_EQ(static_cast<size_t>(0), messages.size());
 	}
 
@@ -74,7 +75,7 @@ TEST(ConnectionManager, SendMessageToOpenPortAndRecieve)
 	}
 }
 
-TEST(ConnectionManager, SendMessageBackFromServerAmdRecieve)
+TEST(ConnectionManager, SendMessageBackFromServerAndRecieve)
 {
 	const std::vector<std::byte> testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	const std::vector<std::byte> testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
@@ -82,6 +83,7 @@ TEST(ConnectionManager, SendMessageBackFromServerAmdRecieve)
 	HAL::ConnectionManager connectionManagerServer;
 	HAL::ConnectionManager connectionManagerClient;
 	connectionManagerServer.startListeningToPort(48630);
+	connectionManagerServer.setDebugDelayMilliseconds(0);
 	auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::IpV4Address{127, 0, 0, 1}, 48630);
 	ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 	auto messageSendResult = connectionManagerClient.sendMessage(connectionResult.connectionId, HAL::ConnectionManager::Message{1, testMessageData1});
@@ -99,7 +101,7 @@ TEST(ConnectionManager, SendMessageBackFromServerAmdRecieve)
 	}
 
 	{
-		auto messages = connectionManagerClient.consumeReceivedClientMessages();
+		auto messages = connectionManagerClient.consumeReceivedClientMessages(connectionResult.connectionId);
 		ASSERT_EQ(static_cast<size_t>(1), messages.size());
 		EXPECT_EQ(connectionResult.connectionId, messages[0].first);
 		EXPECT_EQ(1u, messages[0].second.type);
@@ -107,7 +109,7 @@ TEST(ConnectionManager, SendMessageBackFromServerAmdRecieve)
 	}
 
 	{
-		auto messages = connectionManagerClient.consumeReceivedClientMessages();
+		auto messages = connectionManagerClient.consumeReceivedClientMessages(connectionResult.connectionId);
 		EXPECT_EQ(static_cast<size_t>(0), messages.size());
 	}
 }

@@ -97,7 +97,9 @@ namespace HAL
 		SendMessageResult sendMessage(ConnectionId connectionId, Message&& message, MessageReliability reliability = MessageReliability::Reliable);
 
 		std::vector<std::pair<ConnectionId, Message>> consumeReceivedMessages(u16 port);
-		std::vector<std::pair<ConnectionId, Message>> consumeReceivedClientMessages();
+		std::vector<std::pair<ConnectionId, Message>> consumeReceivedClientMessages(ConnectionId connectionId);
+
+		void setDebugDelayMilliseconds(int milliseconds);
 
 	private:
 		struct Impl;

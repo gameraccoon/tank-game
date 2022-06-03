@@ -2,25 +2,37 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include <unordered_set>
+#include <chrono>
 #include <mutex>
+#include <unordered_set>
 
 namespace HAL
 {
 	struct ConnectionManager::Impl
 	{
+		using ReceivedMessagesVector = std::vector<std::pair<ConnectionId, ConnectionManager::Message>>;
+
 		struct OpenPortData
 		{
 			std::unordered_set<ConnectionId> openConnections;
-			std::vector<std::pair<ConnectionId, ConnectionManager::Message>> receivedMessages;
+			ReceivedMessagesVector receivedMessages;
+		};
+
+		struct DelayedMessage
+		{
+			ConnectionManager::Message message;
+			std::chrono::system_clock::time_point deliveryTime;
 		};
 
 		static inline std::unordered_map<u16, std::unique_ptr<OpenPortData>> openPorts;
 		static inline std::unordered_map<ConnectionId, ConnectionId> openConnections;
 		static inline std::unordered_map<ConnectionId, u16> portByClientConnection;
-		static inline std::vector<std::pair<ConnectionId, ConnectionManager::Message>> receivedClientMessages;
+		static inline ReceivedMessagesVector receivedClientMessages;
 		static inline ConnectionId nextConnectionId = 0;
 		static inline std::mutex dataMutex;
+
+		static inline std::unordered_map<ConnectionId, std::vector<DelayedMessage>> messagesOnTheWay;
+		static inline std::chrono::system_clock::duration messageDelay = std::chrono::milliseconds(100);
 
 		static void removeMessagesForConnection(std::vector<std::pair<ConnectionId, Message>>& messages, ConnectionId connection)
 		{
@@ -51,6 +63,61 @@ namespace HAL
 				return clientConnection;
 			}
 			return InvalidConnectionId;
+		}
+
+		void scheduleMessage(ConnectionId connectionId, Message&& message)
+		{
+			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[connectionId];
+			std::chrono::system_clock::time_point deliveryTime = std::chrono::system_clock::now() + messageDelay;
+			auto it = std::lower_bound(delayedMessages.begin(), delayedMessages.end(), deliveryTime, [](const DelayedMessage& message, std::chrono::system_clock::time_point deliveryTime)
+			{
+				// Fixme: check the order when have access to WiFi
+				// earlier time should have lower positions
+				return deliveryTime < message.deliveryTime;
+			});
+
+			delayedMessages.emplace(it, std::move(message), deliveryTime);
+		}
+
+		ReceivedMessagesVector& GetMessageVectorRefFromSenderConectionId(ConnectionId sendingSideConnectionId)
+		{
+			if (auto portIt = portByClientConnection.find(sendingSideConnectionId); portIt != portByClientConnection.end())
+			{
+				// client-to-server
+				return openPorts[portIt->second]->receivedMessages;
+			}
+			else
+			{
+				// server-to-client
+				return receivedClientMessages;
+			}
+		}
+
+		void receiveScheduledMessages(ConnectionId receivingConnectionId)
+		{
+			const auto connectionIt = openConnections.find(receivingConnectionId);
+			if (connectionIt == openConnections.end())
+			{
+				// connection that we try to access is closed
+				ReportError("Connection %u is closed", receivingConnectionId);
+				return;
+			}
+			const ConnectionId sendingSideConnectionId = connectionIt->second;
+
+			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[sendingSideConnectionId];
+			const std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+			auto firstMatchedIt = std::lower_bound(delayedMessages.begin(), delayedMessages.end(), timeNow, [](const DelayedMessage& message, std::chrono::system_clock::time_point timeNow)
+			{
+				// Fixme: this sorting predicate should be the same as the one in the function above
+				return timeNow < message.deliveryTime;
+			});
+
+			for (auto it = firstMatchedIt; it != delayedMessages.end(); ++it)
+			{
+				GetMessageVectorRefFromSenderConectionId(sendingSideConnectionId).emplace_back(receivingConnectionId, std::move(it->message));
+			}
+
+			delayedMessages.erase(firstMatchedIt, delayedMessages.end());
 		}
 	};
 
@@ -206,41 +273,15 @@ namespace HAL
 
 		if (reliability == MessageReliability::Unreliable || reliability == MessageReliability::UnreliableAllowSkip)
 		{
-			if (std::rand() % 2000 == 0)
+			if (std::rand() % 20 == 0)
 			{
 				// imitate sending and loosing
 				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 			}
 		}
 
-		auto connectionIt = mPimpl->openConnections.find(connectionId);
-		if (connectionIt == mPimpl->openConnections.end())
-		{
-			ReportError("Trying to send a message to a closed connection");
-			return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::ConnectionClosed};
-		}
-
-		if (auto portIt = mPimpl->portByClientConnection.find(connectionId); portIt != mPimpl->portByClientConnection.end())
-		{
-			// client-to-server
-			if (auto portDataIt = mPimpl->openPorts.find(portIt->second); portDataIt != mPimpl->openPorts.end())
-			{
-				portDataIt->second->receivedMessages.emplace_back(connectionIt->second, std::move(message));
-				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
-			}
-			else
-			{
-				ReportError("Port data for a port not found: %d", portIt->second);
-			}
-		}
-		else
-		{
-			// server-to-client
-			mPimpl->receivedClientMessages.emplace_back(connectionIt->second, std::move(message));
-			return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
-		}
-
-		return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::UnknownFailure};
+		mPimpl->scheduleMessage(connectionId, std::move(message));
+		return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 	}
 
 	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedMessages(u16 port)
@@ -248,6 +289,11 @@ namespace HAL
 		std::lock_guard l(mPimpl->dataMutex);
 		if (auto it = mPimpl->openPorts.find(port); it != mPimpl->openPorts.end())
 		{
+			// this is not effecient at all, but this is debug code
+			for (ConnectionId connectionId : it->second->openConnections)
+			{
+				mPimpl->receiveScheduledMessages(connectionId);
+			}
 			return std::move(it->second->receivedMessages);
 		}
 
@@ -255,9 +301,17 @@ namespace HAL
 		return {};
 	}
 
-	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedClientMessages()
+	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
 	{
 		std::lock_guard l(mPimpl->dataMutex);
+		mPimpl->receiveScheduledMessages(connectionId);
+		// this works only for one client, we need separation when we simulate other clients
 		return std::move(mPimpl->receivedClientMessages);
+	}
+
+	void ConnectionManager::setDebugDelayMilliseconds(int milliseconds)
+	{
+		using namespace std::chrono_literals;
+		mPimpl->messageDelay = milliseconds * 1ms;
 	}
 }
