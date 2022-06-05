@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <functional>
 
 #include "GameData/EcsDefinitions.h"
 
@@ -11,8 +12,18 @@ class World
 public:
 	struct FrameState
 	{
-		std::unique_ptr<EntityManager> entityManager;
-		std::unique_ptr<ComponentSetHolder> worldComponents;
+		FrameState(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
+		FrameState(const EntityManager& entityManager, const ComponentSetHolder& worldComponents);
+
+		FrameState(const FrameState&) = default;
+		FrameState& operator=(const FrameState&) = delete;
+		FrameState(FrameState&&) = default;
+		FrameState& operator=(FrameState&&) = default;
+
+		void overrideBy(const FrameState& originalFrameState);
+
+		EntityManager entityManager;
+		ComponentSetHolder worldComponents;
 	};
 
 public:
@@ -24,11 +35,11 @@ public:
 	World operator=(World&&) = delete;
 	~World() = default;
 
-	[[nodiscard]] EntityManager& getEntityManager() { return mEntityManager; }
-	[[nodiscard]] const EntityManager& getEntityManager() const { return mEntityManager; }
+	[[nodiscard]] EntityManager& getEntityManager() { return mFrameHistory[mCurrentFrameIdx].entityManager; }
+	[[nodiscard]] const EntityManager& getEntityManager() const { return mFrameHistory[mCurrentFrameIdx].entityManager; }
 
-	[[nodiscard]] ComponentSetHolder& getWorldComponents() { return mWorldComponents; }
-	[[nodiscard]] const ComponentSetHolder& getWorldComponents() const { return mWorldComponents; }
+	[[nodiscard]] ComponentSetHolder& getWorldComponents() { return mFrameHistory[mCurrentFrameIdx].worldComponents; }
+	[[nodiscard]] const ComponentSetHolder& getWorldComponents() const { return mFrameHistory[mCurrentFrameIdx].worldComponents; }
 
 	[[nodiscard]] EntityManager& getNotRewindableEntityManager() { return mNotRewindableEntityManager; }
 	[[nodiscard]] const EntityManager& getNotRewindableEntityManager() const { return mNotRewindableEntityManager; }
@@ -41,15 +52,15 @@ public:
 
 	void clearCaches();
 
-	std::vector<FrameState>& getFrameHistoryRef() { return mFrameHistory; }
 	void addNewFrameToTheHistory();
 	void trimOldFrames(size_t oldFramesLeft);
 
+	void unwindBackInHistory(size_t framesBackCount);
+
 private:
-	EntityManager mEntityManager;
-	ComponentSetHolder mWorldComponents;
 	EntityManager mNotRewindableEntityManager;
 	ComponentSetHolder mNotRewindableComponents;
+	size_t mCurrentFrameIdx = 0;
 
 	std::vector<FrameState> mFrameHistory;
 };

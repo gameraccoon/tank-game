@@ -18,4 +18,3 @@ using TypedComponent = RaccoonEcs::TypedComponentImpl<StringId>;
 using ConstTypedComponent = RaccoonEcs::ConstTypedComponentImpl<StringId>;
 using Entity = RaccoonEcs::Entity;
 using OptionalEntity = RaccoonEcs::OptionalEntity;
-using EntityManager = RaccoonEcs::EntityManagerImpl<StringId>;

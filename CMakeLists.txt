@@ -59,6 +59,7 @@ endif(CONCURRENT_ACCESS_DETECTION)
 
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
+add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
 
 # compiler parameters
 if (MSVC)

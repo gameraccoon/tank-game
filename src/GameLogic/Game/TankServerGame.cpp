@@ -85,6 +85,9 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	updateInputForLastFrame(getTime().lastFixedUpdateIndex + 1);
 
 	Game::fixedTimeUpdate(dt);
+
+	// copy current world into the history vector
+	getWorldHolder().getWorld().addNewFrameToTheHistory();
 }
 
 void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
@@ -92,8 +95,6 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
 
 	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
-	// copy current world into the history vector
-	getWorldHolder().getWorld().addNewFrameToTheHistory();
 }
 
 void TankServerGame::initSystems(bool shouldRender)
@@ -114,6 +115,11 @@ void TankServerGame::initSystems(bool shouldRender)
 	}
 }
 
+void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
+{
+	LogInfo("Correct updates from: %u to %u", firstIncorrectUpdateIdx, getTime().lastFixedUpdateIndex);
+}
+
 void TankServerGame::processInputCorrections()
 {
 	SCOPED_PROFILER("TankServerGame::processInputCorrections");
@@ -121,7 +127,7 @@ void TankServerGame::processInputCorrections()
 	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 	const u32 lastProcessedUpdateIdx = getTime().lastFixedUpdateIndex;
 	// first update input for that diverged from with prediction for at least one client
-	u32 firstUpdateToRewind = lastProcessedUpdateIdx + 1;
+	u32 firstUpdateToCorrect = lastProcessedUpdateIdx + 1;
 	// index of first frame when we don't have input from some client yet
 	u32 firstNotConfirmedUpdateIdx = lastProcessedUpdateIdx;
 
@@ -130,8 +136,13 @@ void TankServerGame::processInputCorrections()
 
 	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
 	{
+		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
+		{
+			inputHistory.indexShift = static_cast<s32>(lastProcessedUpdateIdx) - (static_cast<s32>(inputHistory.lastInputUpdateIdx) + 1 - static_cast<s32>(inputHistory.inputs.size()));
+		}
+
 		const u32 lastInputUpdateIdx = inputHistory.lastInputUpdateIdx;
-		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastInputUpdateIdx);
+		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastInputUpdateIdx + inputHistory.indexShift);
 		// will wrap after ~8.5 years of gameplay
 		const u32 inputFromFutureCount = ((lastInputUpdateIdx > lastProcessedUpdateIdx) ? lastInputUpdateIdx - lastProcessedUpdateIdx : 0);
 		const size_t iEnd = std::min(inputHistory.inputs.size(), inputHistory.inputs.size() - static_cast<size_t>(inputFromFutureCount));
@@ -139,7 +150,9 @@ void TankServerGame::processInputCorrections()
 		{
 			if (inputHistory.inputs[i] != inputHistory.inputs[i - 1])
 			{
-				firstUpdateToRewind = std::min(firstUpdateToRewind, lastInputUpdateIdx - static_cast<u32>(i));
+				const u32 firstIncorrectUpdate = static_cast<u32>(lastInputUpdateIdx - i + inputHistory.indexShift);
+				LogInfo("User %d has updates to correct from frame: %u", i, firstIncorrectUpdate);
+				firstUpdateToCorrect = std::min(firstUpdateToCorrect, firstIncorrectUpdate);
 				break;
 			}
 		}
@@ -148,17 +161,16 @@ void TankServerGame::processInputCorrections()
 	// limit amount of frames to a predefined value
 	firstNotConfirmedUpdateIdx = std::max(firstNotConfirmedUpdateIdx + MAX_STORED_UPDATES_COUNT, lastProcessedUpdateIdx) - MAX_STORED_UPDATES_COUNT;
 
-	// ToDo: correction logic goes here
-	if (firstUpdateToRewind < lastProcessedUpdateIdx + 1)
+	if (firstUpdateToCorrect < lastProcessedUpdateIdx + 1)
 	{
-		//LogInfo("%d last frames should be corrected", lastProcessedUpdateIdx + 1 - firstUpdateToRewind);
+		correctUpdates(firstUpdateToCorrect);
 	}
 
 	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
 	{
 		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
 		const u32 firstIdxFrame = inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size();
-		const size_t firstIdxToKeep = std::max(firstIdxFrame, firstNotConfirmedUpdateIdx) - firstIdxFrame;
+		const size_t firstIdxToKeep = std::max(firstIdxFrame, firstNotConfirmedUpdateIdx - inputHistory.indexShift) - firstIdxFrame;
 
 		if (!inputHistory.inputs.empty() && firstIdxToKeep > 0)
 		{

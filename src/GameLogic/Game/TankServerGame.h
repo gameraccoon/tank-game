@@ -31,6 +31,7 @@ public:
 
 private:
 	void initSystems(bool shouldRender);
+	void correctUpdates(u32 firstIncorrectUpdateIdx);
 	void processInputCorrections();
 	void updateInputForLastFrame(u32 inputUpdateIndex);
 
