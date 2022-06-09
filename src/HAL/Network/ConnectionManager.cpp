@@ -273,7 +273,8 @@ namespace HAL
 
 		if (reliability == MessageReliability::Unreliable || reliability == MessageReliability::UnreliableAllowSkip)
 		{
-			if (std::rand() % 20 == 0)
+			constexpr const int messageLossPercentage = 10;
+			if (std::rand() % 100 < messageLossPercentage)
 			{
 				// imitate sending and loosing
 				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};

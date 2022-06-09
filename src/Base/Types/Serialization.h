@@ -10,16 +10,20 @@ namespace Serialization
 {
 	using ByteStream = std::vector<std::byte>;
 
-	template<typename Int>
-	void WriteNumber(std::vector<std::byte>& inOutByteStream, Int integer)
+	template<typename Int, typename IntArg>
+	void WriteNumber(std::vector<std::byte>& inOutByteStream, IntArg integer)
 	{
+		static_assert(std::is_convertible_v<IntArg, Int>, "Argument type should be convertible to the data type");
 		static_assert(std::is_arithmetic_v<Int>, "Type should be ariphmetic to be serialized with WriteNumber");
 		static_assert(sizeof(std::array<std::byte, sizeof(Int)>) == sizeof(Int), "Unexpected std::array layout");
 		static_assert(std::is_standard_layout_v<std::array<std::byte, sizeof(Int)>>, "Unexpected std::array layout");
 		static_assert(std::is_trivially_constructible_v<std::array<std::byte, sizeof(Int)>>, "Unexpected std::array implementation");
 		static_assert(std::is_trivially_copyable_v<std::array<std::byte, sizeof(Int)>>, "Unexpected std::array implementation");
 
-		const auto* byteRepresentation = std::bit_cast<std::array<std::byte, sizeof(Int)>*>(&integer);
+		// to allow type conversion without doing error-prone static_cast with duplicating the type
+		const Int value = static_cast<Int>(integer);
+
+		const auto* byteRepresentation = std::bit_cast<std::array<std::byte, sizeof(Int)>*>(&value);
 
 		if constexpr (std::endian::native == std::endian::little)
 		{

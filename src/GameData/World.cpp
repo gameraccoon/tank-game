@@ -73,7 +73,7 @@ void World::addNewFrameToTheHistory()
 void World::trimOldFrames(size_t oldFramesLeft)
 {
 	SCOPED_PROFILER("World::trimOldFrames");
-	AssertFatal(oldFramesLeft <= mCurrentFrameIdx, "Can't keep more frames than we already have");
+	AssertFatal(oldFramesLeft <= mCurrentFrameIdx, "Can't keep more historical frames than we have, have: %u asked to keep: %u", mCurrentFrameIdx, oldFramesLeft);
 	const size_t shiftLeft = mCurrentFrameIdx - oldFramesLeft;
 	if (shiftLeft > 0)
 	{
@@ -84,9 +84,9 @@ void World::trimOldFrames(size_t oldFramesLeft)
 
 void World::unwindBackInHistory(size_t framesBackCount)
 {
-	if (framesBackCount >= (mFrameHistory.size() - mCurrentFrameIdx))
+	if (framesBackCount >= mCurrentFrameIdx)
 	{
-		ReportFatalError("framesBackCount is too big for the current size of the history");
+		ReportFatalError("framesBackCount is too big for the current size of the history. framesBackCount is %u and history size is %u", framesBackCount, mCurrentFrameIdx);
 		mCurrentFrameIdx = 0;
 		return;
 	}
