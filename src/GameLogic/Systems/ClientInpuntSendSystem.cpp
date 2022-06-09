@@ -6,6 +6,7 @@
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
@@ -14,12 +15,10 @@
 #include "Utils/Network/Messages/PlayerInputMessage.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
-#include "GameLogic/SharedManagers/TimeData.h"
 
 
-ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder, const TimeData& timeData) noexcept
+ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
-	, mTimeData(timeData)
 {
 }
 
@@ -30,8 +29,10 @@ void ClientInputSendSystem::update()
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
 	EntityManager& entityManager = world.getEntityManager();
-	const u32 lastUpdateIndex = mTimeData.lastFixedUpdateIndex;
-	const u32 updatesThisFrame = mTimeData.countFixedTimeUpdatesThisFrame;
+
+	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+	const u32 lastUpdateIndex = time->getValue().lastFixedUpdateIndex;
+	const u32 updatesThisFrame = time->getValue().countFixedTimeUpdatesThisFrame;
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
 

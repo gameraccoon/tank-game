@@ -11,6 +11,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
@@ -82,7 +83,8 @@ void TankServerGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
 
-	updateInputForLastFrame(getTime().lastFixedUpdateIndex + 1);
+	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	updateInputForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
 
 	Game::fixedTimeUpdate(dt);
 
@@ -104,28 +106,33 @@ void TankServerGame::initSystems(bool shouldRender)
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
-	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
-	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder(), getTime());
+	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
 	if (shouldRender)
 	{
-		getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getTime(), getResourceManager(), getThreadPool());
+		getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
 	}
 }
 
 void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 {
-	LogInfo("Correct updates from: %u to %u", firstIncorrectUpdateIdx, getTime().lastFixedUpdateIndex);
+	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	const TimeData& timeValue = time->getValue();
+	LogInfo("Correct updates from: %u to %u", firstIncorrectUpdateIdx, timeValue.lastFixedUpdateIndex);
+	AssertFatal(firstIncorrectUpdateIdx <= timeValue.lastFixedUpdateIndex, "We can't correct updates from the future");
 }
 
 void TankServerGame::processInputCorrections()
 {
 	SCOPED_PROFILER("TankServerGame::processInputCorrections");
 
+	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+
 	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
-	const u32 lastProcessedUpdateIdx = getTime().lastFixedUpdateIndex;
+	const u32 lastProcessedUpdateIdx = time->getValue().lastFixedUpdateIndex;
 	// first update input for that diverged from with prediction for at least one client
 	u32 firstUpdateToCorrect = lastProcessedUpdateIdx + 1;
 	// index of first frame when we don't have input from some client yet

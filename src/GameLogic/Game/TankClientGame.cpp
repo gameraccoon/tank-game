@@ -92,17 +92,17 @@ void TankClientGame::initSystems()
 
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
-	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData(), getTime());
-	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), getTime());
+	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
+	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder(), getTime());
-	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder(), getTime());
-	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder(), getTime());
+	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
-	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getTime(), getResourceManager(), getThreadPool());
-	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getTime(), getResourceManager());
+	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
+	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getResourceManager());
 
 #ifdef IMGUI_ENABLED
 	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *getEngine());

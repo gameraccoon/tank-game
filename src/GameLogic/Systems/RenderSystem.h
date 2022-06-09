@@ -6,7 +6,6 @@
 #include "Utils/Multithreading/ThreadPool.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
-#include "GameLogic/SharedManagers/TimeData.h"
 
 struct RenderData;
 
@@ -18,7 +17,6 @@ class RenderSystem : public RaccoonEcs::System
 public:
 	RenderSystem(
 		WorldHolder& worldHolder,
-		const TimeData& timeData,
 		ResourceManager& resourceManager,
 		ThreadPool& threadPool) noexcept;
 
@@ -33,7 +31,6 @@ private:
 
 private:
 	WorldHolder& mWorldHolder;
-	const TimeData& mTime;
 	ResourceManager& mResourceManager;
 	ThreadPool& mThreadPool;
 };

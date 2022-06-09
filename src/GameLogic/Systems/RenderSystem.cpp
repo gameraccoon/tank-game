@@ -8,17 +8,18 @@
 #include "Base/Types/TemplateAliases.h"
 #include "Base/Types/TemplateHelpers.h"
 
+#include "GameData/Components/BackgroundTextureComponent.generated.h"
+#include "GameData/Components/RenderAccessorComponent.generated.h"
+#include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/Components/SpriteRenderComponent.generated.h"
+#include "GameData/Components/TileGridComponent.generated.h"
+#include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/World.h"
-#include "GameData/Components/SpriteRenderComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Components/RenderModeComponent.generated.h"
-#include "GameData/Components/WorldCachedDataComponent.generated.h"
-#include "GameData/Components/BackgroundTextureComponent.generated.h"
-#include "GameData/Components/TileGridComponent.generated.h"
-#include "GameData/Components/RenderAccessorComponent.generated.h"
 
 #include "HAL/Graphics/Sprite.h"
+
 #include "GameLogic/Render/RenderAccessor.h"
 
 #include <glm/matrix.hpp>
@@ -26,12 +27,10 @@
 
 RenderSystem::RenderSystem(
 		WorldHolder& worldHolder,
-		const TimeData& timeData,
 		ResourceManager& resourceManager,
 		ThreadPool& threadPool
 	) noexcept
 	: mWorldHolder(worldHolder)
-	, mTime(timeData)
 	, mResourceManager(resourceManager)
 	, mThreadPool(threadPool)
 {

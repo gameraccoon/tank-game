@@ -2,14 +2,14 @@
 
 #include "GameLogic/Systems/MovementSystem.h"
 
-#include "GameData/World.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/World.h"
 
 
-MovementSystem::MovementSystem(WorldHolder& worldHolder, const TimeData& timeData) noexcept
+MovementSystem::MovementSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
-	, mTime(timeData)
 {
 }
 
@@ -17,7 +17,9 @@ void MovementSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
 	World& world = mWorldHolder.getWorld();
-	const GameplayTimestamp timestampNow = mTime.lastFixedUpdateTimestamp;
+
+	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+	const GameplayTimestamp timestampNow = time->getValue().lastFixedUpdateTimestamp;
 
 	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
 		[timestampNow](MovementComponent* movement, TransformComponent* transform)

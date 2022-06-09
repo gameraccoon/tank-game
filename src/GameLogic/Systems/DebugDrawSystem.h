@@ -7,7 +7,6 @@
 #include "Utils/ResourceManagement/ResourceManager.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
-#include "GameLogic/SharedManagers/TimeData.h"
 
 /**
  * System that handles rendering of world objects
@@ -20,7 +19,6 @@ public:
 public:
 	DebugDrawSystem(
 		WorldHolder& worldHolder,
-		const TimeData& timeData,
 		ResourceManager& resourceManager) noexcept;
 	~DebugDrawSystem() override = default;
 
@@ -30,7 +28,6 @@ public:
 
 private:
 	WorldHolder& mWorldHolder;
-	const TimeData& mTime;
 	ResourceManager& mResourceManager;
 
 	ResourceHandle mCollisionSpriteHandle;

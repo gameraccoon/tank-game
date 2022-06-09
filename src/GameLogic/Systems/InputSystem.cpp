@@ -10,6 +10,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/InputBindings.h"
@@ -18,13 +19,11 @@
 #include "HAL/InputControllersData.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
-#include "GameLogic/SharedManagers/TimeData.h"
 
 
-InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData, const TimeData& timeData) noexcept
+InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept
 	: mWorldHolder(worldHolder)
 	, mInputData(inputData)
-	, mTime(timeData)
 {
 }
 
@@ -94,9 +93,11 @@ void InputSystem::processGameplayInput()
 	using namespace Input;
 
 	World& world = mWorldHolder.getWorld();
-	const GameplayTimestamp currentTimestamp = mTime.lastFixedUpdateTimestamp.getIncreasedByFloatTime(mTime.lastFixedUpdateDt);
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
 	EntityManager& entityManager = world.getEntityManager();
+
+	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByFloatTime(time->getValue().lastFixedUpdateDt);
 
 	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 
