@@ -2,6 +2,7 @@
 
 #ifdef IMGUI_ENABLED
 
+#include <mutex>
 #include <raccoon-ecs/system.h>
 
 #include "HAL/EngineFwd.h"
@@ -34,6 +35,8 @@ private:
 	ImguiDebugData& mDebugData;
 
 	ImguiMainMenu mImguiMainMenu;
+
+	std::mutex mRenderDataMutex;
 };
 
 #endif // IMGUI_ENABLED
