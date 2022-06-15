@@ -13,10 +13,14 @@
 #include "GameData/Components/TileGridComponent.generated.h"
 #include "GameData/Components/TileGridCreatorComponent.generated.h"
 
+#include "Utils/ResourceManagement/ResourceManager.h"
+
 #include "HAL/Graphics/Sprite.h"
-#include "GameLogic/Resources/SpriteAnimationClip.h"
+
 #include "GameLogic/Resources/AnimationGroup.h"
+#include "GameLogic/Resources/SpriteAnimationClip.h"
 #include "GameLogic/Resources/TileGrid.h"
+#include "GameLogic/SharedManagers/WorldHolder.h"
 
 ResourceStreamingSystem::ResourceStreamingSystem(
 		WorldHolder& worldHolder,

@@ -2,11 +2,12 @@
 
 #include <raccoon-ecs/system.h>
 
-#include "Utils/ResourceManagement/ResourceManager.h"
-#include "Utils/Multithreading/ThreadPool.h"
+#include "GameData/Geometry/Vector2D.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
-
+class ResourceManager;
+class ThreadPool;
+class World;
+class WorldHolder;
 struct RenderData;
 
 /**
@@ -20,10 +21,7 @@ public:
 		ResourceManager& resourceManager,
 		ThreadPool& threadPool) noexcept;
 
-	~RenderSystem() override = default;
-
 	void update() override;
-	static std::string GetSystemId() { return "RenderSystem"; }
 
 private:
 	void drawBackground(RenderData& renderData, World& world, Vector2D drawShift, Vector2D windowSize);

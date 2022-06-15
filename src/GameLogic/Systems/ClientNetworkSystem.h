@@ -13,7 +13,6 @@ public:
 	ClientNetworkSystem(WorldHolder& worldHolder, const bool& shouldQuitGame) noexcept;
 
 	void update() override;
-	static std::string GetSystemId() { return "ClientNetworkSystem"; }
 
 private:
 	WorldHolder& mWorldHolder;

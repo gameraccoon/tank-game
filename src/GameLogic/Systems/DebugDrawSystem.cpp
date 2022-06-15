@@ -18,10 +18,13 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/ResourceManagement/ResourceManager.h"
+
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
+#include "GameLogic/SharedManagers/WorldHolder.h"
 
 DebugDrawSystem::DebugDrawSystem(
 		WorldHolder& worldHolder,

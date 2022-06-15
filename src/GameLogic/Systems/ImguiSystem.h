@@ -7,11 +7,10 @@
 
 #include "HAL/EngineFwd.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
-#include "GameLogic/Imgui/ImguiDebugData.h"
-
 #include "GameLogic/Imgui/ImguiMainMenu.h"
 
+class WorldHolder;
+struct ImguiDebugData;
 class ImguiComponent;
 
 /**
@@ -23,12 +22,10 @@ public:
 	ImguiSystem(
 		ImguiDebugData& debugData,
 		HAL::Engine& engine) noexcept;
-	~ImguiSystem() override = default;
 
 	void update() override;
 	void init() override;
 	void shutdown() override;
-	static std::string GetSystemId() { return "ImguiSystem"; }
 
 private:
 	HAL::Engine& mEngine;

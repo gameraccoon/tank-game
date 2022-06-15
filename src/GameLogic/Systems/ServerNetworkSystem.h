@@ -15,7 +15,6 @@ public:
 	ServerNetworkSystem(WorldHolder& worldHolder, bool& shouldQuitGame) noexcept;
 
 	void update() override;
-	static std::string GetSystemId() { return "ServerNetworkSystem"; }
 
 private:
 	WorldHolder& mWorldHolder;

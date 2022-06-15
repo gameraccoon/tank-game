@@ -2,11 +2,12 @@
 
 #include <raccoon-ecs/system.h>
 
+#include "GameData/Resources/ResourceHandle.h"
+
 #include "HAL/EngineFwd.h"
 
-#include "Utils/ResourceManagement/ResourceManager.h"
-
-#include "GameLogic/SharedManagers/WorldHolder.h"
+class ResourceManager;
+class WorldHolder;
 
 /**
  * System that handles rendering of world objects
@@ -14,17 +15,12 @@
 class DebugDrawSystem : public RaccoonEcs::System
 {
 public:
-	using KeyStatesMap = std::unordered_map<int, bool>;
-
-public:
 	DebugDrawSystem(
 		WorldHolder& worldHolder,
 		ResourceManager& resourceManager) noexcept;
-	~DebugDrawSystem() override = default;
 
 	void update() override;
 	void init() override;
-	static std::string GetSystemId() { return "DebugDrawSystem"; }
 
 private:
 	WorldHolder& mWorldHolder;

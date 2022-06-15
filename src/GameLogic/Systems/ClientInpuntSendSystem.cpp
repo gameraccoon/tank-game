@@ -14,6 +14,8 @@
 
 #include "Utils/Network/Messages/PlayerInputMessage.h"
 
+#include "HAL/Network/ConnectionManager.h"
+
 #include "GameLogic/SharedManagers/WorldHolder.h"
 
 
