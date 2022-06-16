@@ -73,7 +73,7 @@ void ApplicationData::shutdownThreads()
 	resourceManager.stopLoadingThread();
 }
 
-void ApplicationData::serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
+void ApplicationData::serverThreadFunction(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
 {
 	TankServerGame serverGame(resourceManager, threadPool);
 	constexpr auto oneFrameDuration = HAL::Engine::ONE_FIXED_UPDATE_DURATION;

@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 	TankClientGame clientGame(&engine, applicationData.resourceManager, applicationData.threadPool);
 
 	std::thread serverThread([&applicationData, &arguments, &renderAccessor]{
-		applicationData.serverThreadFunction(applicationData.resourceManager, applicationData.threadPool, arguments, RenderAccessorGameRef(renderAccessor, 1));
+		applicationData.serverThreadFunction(arguments, RenderAccessorGameRef(renderAccessor, 1));
 	});
 
 	clientGame.preStart(arguments, RenderAccessorGameRef(renderAccessor, 0));

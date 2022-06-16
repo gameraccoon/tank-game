@@ -52,8 +52,8 @@ namespace Graphics
 			Assert(tileGridJson.at("tilesets").size() == 1, "We can't use more or less than one tile set per tile grid");
 			for (auto& tileset : tileGridJson.at("tilesets"))
 			{
-				const std::string path = tileset.at("source").get<std::string>();
-				result.tileSetHandle = resourceManager.lockResource<TileSet>(ResourcePath(std::string("resources/tilesets/") + path));
+				const std::string sourcePath = tileset.at("source").get<std::string>();
+				result.tileSetHandle = resourceManager.lockResource<TileSet>(ResourcePath(std::string("resources/tilesets/") + sourcePath));
 				result.firstTileId = tileset.at("firstgid").get<size_t>();
 			}
 		}

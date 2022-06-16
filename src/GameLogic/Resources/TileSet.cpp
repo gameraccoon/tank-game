@@ -56,8 +56,8 @@ namespace Graphics
 			{
 				const int id = tileJson.at("id").get<int>();
 				result.indexesConversion[id] = result.tiles.size();
-				std::string path = tileJson.at("image").get<std::string>();
-				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(ResourcePath{ std::string("resources") + path.substr(2)});
+				std::string imagePath = tileJson.at("image").get<std::string>();
+				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(ResourcePath{ std::string("resources") + imagePath.substr(2)});
 				result.tiles.emplace_back(spriteHandle, GetTileSetMaterialFromProperties(tileJson.at("properties")));
 			}
 		}

@@ -200,7 +200,7 @@ void TankServerGame::processInputCorrections()
 	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
 	{
 		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
-		const u32 firstIdxFrame = inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size();
+		const u32 firstIdxFrame = static_cast<u32>(inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
 		const size_t firstIdxToKeep = std::max(firstIdxFrame, firstNotConfirmedUpdateIdx - inputHistory.indexShift) - firstIdxFrame;
 
 		if (!inputHistory.inputs.empty() && firstIdxToKeep > 0)

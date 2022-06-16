@@ -36,7 +36,7 @@ public:
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();
 
-	void serverThreadFunction(ResourceManager& resourceManager, ThreadPool& threadPool, const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
+	void serverThreadFunction(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 
 private:
 #ifdef ENABLE_SCOPED_PROFILER
