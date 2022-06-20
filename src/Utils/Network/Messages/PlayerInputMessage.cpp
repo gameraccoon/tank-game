@@ -27,7 +27,7 @@ namespace Network
 		inputHistoryMessageData.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
 		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputUpdateIdx());
-		Serialization::WriteNumber<u8>(inputHistoryMessageData, inputsToSend);
+		Serialization::WriteNumberNarrowCast<u8>(inputHistoryMessageData, inputsToSend);
 
 		Utils::WriteInputHistory(inputHistoryMessageData, inputHistory->getInputs(), inputsToSend);
 
