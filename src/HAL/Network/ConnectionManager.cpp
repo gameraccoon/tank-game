@@ -71,8 +71,6 @@ namespace HAL
 			std::chrono::system_clock::time_point deliveryTime = std::chrono::system_clock::now() + messageDelay;
 			auto it = std::lower_bound(delayedMessages.begin(), delayedMessages.end(), deliveryTime, [](const DelayedMessage& message, std::chrono::system_clock::time_point deliveryTime)
 			{
-				// Fixme: check the order when have access to WiFi
-				// earlier time should have lower positions
 				return deliveryTime < message.deliveryTime;
 			});
 
@@ -273,9 +271,10 @@ namespace HAL
 
 		if (reliability == MessageReliability::Unreliable || reliability == MessageReliability::UnreliableAllowSkip)
 		{
-			constexpr const int messageLossPercentage = 10;
+			constexpr const int messageLossPercentage = 70;
 			if (std::rand() % 100 < messageLossPercentage)
 			{
+				LogInfo("A network message was dropped (type id: %d)", message.type);
 				// imitate sending and loosing
 				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 			}

@@ -6,17 +6,12 @@
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/ImguiComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
-#include "GameData/Components/RenderModeComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/Messages/ConnectMessage.h"
+#include "Utils/Network/Messages/MovesMessage.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -72,5 +67,19 @@ void ClientNetworkSystem::update()
 	{
 		connectionManager->sendMessage(connectionId, HAL::ConnectionManager::Message{static_cast<u32>(NetworkMessageId::Disconnect), {}});
 		return;
+	}
+
+	auto newMessages = connectionManager->consumeReceivedClientMessages(connectionId);
+
+	for (auto&& [connectionId, message] : newMessages)
+	{
+		switch (static_cast<NetworkMessageId>(message.type))
+		{
+		case NetworkMessageId::EntityMove:
+			Network::ApplyMovesMessage(world, std::move(message));
+			break;
+		default:
+			ReportError("Unhandled message");
+		}
 	}
 }

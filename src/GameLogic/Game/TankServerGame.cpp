@@ -14,10 +14,11 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 
-#include "HAL/Base/Engine.h"
-
 #include "Utils/Application/ArgumentsParser.h"
+#include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/World/GameDataLoader.h"
+
+#include "HAL/Base/Engine.h"
 
 #include "GameLogic/Initialization/StateMachines.h"
 #include "GameLogic/Render/RenderAccessor.h"
@@ -28,6 +29,7 @@
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
+#include "GameLogic/Systems/ServerMovesSendSystem.h"
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 
 TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool)
@@ -86,8 +88,7 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	updateInputForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
-
+	saveInputForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -106,6 +107,7 @@ void TankServerGame::initSystems(bool shouldRender)
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
@@ -166,11 +168,7 @@ void TankServerGame::processInputCorrections()
 			continue;
 		}
 
-		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
-		{
-			// calculate the shift in the way to use the last received data to process the next fixed update
-			inputHistory.indexShift = static_cast<s32>(lastProcessedUpdateIdx) - static_cast<s32>(inputHistory.lastInputUpdateIdx) + 1;
-		}
+		Assert(inputHistory.indexShift != std::numeric_limits<s32>::max(), "If we have input, we should have indexShift filled");
 
 		const u32 lastAbsoluteInputUpdateIdx = inputHistory.lastInputUpdateIdx + inputHistory.indexShift;
 		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastAbsoluteInputUpdateIdx);
@@ -213,7 +211,7 @@ void TankServerGame::processInputCorrections()
 	getWorldHolder().getWorld().trimOldFrames(lastProcessedUpdateIdx + 1 - firstNotConfirmedUpdateIdx);
 }
 
-void TankServerGame::updateInputForLastFrame(u32 inputUpdateIndex)
+void TankServerGame::saveInputForLastFrame(u32 inputUpdateIndex)
 {
 	SCOPED_PROFILER("TankServerGame::updateInputForLastFrame");
 	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();

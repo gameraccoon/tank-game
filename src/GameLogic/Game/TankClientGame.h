@@ -18,13 +18,17 @@ public:
 
 	void preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
 	void initResources() override;
-	void dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates) override;
+	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
+	void fixedTimeUpdate(float dt) final;
+	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
 	bool shouldQuitGame() const override { return mShouldQuitGame; }
 	void quitGame() override { mShouldQuitGameNextTick = true; }
 
 private:
 	void initSystems();
+	void processMoveCorrections();
+	void saveMovesForLastFrame(u32 inputUpdateIndex);
 
 private:
 	HAL::ConnectionManager mConnectionManager;

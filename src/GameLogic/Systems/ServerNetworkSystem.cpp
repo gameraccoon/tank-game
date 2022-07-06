@@ -9,7 +9,6 @@
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/Time/GameplayTimestamp.h"
 #include "GameData/World.h"
 
 #include "HAL/Network/ConnectionManager.h"

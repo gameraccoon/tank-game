@@ -33,7 +33,7 @@ private:
 	void initSystems(bool shouldRender);
 	void correctUpdates(u32 firstIncorrectUpdateIdx);
 	void processInputCorrections();
-	void updateInputForLastFrame(u32 inputUpdateIndex);
+	void saveInputForLastFrame(u32 inputUpdateIndex);
 
 private:
 	HAL::ConnectionManager mConnectionManager;

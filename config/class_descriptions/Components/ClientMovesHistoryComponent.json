@@ -1,0 +1,15 @@
+{
+	"component": "clientMovesHistory",
+	"description": "Component that stores history of unconfirmed moves on the client",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "data",
+			"type": "MovementHistory",
+			"includes": [
+				"\"GameData/Network/MovementHistory.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

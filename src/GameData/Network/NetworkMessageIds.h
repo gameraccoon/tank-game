@@ -8,5 +8,5 @@ enum class NetworkMessageId : u32
 	Disconnect = 1,
 	Ping = 2,
 	PlayerInput = 3,
-	PositionReplication = 4,
+	EntityMove = 4,
 };

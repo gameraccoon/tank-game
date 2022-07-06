@@ -9,6 +9,7 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
@@ -102,6 +103,13 @@ namespace Network
 			}
 
 			inputHistory.lastInputUpdateIdx = frameIndex;
+		}
+
+		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
+		{
+			const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+			// calculate the shift in the way to use the last received data to process the next fixed update
+			inputHistory.indexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - frameIndex + 1;
 		}
 	}
 }

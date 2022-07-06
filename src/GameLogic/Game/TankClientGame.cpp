@@ -12,6 +12,7 @@
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
+#include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
@@ -19,9 +20,11 @@
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
+#include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/World/GameDataLoader.h"
 
 #include "HAL/Base/Engine.h"
@@ -86,6 +89,42 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef 
 	Game::preStart(arguments);
 }
 
+void TankClientGame::initResources()
+{
+	SCOPED_PROFILER("TankGameClient::initResources");
+	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
+	Game::initResources();
+}
+
+void TankClientGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+{
+	SCOPED_PROFILER("TankClientGame::dynamicTimePreFrameUpdate");
+	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
+
+	processMoveCorrections();
+}
+
+void TankClientGame::fixedTimeUpdate(float dt)
+{
+	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
+
+	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
+
+	Game::fixedTimeUpdate(dt);
+}
+
+void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
+{
+	SCOPED_PROFILER("TankClientGame::dynamicTimePostFrameUpdate");
+
+	Game::dynamicTimePostFrameUpdate(dt, processedFixedUpdates);
+	if (mShouldQuitGameNextTick)
+	{
+		mShouldQuitGame = true;
+	}
+}
+
 void TankClientGame::initSystems()
 {
 	SCOPED_PROFILER("TankClientGame::initSystems");
@@ -109,18 +148,57 @@ void TankClientGame::initSystems()
 #endif // IMGUI_ENABLED
 }
 
-void TankClientGame::initResources()
+void TankClientGame::processMoveCorrections()
 {
-	SCOPED_PROFILER("TankGameClient::initResources");
-	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
-	Game::initResources();
+	SCOPED_PROFILER("TankGameClient::processMoveCorrections");
+
+	World& world = getWorldHolder().getWorld();
+
+	// we just remove old records until correction code is written
+
+	ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
+	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+
+	const size_t updatesBeforeTrim = updates.size();
+	const size_t updatesAfterTrim = std::min(updatesBeforeTrim, static_cast<size_t>(10));
+	const size_t updatesToTrim = updatesBeforeTrim - updatesAfterTrim;
+
+	updates.erase(updates.begin(), updates.begin() + updatesToTrim);
+
+	//world.trimOldFrames(updatesAfterTrim);
 }
 
-void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
+void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex)
 {
-	Game::dynamicTimePostFrameUpdate(dt, processedFixedUpdates);
-	if (mShouldQuitGameNextTick)
+	SCOPED_PROFILER("TankClientGame::saveMovesForLastFrame");
+	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
+	ClientMovesHistoryComponent* clientMovesHistory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
+
+	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+	AssertFatal(inputUpdateIndex == clientMovesHistory->getData().lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", inputUpdateIndex, clientMovesHistory->getData().lastUpdateIdx);
+	const size_t nextUpdateIndex = updates.size() + inputUpdateIndex - clientMovesHistory->getData().lastUpdateIdx - 1;
+	Assert(nextUpdateIndex == updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, updates.size());
+	updates.resize(nextUpdateIndex + 1);
+	MovementUpdateData& newUpdateData = updates[nextUpdateIndex];
+
+	entityManager.forEachComponentSetWithEntity<const MovementComponent, const TransformComponent>(
+		[&newUpdateData](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
 	{
-		mShouldQuitGame = true;
-	}
+		if (movement->getNextStep() == ZERO_VECTOR && movement->getPreviousStep() == ZERO_VECTOR)
+		{
+			const Vector2D location = transform->getLocation();
+			const Vector2D nextStep = movement->getNextStep();
+			newUpdateData.moves.emplace_back(entity, IntVector2D(static_cast<s32>(location.x), static_cast<s32>(location.y)), IntVector2D(static_cast<s32>(nextStep.x), static_cast<s32>(nextStep.y)));
+		}
+	});
+
+	std::sort(
+		newUpdateData.moves.begin(),
+		newUpdateData.moves.end(),
+		[](const EntityMoveData& l, const EntityMoveData& r)
+		{
+			return l.entity < r.entity;
+		}
+	);
+	clientMovesHistory->getDataRef().lastUpdateIdx = inputUpdateIndex;
 }
