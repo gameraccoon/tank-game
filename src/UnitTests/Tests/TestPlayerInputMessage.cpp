@@ -8,6 +8,7 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/World.h"
 
@@ -60,6 +61,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 		{
 			ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getInputsRef()[connectionId];
+			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
+			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
 		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
 
@@ -83,6 +86,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[4].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(4));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
 	}
 }
 
@@ -125,6 +129,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
 			inputHistory.lastInputUpdateIdx = 2;
+			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
+			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
 
 		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
@@ -149,6 +155,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[4].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(4));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
 	}
 }
 
@@ -186,6 +193,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
 			inputHistory.lastInputUpdateIdx = 42;
+			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
+			time->getValueRef().lastFixedUpdateIndex = 48;
 		}
 
 		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
@@ -216,5 +225,6 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 		EXPECT_EQ(inputHistory.inputs[6].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[6].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(46));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
 	}
 }
