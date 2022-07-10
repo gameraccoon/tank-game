@@ -274,7 +274,6 @@ namespace HAL
 			constexpr const int messageLossPercentage = 70;
 			if (std::rand() % 100 < messageLossPercentage)
 			{
-				LogInfo("A network message was dropped (type id: %d)", message.type);
 				// imitate sending and loosing
 				return ConnectionManager::SendMessageResult{ConnectionManager::SendMessageResult::Status::Success};
 			}

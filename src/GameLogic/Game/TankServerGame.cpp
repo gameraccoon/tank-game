@@ -107,10 +107,10 @@ void TankServerGame::initSystems(bool shouldRender)
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
+	getPostFrameSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
 	if (shouldRender)
@@ -126,8 +126,6 @@ void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
 	const TimeData& timeValue = time->getValue();
 	const float fixedUpdateDt = timeValue.lastFixedUpdateDt;
-
-	LogInfo("Correct updates from: %u to %u", firstIncorrectUpdateIdx, timeValue.lastFixedUpdateIndex);
 
 	AssertFatal(firstIncorrectUpdateIdx <= timeValue.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = timeValue.lastFixedUpdateIndex - firstIncorrectUpdateIdx + 1;
@@ -180,7 +178,6 @@ void TankServerGame::processInputCorrections()
 			if (inputHistory.inputs[i] != inputHistory.inputs[i - 1])
 			{
 				const u32 firstIncorrectUpdate = static_cast<u32>(lastAbsoluteInputUpdateIdx + 1 + i - inputHistory.inputs.size());
-				LogInfo("User %d has updates to correct from frame: %u", i, firstIncorrectUpdate);
 				firstUpdateToCorrect = std::min(firstUpdateToCorrect, firstIncorrectUpdate);
 				break;
 			}

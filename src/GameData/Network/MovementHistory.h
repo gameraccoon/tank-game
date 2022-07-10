@@ -26,6 +26,6 @@ struct MovementHistory
 {
 	std::vector<MovementUpdateData> updates;
 	u32 lastUpdateIdx = 0;
-	u32 firstConfirmedUpdateIdx = 0;
-	u32 desynchedUpdate = std::numeric_limits<u32>::max();
+	u32 lastConfirmedUpdateIdx = 0;
+	u32 desynchedUpdateIdx = std::numeric_limits<u32>::max();
 };

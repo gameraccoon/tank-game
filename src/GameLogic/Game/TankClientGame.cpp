@@ -152,20 +152,41 @@ void TankClientGame::processMoveCorrections()
 {
 	SCOPED_PROFILER("TankGameClient::processMoveCorrections");
 
-	World& world = getWorldHolder().getWorld();
+	constexpr size_t MAX_STORED_UPDATES_COUNT = 60;
 
-	// we just remove old records until correction code is written
+	World& world = getWorldHolder().getWorld();
 
 	ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
 	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+	const u32 lastUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
+	const u32 firstUpdateIdx = lastUpdateIdx + 1 - updates.size();
+	const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
+	const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
-	const size_t updatesBeforeTrim = updates.size();
-	const size_t updatesAfterTrim = std::min(updatesBeforeTrim, static_cast<size_t>(10));
-	const size_t updatesToTrim = updatesBeforeTrim - updatesAfterTrim;
+	AssertFatal(lastConfirmedUpdateIdx != desynchedUpdateIdx, "We can't have the same frame to be confermed and desynched at the same time");
 
-	updates.erase(updates.begin(), updates.begin() + updatesToTrim);
+	// if we need to process corrections
+	if (desynchedUpdateIdx > lastConfirmedUpdateIdx && desynchedUpdateIdx >= firstUpdateIdx && desynchedUpdateIdx != std::numeric_limits<u32>::max())
+	{
+		const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+		LogInfo("Need to process moves correction from updates %d to %d", desynchedUpdateIdx, time->getValue().lastFixedUpdateIndex);
+	}
+	else
+	{
+		// trim confirmed or very old frame records
+		const size_t updatesCountBeforeTrim = updates.size();
+		size_t updatesCountAfterTrim = std::min(updatesCountBeforeTrim, MAX_STORED_UPDATES_COUNT);
+		if (lastConfirmedUpdateIdx >= firstUpdateIdx)
+		{
+			const size_t lastConfirmedUpdateRecordIdx = lastConfirmedUpdateIdx - firstUpdateIdx;
+			updatesCountAfterTrim = std::max(updatesCountAfterTrim, updatesCountBeforeTrim - lastConfirmedUpdateRecordIdx - 1);
+		}
+		const size_t updatesCountToTrim = updatesCountBeforeTrim - updatesCountAfterTrim;
 
-	//world.trimOldFrames(updatesAfterTrim);
+		updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
+
+		//world.trimOldFrames(updatesAfterTrim);
+	}
 }
 
 void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex)

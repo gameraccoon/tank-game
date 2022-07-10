@@ -53,8 +53,8 @@ namespace Network
 
 		std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
 		const u32 lastRecordUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
-		const u32 firstConfirmedIdx = clientMovesHistory->getData().firstConfirmedUpdateIdx;
-		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdate;
+		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
+		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
 		size_t streamIndex = 0;
 		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
@@ -76,16 +76,14 @@ namespace Network
 			return;
 		}
 
-		if (updateIdx <= firstConfirmedIdx)
+		if (updateIdx <= lastConfirmedUpdateIdx)
 		{
-			Assert(updateIdx != firstConfirmedIdx, "Processing snapshot that has already been processed, this shouldn't happen");
 			// we have snapshots later than this that are already confirmed, no need to do anything
 			return;
 		}
 
 		if (desynchedUpdateIdx != std::numeric_limits<u32>::max() && updateIdx <= desynchedUpdateIdx)
 		{
-			Assert(updateIdx != desynchedUpdateIdx, "Processing snapshot that has already been processed, this shouldn't happen");
 			// we have snapshots later than this that are confirmed to be desynchronized, no need to do anything
 			return;
 		}
@@ -122,11 +120,11 @@ namespace Network
 
 		if (oldMovesData == currentUpdateData.moves)
 		{
-			clientMovesHistory->getDataRef().firstConfirmedUpdateIdx = updateIdx;
+			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
 		}
 		else
 		{
-			clientMovesHistory->getDataRef().desynchedUpdate = updateIdx;
+			clientMovesHistory->getDataRef().desynchedUpdateIdx = updateIdx;
 		}
 	}
 }
