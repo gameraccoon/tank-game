@@ -97,7 +97,7 @@ void InputSystem::processGameplayInput()
 	EntityManager& entityManager = world.getEntityManager();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByFloatTime(time->getValue().lastFixedUpdateDt);
+	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
 
 	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 

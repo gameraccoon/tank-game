@@ -6,20 +6,49 @@
 #include "Base/Types/BasicTypes.h"
 
 #include "GameData/EcsDefinitions.h"
-#include "GameData/Geometry/IntVector2D.h"
+#include "GameData/Geometry/Vector2D.h"
+#include "GameData/Time/GameplayTimestamp.h"
+
+struct EntityMoveHash
+{
+	EntityMoveHash(Entity entity, Vector2D location)
+		: entityHash(entity.getId())
+		, locationHashX(static_cast<s32>(location.x))
+		, locationHashY(static_cast<s32>(location.y))
+	{}
+
+	Entity::EntityId entityHash;
+	s32 locationHashX;
+	s32 locationHashY;
+
+	bool operator==(const EntityMoveHash& other) const noexcept = default;
+	bool operator<(const EntityMoveHash& other) const noexcept { return entityHash < other.entityHash; };
+};
 
 struct EntityMoveData
 {
 	Entity entity;
-	IntVector2D location;
-	IntVector2D nextMovement;
-
-	bool operator==(const EntityMoveData& other) const noexcept = default;
+	Vector2D location;
+	GameplayTimestamp timestamp;
 };
 
 struct MovementUpdateData
 {
+	std::vector<EntityMoveHash> updateHash;
 	std::vector<EntityMoveData> moves;
+
+	void addMove(Entity entity, Vector2D location, GameplayTimestamp timestamp)
+	{
+		AssertFatal(updateHash.size() == moves.size(), "Vector sizes mismatch in moves history, this should never happen");
+		updateHash.emplace_back(entity, location);
+		moves.emplace_back(entity, location, timestamp);
+	}
+
+	void addHash(Entity entity, Vector2D location)
+	{
+		updateHash.emplace_back(entity, location);
+		AssertFatal(moves.empty(), "We should add hashes only to history records that doesn't contain real moves");
+	}
 };
 
 struct MovementHistory

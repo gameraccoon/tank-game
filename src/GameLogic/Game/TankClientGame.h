@@ -10,6 +10,7 @@
 #endif
 
 class ArgumentsParser;
+class GameplayTimestamp;
 
 class TankClientGame : public Game
 {
@@ -27,8 +28,9 @@ public:
 
 private:
 	void initSystems();
+	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves);
 	void processMoveCorrections();
-	void saveMovesForLastFrame(u32 inputUpdateIndex);
+	void saveMovesForLastFrame(u32 inputUpdateIndex, const GameplayTimestamp& inputUpdateTimestamp);
 
 private:
 	HAL::ConnectionManager mConnectionManager;

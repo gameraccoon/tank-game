@@ -24,7 +24,7 @@ namespace Utils
 			for (GameplayInput::FrameState::KeyInfo keyInfo : input.getRawKeysData())
 			{
 				Serialization::WriteNumber<s8>(stream, static_cast<s8>(keyInfo.state));
-				Serialization::WriteNumber<u64>(stream, keyInfo.lastFlipTime.getRawValue());
+				Serialization::WriteNumber<u32>(stream, keyInfo.lastFlipTime.getRawValue());
 			}
 		}
 	}
@@ -47,7 +47,7 @@ namespace Utils
 			for (GameplayInput::FrameState::KeyInfo& keyInfo : keysData)
 			{
 				keyInfo.state = static_cast<GameplayInput::KeyState>(Serialization::ReadNumber<s8>(stream, streamIndex));
-				keyInfo.lastFlipTime = GameplayTimestamp(Serialization::ReadNumber<u64>(stream, streamIndex));
+				keyInfo.lastFlipTime = GameplayTimestamp(Serialization::ReadNumber<u32>(stream, streamIndex));
 			}
 
 			result[idx] = GameplayInput::FrameState(axesData, keysData);

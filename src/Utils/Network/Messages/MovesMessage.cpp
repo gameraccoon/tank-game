@@ -16,25 +16,28 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx)
+	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift)
 	{
 		std::vector<std::byte> movesMessageData;
 
-		Serialization::WriteNumber<u32>(movesMessageData, updateIdx);
+		const u32 clientUpdateIdx = updateIdx - indexShift + 2;
+
+		Serialization::WriteNumber<u32>(movesMessageData, clientUpdateIdx);
 
 		for (auto [entity, movement, transform] : components)
 		{
-			// only if we moved this or last frame
-			if (movement->getNextStep() == ZERO_VECTOR && movement->getPreviousStep() == ZERO_VECTOR)
+			const GameplayTimestamp serverMoveTimestamp = movement->getUpdateTimestamp();
+			// only if we moved within some agreed (between client and server) period of time
+			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15 - 1) > lastUpdateTimestamp)
 			{
 				// Fixme should use server entity for this, need to make network ids
 				Serialization::WriteNumber<u64>(movesMessageData, entity.getId());
 				const Vector2D location = transform->getLocation();
-				Serialization::WriteNumber<s32>(movesMessageData, static_cast<s32>(location.x));
-				Serialization::WriteNumber<s32>(movesMessageData, static_cast<s32>(location.y));
-				const Vector2D nextStep = movement->getNextStep();
-				Serialization::WriteNumber<s32>(movesMessageData, static_cast<s32>(nextStep.x));
-				Serialization::WriteNumber<s32>(movesMessageData, static_cast<s32>(nextStep.y));
+				Serialization::WriteNumber<f32>(movesMessageData, location.x);
+				Serialization::WriteNumber<f32>(movesMessageData, location.y);
+
+				const GameplayTimestamp clientMoveTimestamp = serverMoveTimestamp.isInitialized() ? serverMoveTimestamp.getDecreasedByUpdateCount(indexShift - 1) : serverMoveTimestamp;
+				Serialization::WriteNumber<u32>(movesMessageData, clientMoveTimestamp.getRawValue());
 			}
 		}
 
@@ -93,32 +96,24 @@ namespace Network
 		AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
 		MovementUpdateData& currentUpdateData = updates[updatedRecordIdx];
 
-		std::vector<EntityMoveData> oldMovesData = std::move(currentUpdateData.moves);
+		std::vector<EntityMoveHash> oldMovesData = std::move(currentUpdateData.updateHash);
+		std::vector<EntityMoveData> oldMovesDataTest = std::move(currentUpdateData.moves);
 
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
 		{
 			Entity entity(Serialization::ReadNumber<u64>(message.data, streamIndex));
-			IntVector2D location;
-			location.x = Serialization::ReadNumber<s32>(message.data, streamIndex);
-			location.y = Serialization::ReadNumber<s32>(message.data, streamIndex);
-			IntVector2D nextMovement;
-			nextMovement.x = Serialization::ReadNumber<s32>(message.data, streamIndex);
-			nextMovement.y = Serialization::ReadNumber<s32>(message.data, streamIndex);
+			Vector2D location;
+			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex);
+			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex);
+			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex));
 
-			currentUpdateData.moves.emplace_back(entity, location, nextMovement);
+			currentUpdateData.addMove(entity, location, lastUpdateTimestamp);
 		}
 
-		std::sort(
-			currentUpdateData.moves.begin(),
-			currentUpdateData.moves.end(),
-			[](const EntityMoveData& l, const EntityMoveData& r)
-			{
-				return l.entity < r.entity;
-			}
-		);
+		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		if (oldMovesData == currentUpdateData.moves)
+		if (oldMovesData == currentUpdateData.updateHash)
 		{
 			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
 		}

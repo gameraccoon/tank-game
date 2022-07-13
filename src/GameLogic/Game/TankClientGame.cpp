@@ -108,8 +108,10 @@ void TankClientGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
 
+	getWorldHolder().getWorld().addNewFrameToTheHistory();
+
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
+	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex + 1, time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1));
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -148,6 +150,45 @@ void TankClientGame::initSystems()
 #endif // IMGUI_ENABLED
 }
 
+void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
+{
+	SCOPED_PROFILER("TankClientGame::correctUpdates");
+
+	World& world = getWorldHolder().getWorld();
+
+	// don't store references to component data, since the components will be destroyed during history rewinding
+	const TimeData lastUpdateTime = std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
+	const float fixedUpdateDt = lastUpdateTime.lastFixedUpdateDt;
+
+	AssertFatal(lastUpdateIdxWithAuthoritativeMoves <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
+	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
+
+	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
+	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+
+	// unwind the history back
+	world.unwindBackInHistory(framesToResimulate);
+	updates.erase(updates.begin() + (updates.size() - framesToResimulate), updates.end());
+
+	// apply moves to the diverged frame
+	const size_t authoritativeUpdateRecordIdx = lastUpdateIdxWithAuthoritativeMoves;
+	for (const auto& [entity, location, timestamp] : updates[authoritativeUpdateRecordIdx].moves)
+	{
+		auto [movement, transform] = world.getEntityManager().getEntityComponents<MovementComponent, TransformComponent>(entity);
+		if (transform && movement)
+		{
+			transform->setLocation(location);
+			movement->setUpdateTimestamp(timestamp);
+		}
+	}
+
+	// resimulate later frames
+	for (u32 i = 0; i < framesToResimulate; ++i)
+	{
+		fixedTimeUpdate(fixedUpdateDt);
+	}
+}
+
 void TankClientGame::processMoveCorrections()
 {
 	SCOPED_PROFILER("TankGameClient::processMoveCorrections");
@@ -158,38 +199,46 @@ void TankClientGame::processMoveCorrections()
 
 	ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
 	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+
+	{
+		const u32 lastUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
+		const u32 firstUpdateIdx = lastUpdateIdx + 1 - updates.size();
+		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
+		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
+
+		AssertFatal(lastConfirmedUpdateIdx != desynchedUpdateIdx, "We can't have the same frame to be confermed and desynched at the same time");
+
+		// if we need to process corrections
+		if (desynchedUpdateIdx > lastConfirmedUpdateIdx && desynchedUpdateIdx >= firstUpdateIdx && desynchedUpdateIdx != std::numeric_limits<u32>::max())
+		{
+			//correctUpdates(desynchedUpdateIdx);
+
+			// mark the desynched update as confirmed since now we applied moves fror server to it
+			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = desynchedUpdateIdx;
+			clientMovesHistory->getDataRef().desynchedUpdateIdx = std::numeric_limits<u32>::max();
+		}
+	}
+
 	const u32 lastUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
 	const u32 firstUpdateIdx = lastUpdateIdx + 1 - updates.size();
 	const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
-	const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
-	AssertFatal(lastConfirmedUpdateIdx != desynchedUpdateIdx, "We can't have the same frame to be confermed and desynched at the same time");
-
-	// if we need to process corrections
-	if (desynchedUpdateIdx > lastConfirmedUpdateIdx && desynchedUpdateIdx >= firstUpdateIdx && desynchedUpdateIdx != std::numeric_limits<u32>::max())
+	// trim confirmed, corrected, or very old frame records
+	const size_t updatesCountBeforeTrim = updates.size();
+	size_t updatesCountAfterTrim = std::min(updatesCountBeforeTrim, MAX_STORED_UPDATES_COUNT);
+	if (lastConfirmedUpdateIdx >= firstUpdateIdx)
 	{
-		const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-		LogInfo("Need to process moves correction from updates %d to %d", desynchedUpdateIdx, time->getValue().lastFixedUpdateIndex);
+		const size_t lastConfirmedUpdateRecordIdx = lastConfirmedUpdateIdx - firstUpdateIdx;
+		updatesCountAfterTrim = std::min(updatesCountAfterTrim, updatesCountBeforeTrim - lastConfirmedUpdateRecordIdx - 1);
 	}
-	else
-	{
-		// trim confirmed or very old frame records
-		const size_t updatesCountBeforeTrim = updates.size();
-		size_t updatesCountAfterTrim = std::min(updatesCountBeforeTrim, MAX_STORED_UPDATES_COUNT);
-		if (lastConfirmedUpdateIdx >= firstUpdateIdx)
-		{
-			const size_t lastConfirmedUpdateRecordIdx = lastConfirmedUpdateIdx - firstUpdateIdx;
-			updatesCountAfterTrim = std::max(updatesCountAfterTrim, updatesCountBeforeTrim - lastConfirmedUpdateRecordIdx - 1);
-		}
-		const size_t updatesCountToTrim = updatesCountBeforeTrim - updatesCountAfterTrim;
+	const size_t updatesCountToTrim = updatesCountBeforeTrim - updatesCountAfterTrim;
 
-		updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
+	updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
 
-		//world.trimOldFrames(updatesAfterTrim);
-	}
+	world.trimOldFrames(updatesCountAfterTrim);
 }
 
-void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex)
+void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex, const GameplayTimestamp& inputUpdateTimestamp)
 {
 	SCOPED_PROFILER("TankClientGame::saveMovesForLastFrame");
 	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
@@ -203,23 +252,20 @@ void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex)
 	MovementUpdateData& newUpdateData = updates[nextUpdateIndex];
 
 	entityManager.forEachComponentSetWithEntity<const MovementComponent, const TransformComponent>(
-		[&newUpdateData](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
+		[&newUpdateData, inputUpdateTimestamp](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
 	{
-		if (movement->getNextStep() == ZERO_VECTOR && movement->getPreviousStep() == ZERO_VECTOR)
+		// only if we moved within some agreed (between client and server) period of time
+		const GameplayTimestamp updateTimestamp = movement->getUpdateTimestamp();
+		if (updateTimestamp.isInitialized() && updateTimestamp.getIncreasedByUpdateCount(15) > inputUpdateTimestamp)
 		{
-			const Vector2D location = transform->getLocation();
-			const Vector2D nextStep = movement->getNextStep();
-			newUpdateData.moves.emplace_back(entity, IntVector2D(static_cast<s32>(location.x), static_cast<s32>(location.y)), IntVector2D(static_cast<s32>(nextStep.x), static_cast<s32>(nextStep.y)));
+			// test code, need to use addHash
+			newUpdateData.addMove(entity, transform->getLocation(), updateTimestamp);
+			// uncomment when stopped testing
+			//newUpdateData.addHash(entity, transform->getLocation());
 		}
 	});
 
-	std::sort(
-		newUpdateData.moves.begin(),
-		newUpdateData.moves.end(),
-		[](const EntityMoveData& l, const EntityMoveData& r)
-		{
-			return l.entity < r.entity;
-		}
-	);
+	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
+
 	clientMovesHistory->getDataRef().lastUpdateIdx = inputUpdateIndex;
 }

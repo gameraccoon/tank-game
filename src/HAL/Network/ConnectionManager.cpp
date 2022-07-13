@@ -271,7 +271,7 @@ namespace HAL
 
 		if (reliability == MessageReliability::Unreliable || reliability == MessageReliability::UnreliableAllowSkip)
 		{
-			constexpr const int messageLossPercentage = 70;
+			constexpr const int messageLossPercentage = 0;
 			if (std::rand() % 100 < messageLossPercentage)
 			{
 				// imitate sending and loosing

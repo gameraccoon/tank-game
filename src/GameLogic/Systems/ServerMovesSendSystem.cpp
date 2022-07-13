@@ -79,18 +79,18 @@ void ServerMovesSendSystem::update()
 		}
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+		AssertFatal(time, "TimeComponent should be created before the game run");
+		const TimeData& timeValue = time->getValue();
 
-		if (time->getValue().lastFixedUpdateIndex < static_cast<u32>(indexShift))
+		if (timeValue.lastFixedUpdateIndex < static_cast<u32>(indexShift))
 		{
 			ReportError("Converted update index is less than zero, this shouldn't normally happen");
 			continue;
 		}
 
-		const u32 clientUpdateIdx = time->getValue().lastFixedUpdateIndex - indexShift;
-
 		connectionManager->sendMessage(
 			connectionId,
-			Network::CreateMovesMessage(components, clientUpdateIdx),
+			Network::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}
