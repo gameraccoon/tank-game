@@ -2,6 +2,8 @@
 
 #include "GameLogic/Game/TankClientGame.h"
 
+#include <unordered_map>
+
 #include "Base/Types/TemplateHelpers.h"
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
@@ -164,23 +166,36 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
 
 	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
-	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
+	MovementHistory& movesHistory = clientMovesHistory->getDataRef();
+	std::vector<MovementUpdateData>& updates = movesHistory.updates;
 
 	// unwind the history back
 	world.unwindBackInHistory(framesToResimulate);
 	updates.erase(updates.begin() + (updates.size() - framesToResimulate), updates.end());
+	movesHistory.lastUpdateIdx -= framesToResimulate;
 
 	// apply moves to the diverged frame
-	const size_t authoritativeUpdateRecordIdx = lastUpdateIdxWithAuthoritativeMoves;
-	for (const auto& [entity, location, timestamp] : updates[authoritativeUpdateRecordIdx].moves)
+	std::unordered_map<Entity, EntityMoveData> entityMoves;
+	for (const EntityMoveData& move : updates.back().moves)
 	{
-		auto [movement, transform] = world.getEntityManager().getEntityComponents<MovementComponent, TransformComponent>(entity);
-		if (transform && movement)
-		{
-			transform->setLocation(location);
-			movement->setUpdateTimestamp(timestamp);
-		}
+		entityMoves.emplace(move.entity, move);
 	}
+
+	world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
+		[&entityMoves](Entity entity, MovementComponent* movement, TransformComponent* transform)
+	{
+		const auto it = entityMoves.find(entity);
+
+		if (it == entityMoves.end())
+		{
+			return;
+		}
+
+		const EntityMoveData& move = it->second;
+
+		transform->setLocation(move.location);
+		movement->setUpdateTimestamp(move.timestamp);
+	});
 
 	// resimulate later frames
 	for (u32 i = 0; i < framesToResimulate; ++i)
@@ -211,7 +226,7 @@ void TankClientGame::processMoveCorrections()
 		// if we need to process corrections
 		if (desynchedUpdateIdx > lastConfirmedUpdateIdx && desynchedUpdateIdx >= firstUpdateIdx && desynchedUpdateIdx != std::numeric_limits<u32>::max())
 		{
-			//correctUpdates(desynchedUpdateIdx);
+			correctUpdates(desynchedUpdateIdx);
 
 			// mark the desynched update as confirmed since now we applied moves fror server to it
 			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = desynchedUpdateIdx;

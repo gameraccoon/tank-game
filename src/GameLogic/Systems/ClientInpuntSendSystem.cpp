@@ -72,7 +72,7 @@ void ClientInputSendSystem::update()
 	{
 		inputHistory->getInputsRef().push_back(gameplayInputState);
 	}
-	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame - 1);
+	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame);
 
 	connectionManager->sendMessage(
 		connectionId,
