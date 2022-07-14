@@ -65,7 +65,7 @@ void ClientInputSendSystem::update()
 	{
 		gameplayInput = entityManager.addComponent<GameplayInputComponent>(controlledEntity.getEntity());
 	}
-	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
+	const GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameState();
 
 	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
 	for (u32 i = 0; i < updatesThisFrame; ++i)

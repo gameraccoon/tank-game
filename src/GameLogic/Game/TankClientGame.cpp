@@ -16,6 +16,7 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
@@ -198,8 +199,31 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	});
 
 	// resimulate later frames
+	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+	const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
+	AssertFatal(inputs.size() >= framesToResimulate, "Size of input history can't be less than size of move history");
+	size_t inputHistoryIndexShift = inputs.size() - framesToResimulate;
 	for (u32 i = 0; i < framesToResimulate; ++i)
 	{
+		ClientGameDataComponent* clientGameData = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+		OptionalEntity optionalControlledEntity = clientGameData->getControlledPlayer();
+
+		if (!optionalControlledEntity.isValid())
+		{
+			ReportError("The controlled entity should be set when we do movement correction on the client");
+			break;
+		}
+
+		EntityManager& frameEntityManager = getWorldHolder().getWorld().getEntityManager();
+
+		auto [gameplayInput] = frameEntityManager.getEntityComponents<GameplayInputComponent>(optionalControlledEntity.getEntity());
+		if (gameplayInput == nullptr)
+		{
+			gameplayInput = frameEntityManager.addComponent<GameplayInputComponent>(optionalControlledEntity.getEntity());
+		}
+
+		gameplayInput->setCurrentFrameState(inputs[i + inputHistoryIndexShift]);
+
 		fixedTimeUpdate(fixedUpdateDt);
 	}
 }
@@ -249,6 +273,10 @@ void TankClientGame::processMoveCorrections()
 	const size_t updatesCountToTrim = updatesCountBeforeTrim - updatesCountAfterTrim;
 
 	updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
+
+	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+	std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputsRef();
+	inputs.erase(inputs.begin(), inputs.begin() + (inputs.size() - std::min(updatesCountAfterTrim, inputs.size())));
 
 	world.trimOldFrames(updatesCountAfterTrim);
 }

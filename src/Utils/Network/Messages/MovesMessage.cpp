@@ -20,7 +20,7 @@ namespace Network
 	{
 		std::vector<std::byte> movesMessageData;
 
-		const u32 clientUpdateIdx = updateIdx - indexShift + 1;
+		const u32 clientUpdateIdx = updateIdx - (indexShift - 1);
 
 		Serialization::WriteNumber<u32>(movesMessageData, clientUpdateIdx);
 
@@ -28,7 +28,7 @@ namespace Network
 		{
 			const GameplayTimestamp serverMoveTimestamp = movement->getUpdateTimestamp();
 			// only if we moved within some agreed (between client and server) period of time
-			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
+			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15 - 1) > lastUpdateTimestamp)
 			{
 				// Fixme should use server entity for this, need to make network ids
 				Serialization::WriteNumber<u64>(movesMessageData, entity.getId());
