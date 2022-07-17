@@ -71,7 +71,7 @@ void ClientNetworkSystem::update()
 
 	auto newMessages = connectionManager->consumeReceivedClientMessages(connectionId);
 
-	for (auto&& [connectionId, message] : newMessages)
+	for (auto&& [_, message] : newMessages)
 	{
 		switch (static_cast<NetworkMessageId>(message.type))
 		{

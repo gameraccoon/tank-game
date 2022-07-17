@@ -241,7 +241,7 @@ void TankClientGame::processMoveCorrections()
 
 	{
 		const u32 lastUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
-		const u32 firstUpdateIdx = lastUpdateIdx + 1 - updates.size();
+		const u32 firstUpdateIdx = static_cast<u32>(lastUpdateIdx + 1 - updates.size());
 		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
 		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
@@ -259,7 +259,7 @@ void TankClientGame::processMoveCorrections()
 	}
 
 	const u32 lastUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
-	const u32 firstUpdateIdx = lastUpdateIdx + 1 - updates.size();
+	const u32 firstUpdateIdx = static_cast<u32>(lastUpdateIdx + 1 - updates.size());
 	const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
 
 	// trim confirmed, corrected, or very old frame records

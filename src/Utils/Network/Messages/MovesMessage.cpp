@@ -91,7 +91,7 @@ namespace Network
 
 		AssertFatal(lastUpdateIdx == lastRecordUpdateIdx, "We should always have input record for the last frame");
 
-		const u32 firstRecordUpdateIdx = lastRecordUpdateIdx + 1 - updates.size();
+		const u32 firstRecordUpdateIdx = static_cast<u32>(lastRecordUpdateIdx + 1 - updates.size());
 
 		if (updateIdx < firstRecordUpdateIdx)
 		{
