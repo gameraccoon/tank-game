@@ -31,4 +31,8 @@ private:
 	ResourceHandle mFontHandle;
 	ResourceHandle mPointTextureHandle;
 	ResourceHandle mLineTextureHandle;
+	ResourceHandle mArrowUpTextureHandle;
+	ResourceHandle mArrowDownTextureHandle;
+	ResourceHandle mArrowLeftTextureHandle;
+	ResourceHandle mArrowRightTextureHandle;
 };

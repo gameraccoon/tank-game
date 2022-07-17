@@ -146,10 +146,9 @@ void InputSystem::processDebugInput()
 	{
 		UpdateRenderStateOnPressed(keyboardState, SDLK_F2, renderMode->getIsDrawDebugCollisionsEnabledRef());
 		UpdateRenderStateOnPressed(keyboardState, SDLK_F3, renderMode->getIsDrawBackgroundEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F4, renderMode->getIsDrawLightsEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDLK_F4, renderMode->getIsDrawDebugInputEnabledRef());
 		UpdateRenderStateOnPressed(keyboardState, SDLK_F5, renderMode->getIsDrawVisibleEntitiesEnabledRef());
 		UpdateRenderStateOnPressed(keyboardState, SDLK_F7, renderMode->getIsDrawDebugCharacterInfoEnabledRef());
 		UpdateRenderStateOnPressed(keyboardState, SDLK_F8, renderMode->getIsDrawDebugPrimitivesEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F9, renderMode->getIsDrawDebugCellInfoEnabledRef());
 	}
 }

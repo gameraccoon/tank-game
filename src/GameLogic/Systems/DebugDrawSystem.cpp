@@ -10,6 +10,7 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/CollisionComponent.generated.h"
 #include "GameData/Components/DebugDrawComponent.generated.h"
+#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -152,6 +153,54 @@ void DebugDrawSystem::update()
 		});
 	}
 
+	if (renderMode && renderMode->getIsDrawDebugInputEnabled())
+	{
+		const Vector2D crossCenterOffset{60, 280};
+		const Vector2D crossPieceSize{23, 23};
+		const float crossPieceOffset = 25;
+		const InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<const InputHistoryComponent>();
+		if (!inputHistory->getInputs().empty())
+		{
+			const GameplayInput::FrameState& lastInput = inputHistory->getInputs().back();
+			float horisontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+			float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+
+			if (horisontalMove < 0.0f)
+			{
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+				quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
+				quadData.size = crossPieceSize;
+				quadData.spriteHandle = mArrowLeftTextureHandle;
+				quadData.alpha = std::clamp(-horisontalMove, 0.0f, 1.0f);
+			}
+			else if (horisontalMove > 0.0f)
+			{
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+				quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
+				quadData.size = crossPieceSize;
+				quadData.spriteHandle = mArrowRightTextureHandle;
+				quadData.alpha = std::clamp(horisontalMove, 0.0f, 1.0f);
+			}
+
+			if (verticalMove > 0.0f)
+			{
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+				quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
+				quadData.size = crossPieceSize;
+				quadData.spriteHandle = mArrowDownTextureHandle;
+				quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
+			}
+			else if (verticalMove < 0.0f)
+			{
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+				quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
+				quadData.size = crossPieceSize;
+				quadData.spriteHandle = mArrowUpTextureHandle;
+				quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
+			}
+		}
+	}
+
 	auto [debugDraw] = gameData.getGameComponents().getComponents<DebugDrawComponent>();
 	if (debugDraw != nullptr)
 	{
@@ -170,5 +219,9 @@ void DebugDrawSystem::init()
 	mNavmeshSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
 	mPointTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/protection-field-2.png"));
 	mLineTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
+	mArrowUpTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-up.png"));
+	mArrowDownTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-down.png"));
+	mArrowLeftTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-left.png"));
+	mArrowRightTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-right.png"));
 	mFontHandle = mResourceManager.lockResource<Graphics::Font>(ResourcePath("resources/fonts/prstart.ttf"), 16);
 }
