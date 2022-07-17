@@ -6,6 +6,7 @@
 #include "Base/Types/BasicTypes.h"
 
 #include "GameData/Components/ClientMovesHistoryComponent.generated.h"
+#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -16,11 +17,18 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift)
+	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastReceivedInputUpdateIdx)
 	{
 		std::vector<std::byte> movesMessageData;
 
 		const u32 clientUpdateIdx = updateIdx - indexShift;
+
+		const bool hasMissingInput = lastReceivedInputUpdateIdx + indexShift < updateIdx;
+
+		Serialization::WriteNumber<u8>(movesMessageData, static_cast<u8>(hasMissingInput));
+		if (hasMissingInput) {
+			Serialization::WriteNumber<u32>(movesMessageData, lastReceivedInputUpdateIdx);
+		}
 
 		Serialization::WriteNumber<u32>(movesMessageData, clientUpdateIdx);
 
@@ -60,7 +68,16 @@ namespace Network
 		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
 		size_t streamIndex = 0;
+		u32 lastReceivedInputUpdateIdx = 0;
+		const bool hasMissingInput = (Serialization::ReadNumber<u8>(message.data, streamIndex) != 0);
+		if (hasMissingInput)
+		{
+			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+		}
 		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+		// we are not interested in values greater than the update idx of input that we are processing
+		// for any non-relevant value, assume it is equal to updateIdx
+		lastReceivedInputUpdateIdx = hasMissingInput ? std::min(lastReceivedInputUpdateIdx, updateIdx) : updateIdx;
 
 		if (updateIdx > lastUpdateIdx)
 		{
@@ -94,6 +111,8 @@ namespace Network
 			return;
 		}
 
+		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+
 		const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
 
 		AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
@@ -116,13 +135,48 @@ namespace Network
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		if (oldMovesData == currentUpdateData.updateHash)
+		bool areMovesDesynched = false;
+		if (oldMovesData != currentUpdateData.updateHash)
 		{
-			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
+			areMovesDesynched = true;
+
+			if (hasMissingInput)
+			{
+				const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
+				// check if the server was able to correctly predict our input for that frame
+				// and if it was able, then mark record as desynched, since then our prediction was definitely incorrect
+				if (inputHistory->getLastInputUpdateIdx() >= updateIdx && (inputHistory->getLastInputUpdateIdx() + 1 - inputs.size() <= lastReceivedInputUpdateIdx))
+				{
+					const size_t indexShift = inputHistory->getLastInputUpdateIdx() + 1 - inputs.size();
+					for (u32 i = updateIdx; i > lastReceivedInputUpdateIdx; --i)
+					{
+						if (inputs[i - 1 - indexShift] != inputs[i - indexShift])
+						{
+							// server couldn't predict our input correctly, we can't trust its movement prediction either
+							// mark as accepted to keep our local version until we get moves with confirmed input
+							areMovesDesynched = false;
+							break;
+						}
+					}
+				}
+				else
+				{
+					ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedInputUpdateIdx, inputs.size(), inputHistory->getLastInputUpdateIdx());
+				}
+			}
 		}
-		else
+
+		if (areMovesDesynched)
 		{
 			clientMovesHistory->getDataRef().desynchedUpdateIdx = updateIdx;
 		}
+		else
+		{
+			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
+		}
+
+		const size_t updatesCountAfterTrim = inputHistory->getLastInputUpdateIdx() - lastReceivedInputUpdateIdx + 1;
+		std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputsRef();
+		inputs.erase(inputs.begin(), inputs.begin() + (inputs.size() - std::min(updatesCountAfterTrim, inputs.size())));
 	}
 }

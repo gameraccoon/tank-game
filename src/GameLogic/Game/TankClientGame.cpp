@@ -274,10 +274,6 @@ void TankClientGame::processMoveCorrections()
 
 	updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
 
-	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
-	std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputsRef();
-	inputs.erase(inputs.begin(), inputs.begin() + (inputs.size() - std::min(updatesCountAfterTrim, inputs.size())));
-
 	world.trimOldFrames(updatesCountAfterTrim);
 }
 

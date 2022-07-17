@@ -70,7 +70,9 @@ void ServerMovesSendSystem::update()
 			continue;
 		}
 
-		const s32 indexShift = inputIt->second.indexShift;
+		const Input::InputHistory& inputHistory = inputIt->second;
+
+		const s32 indexShift = inputHistory.indexShift;
 
 		if (indexShift == std::numeric_limits<s32>::max())
 		{
@@ -90,7 +92,7 @@ void ServerMovesSendSystem::update()
 
 		connectionManager->sendMessage(
 			connectionId,
-			Network::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift),
+			Network::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift, inputHistory.lastInputUpdateIdx),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

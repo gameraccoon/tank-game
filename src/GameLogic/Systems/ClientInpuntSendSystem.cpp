@@ -52,7 +52,6 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-
 	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
 
 	if (!controlledEntity.isValid())
