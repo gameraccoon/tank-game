@@ -88,7 +88,7 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	saveInputForLastFrame(time->getValue().lastFixedUpdateIndex + 1);
+	applyInputForCurrentUpdate(time->getValue().lastFixedUpdateIndex + 1);
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -208,7 +208,7 @@ void TankServerGame::processInputCorrections()
 	getWorldHolder().getWorld().trimOldFrames(lastProcessedUpdateIdx + 1 - firstNotConfirmedUpdateIdx);
 }
 
-void TankServerGame::saveInputForLastFrame(u32 inputUpdateIndex)
+void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 {
 	SCOPED_PROFILER("TankServerGame::updateInputForLastFrame");
 	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();

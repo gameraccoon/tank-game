@@ -20,7 +20,7 @@ namespace Network
 	{
 		std::vector<std::byte> movesMessageData;
 
-		const u32 clientUpdateIdx = updateIdx - (indexShift - 1);
+		const u32 clientUpdateIdx = updateIdx - indexShift;
 
 		Serialization::WriteNumber<u32>(movesMessageData, clientUpdateIdx);
 
@@ -28,7 +28,7 @@ namespace Network
 		{
 			const GameplayTimestamp serverMoveTimestamp = movement->getUpdateTimestamp();
 			// only if we moved within some agreed (between client and server) period of time
-			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15 - 1) > lastUpdateTimestamp)
+			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
 			{
 				// Fixme should use server entity for this, need to make network ids
 				Serialization::WriteNumber<u64>(movesMessageData, entity.getId());
@@ -64,8 +64,11 @@ namespace Network
 
 		if (updateIdx > lastUpdateIdx)
 		{
-			// something went very wrong, we should have confirmed moves from the future
-			ReportError("Correction from the future, possible desynchronized time");
+			// during debugging we can have situations when server thread tempararely went ahead with simulating the game
+			// skip this data until client thread catches up or server thread corrects its update index shift
+			// if it visually lags because of this return then some of these doesn't work correctly:
+			// - fixed dt loop with ability to catch up after a lag (and ability to recover after staying on a breakpoint)
+			// - server ability to correct update index shift for clients due to changed RTT
 			return;
 		}
 

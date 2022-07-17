@@ -113,10 +113,10 @@ void TankClientGame::fixedTimeUpdate(float dt)
 
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
 
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex + 1, time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1));
-
 	Game::fixedTimeUpdate(dt);
+
+	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex, time->getValue().lastFixedUpdateTimestamp);
 }
 
 void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
