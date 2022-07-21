@@ -117,6 +117,10 @@ function(add_folder_as_library folder_path name)
 	target_compile_options(${name} PRIVATE ${PROJECT_CXX_FLAGS})
 endfunction()
 
+macro(mark_option_internal _var)
+    set(${_var} ${${_var}} CACHE INTERNAL "hidden" FORCE)
+endmacro(mark_option_internal _var)
+
 add_folder_as_library(${GAME_SRC_DIR}/Base Base)
 add_folder_as_library(${GAME_SRC_DIR}/GameData GameData)
 add_folder_as_library(${GAME_SRC_DIR}/Utils Utils)
@@ -146,6 +150,27 @@ add_dependencies(${APP_NAME} Imgui)
 include_directories(${EXTERNALS_DIR}/sources/imgui)
 target_compile_options(Imgui PRIVATE ${EXTERNALS_CXX_FLAGS})
 
+# GameNetworkingSockets
+include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
+add_subdirectory(${EXTERNALS_DIR}/sources/GameNetworkingSockets)
+# hide options of GameNetworkingSockets from project Cmake GUI
+mark_option_internal(BUILD_STATIC_LIB)
+mark_option_internal(BUILD_SHARED_LIB)
+mark_option_internal(BUILD_EXAMPLES)
+mark_option_internal(BUILD_TESTS)
+mark_option_internal(BUILD_TOOLS)
+mark_option_internal(LTO)
+mark_option_internal(ENABLE_ICE)
+mark_option_internal(USE_STEAMWEBRTC)
+mark_option_internal(Protobuf_USE_STATIC_LIBS)
+mark_option_internal(MSVC_CRT_STATIC)
+mark_option_internal(USE_CRYPTO)
+mark_option_internal(SANITIZE_ADDRESS)
+mark_option_internal(SANITIZE_MEMORY)
+mark_option_internal(SANITIZE_LINK_STATIC)
+mark_option_internal(SANITIZE_THREAD)
+mark_option_internal(SANITIZE_UNDEFINED)
+
 set(GENERAL_PROJECT_LIBS
 	GameLogic
 	Hal
@@ -159,6 +184,7 @@ set(GENERAL_PROJECT_LIBS
 	SDL2_image
 	SDL2_mixer
 	SDL2main
+	GameNetworkingSockets
 )
 
 if (WIN32)
