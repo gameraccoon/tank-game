@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 	clientGame.start(); // this call waits until the game is being shut down
 	clientGame.onGameShutdown();
 
+	applicationData.ShouldQuit = true;
 	serverThread.join();
 
 	applicationData.shutdownThreads(); // this call waits for the threads to be joined

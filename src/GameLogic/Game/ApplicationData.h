@@ -24,6 +24,7 @@ public:
 	const int ResourceLoadingThreadId = RenderThreadId + 1;
 	const int ServerThreadId = ResourceLoadingThreadId + 1;
 	std::string ScopedProfileOutputPath = "./scoped_profile.json";
+	std::atomic_bool ShouldQuit = false;
 
 	ThreadPool threadPool;
 	RenderThreadManager renderThread;

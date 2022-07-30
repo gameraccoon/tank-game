@@ -81,7 +81,7 @@ void ApplicationData::serverThreadFunction(const ArgumentsParser& arguments, std
 	serverGame.preStart(arguments, renderAccessor);
 	auto lastFrameTime = std::chrono::steady_clock::now() - oneFrameDuration;
 
-	while (!serverGame.shouldQuitGame())
+	while (!serverGame.shouldQuitGame() && !ShouldQuit)
 	{
 		auto timeNow = std::chrono::steady_clock::now();
 
