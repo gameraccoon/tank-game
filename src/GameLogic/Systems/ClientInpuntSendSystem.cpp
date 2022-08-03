@@ -47,7 +47,7 @@ void ClientInputSendSystem::update()
 	}
 
 	const ConnectionId connectionId = clientGameData->getClientConnectionId();
-	if (connectionId == InvalidConnectionId || !connectionManager->isConnectionOpen(connectionId))
+	if (connectionId == InvalidConnectionId || !connectionManager->isServerConnectionOpen(connectionId))
 	{
 		return;
 	}
@@ -73,7 +73,7 @@ void ClientInputSendSystem::update()
 	}
 	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame);
 
-	connectionManager->sendMessage(
+	connectionManager->sendMessageToServer(
 		connectionId,
 		Network::CreatePlayerInputMessage(world),
 		HAL::ConnectionManager::MessageReliability::Unreliable

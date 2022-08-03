@@ -28,6 +28,8 @@ ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, bool& shouldQ
 
 void ServerNetworkSystem::update()
 {
+	static const u16 SERVER_PORT = 14436;
+
 	SCOPED_PROFILER("ServerNetworkSystem::update");
 
 	World& world = mWorldHolder.getWorld();
@@ -42,17 +44,17 @@ void ServerNetworkSystem::update()
 		return;
 	}
 
-	if (!connectionManager->isPortOpen(12345))
+	if (!connectionManager->isPortOpen(SERVER_PORT))
 	{
-		connectionManager->startListeningToPort(12345);
+		connectionManager->startListeningToPort(SERVER_PORT);
 		return;
 	}
 
-	auto newMessages = connectionManager->consumeReceivedMessages(12345);
+	auto newMessages = connectionManager->consumeReceivedServerMessages(SERVER_PORT);
 
 	for (auto&& [connectionId, message] : newMessages)
 	{
-		switch (static_cast<NetworkMessageId>(message.type))
+		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
 			Network::ApplyConnectMessage(world, std::move(message), connectionId);

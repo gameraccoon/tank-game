@@ -25,12 +25,12 @@ namespace Network
 
 		const bool hasMissingInput = lastReceivedInputUpdateIdx + indexShift < updateIdx;
 
-		Serialization::WriteNumber<u8>(movesMessageData, static_cast<u8>(hasMissingInput));
+		Serialization::AppendNumber<u8>(movesMessageData, static_cast<u8>(hasMissingInput));
 		if (hasMissingInput) {
-			Serialization::WriteNumber<u32>(movesMessageData, lastReceivedInputUpdateIdx);
+			Serialization::AppendNumber<u32>(movesMessageData, lastReceivedInputUpdateIdx);
 		}
 
-		Serialization::WriteNumber<u32>(movesMessageData, clientUpdateIdx);
+		Serialization::AppendNumber<u32>(movesMessageData, clientUpdateIdx);
 
 		for (auto [entity, movement, transform] : components)
 		{
@@ -39,13 +39,13 @@ namespace Network
 			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
 			{
 				// Fixme should use server entity for this, need to make network ids
-				Serialization::WriteNumber<u64>(movesMessageData, entity.getId());
+				Serialization::AppendNumber<u64>(movesMessageData, entity.getId());
 				const Vector2D location = transform->getLocation();
-				Serialization::WriteNumber<f32>(movesMessageData, location.x);
-				Serialization::WriteNumber<f32>(movesMessageData, location.y);
+				Serialization::AppendNumber<f32>(movesMessageData, location.x);
+				Serialization::AppendNumber<f32>(movesMessageData, location.y);
 
 				const GameplayTimestamp clientMoveTimestamp = serverMoveTimestamp.isInitialized() ? serverMoveTimestamp.getDecreasedByUpdateCount(indexShift) : serverMoveTimestamp;
-				Serialization::WriteNumber<u32>(movesMessageData, clientMoveTimestamp.getRawValue());
+				Serialization::AppendNumber<u32>(movesMessageData, clientMoveTimestamp.getRawValue());
 			}
 		}
 
@@ -67,7 +67,7 @@ namespace Network
 		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
 		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
 
-		size_t streamIndex = 0;
+		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
 		const bool hasMissingInput = (Serialization::ReadNumber<u8>(message.data, streamIndex) != 0);
 		if (hasMissingInput)

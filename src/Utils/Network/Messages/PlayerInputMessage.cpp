@@ -19,23 +19,20 @@ namespace Network
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world)
 	{
-		std::vector<std::byte> inputHistoryMessageData;
+		HAL::ConnectionManager::Message resultMesssage(static_cast<u32>(NetworkMessageId::PlayerInput));
 		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
 
 		const size_t inputsSize = inputHistory->getInputs().size();
 		const size_t inputsToSend = std::min(inputsSize, static_cast<size_t>(10));
 
-		inputHistoryMessageData.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
+		resultMesssage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
-		Serialization::WriteNumber<u32>(inputHistoryMessageData, inputHistory->getLastInputUpdateIdx());
-		Serialization::WriteNumberNarrowCast<u8>(inputHistoryMessageData, inputsToSend);
+		Serialization::AppendNumber<u32>(resultMesssage.data, inputHistory->getLastInputUpdateIdx());
+		Serialization::AppendNumberNarrowCast<u8>(resultMesssage.data, inputsToSend);
 
-		Utils::WriteInputHistory(inputHistoryMessageData, inputHistory->getInputs(), inputsToSend);
+		Utils::AppendInputHistory(resultMesssage.data, inputHistory->getInputs(), inputsToSend);
 
-		return HAL::ConnectionManager::Message{
-			static_cast<u32>(NetworkMessageId::PlayerInput),
-			std::move(inputHistoryMessageData)
-		};
+		return resultMesssage;
 	}
 
 	static bool hasNewInput(u32 oldFrameIndex, u32 newFrameIndex)
@@ -67,8 +64,8 @@ namespace Network
 	{
 		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 
-		size_t streamIndex = 0;
-		Serialization::ByteStream& data = message.data;
+		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
+		std::vector<std::byte>& data = message.data;
 
 		const u32 frameIndex = Serialization::ReadNumber<u32>(data, streamIndex);
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);

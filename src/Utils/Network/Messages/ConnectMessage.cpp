@@ -19,10 +19,7 @@ namespace Network
 {
 	HAL::ConnectionManager::Message CreateConnectMessage(World& /*world*/)
 	{
-		return HAL::ConnectionManager::Message{
-			static_cast<u32>(NetworkMessageId::Connect),
-			std::vector<std::byte>()
-		};
+		return HAL::ConnectionManager::Message(static_cast<u32>(NetworkMessageId::Connect));
 	}
 
 	void ApplyConnectMessage(World& world, HAL::ConnectionManager::Message&& /*message*/, ConnectionId connectionId)

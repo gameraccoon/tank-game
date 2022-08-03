@@ -9,7 +9,7 @@
 
 namespace Utils
 {
-	void WriteInputHistory(std::vector<std::byte>& stream, const std::vector<GameplayInput::FrameState>& inputs, size_t inputsToSend)
+	void AppendInputHistory(std::vector<std::byte>& stream, const std::vector<GameplayInput::FrameState>& inputs, size_t inputsToSend)
 	{
 		const size_t offset = inputs.size() - inputsToSend;
 		for (size_t i = 0; i < inputsToSend; ++i)
@@ -18,13 +18,13 @@ namespace Utils
 
 			for (float axisValue : input.getRawAxesData())
 			{
-				Serialization::WriteNumber<f32>(stream, axisValue);
+				Serialization::AppendNumber<f32>(stream, axisValue);
 			}
 
 			for (GameplayInput::FrameState::KeyInfo keyInfo : input.getRawKeysData())
 			{
-				Serialization::WriteNumber<s8>(stream, static_cast<s8>(keyInfo.state));
-				Serialization::WriteNumber<u32>(stream, keyInfo.lastFlipTime.getRawValue());
+				Serialization::AppendNumber<s8>(stream, static_cast<s8>(keyInfo.state));
+				Serialization::AppendNumber<u32>(stream, keyInfo.lastFlipTime.getRawValue());
 			}
 		}
 	}

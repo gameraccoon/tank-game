@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <atomic>
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 

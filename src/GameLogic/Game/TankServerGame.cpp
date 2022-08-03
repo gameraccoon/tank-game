@@ -78,6 +78,8 @@ void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 	SCOPED_PROFILER("TankServerGame::dynamicTimePreFrameUpdate");
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
 
+	mConnectionManager.processNetworkEvents();
+
 	processInputCorrections();
 }
 
@@ -98,6 +100,8 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
 
 	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
+
+	mConnectionManager.flushMesssagesForAllClientConnections(14436);
 }
 
 void TankServerGame::initSystems(bool shouldRender)

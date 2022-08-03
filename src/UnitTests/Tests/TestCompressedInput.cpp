@@ -10,7 +10,7 @@ TEST(CompressedInput, WriteAndReadEmptyInput)
 	originalStates.resize(10);
 	std::vector<std::byte> stream;
 
-	Utils::WriteInputHistory(stream, originalStates, 10);
+	Utils::AppendInputHistory(stream, originalStates, 10);
 
 	size_t streamIndex = 0;
 	std::vector<GameplayInput::FrameState> newStates = Utils::ReadInputHistory(stream, 10, streamIndex);
@@ -36,7 +36,7 @@ TEST(CompressedInput, WriteAndReadTestInput)
 		originalStates[4].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
 		originalStates[4].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
 
-		Utils::WriteInputHistory(stream, originalStates, 5);
+		Utils::AppendInputHistory(stream, originalStates, 5);
 	}
 
 	{

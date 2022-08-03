@@ -42,15 +42,15 @@ void ClientNetworkSystem::update()
 	}
 
 	ConnectionId connectionId = clientGameData->getClientConnectionId();
-	if (connectionId == InvalidConnectionId || !connectionManager->isConnectionOpen(connectionId))
+	if (connectionId == InvalidConnectionId || !connectionManager->isServerConnectionOpen(connectionId))
 	{
-		const auto result = connectionManager->connectToServer(HAL::ConnectionManager::LocalhostV4, 12345);
+		const auto result = connectionManager->connectToServer(HAL::ConnectionManager::LocalhostV4, 14436);
 		if (result.status == HAL::ConnectionManager::ConnectResult::Status::Success)
 		{
 			connectionId = result.connectionId;
 			clientGameData->setClientConnectionId(connectionId);
 
-			connectionManager->sendMessage(
+			connectionManager->sendMessageToServer(
 				connectionId,
 				Network::CreateConnectMessage(world),
 				HAL::ConnectionManager::MessageReliability::Reliable
@@ -58,14 +58,14 @@ void ClientNetworkSystem::update()
 		}
 	}
 
-	if (connectionId == InvalidConnectionId || !connectionManager->isConnectionOpen(connectionId))
+	if (connectionId == InvalidConnectionId || !connectionManager->isServerConnectionOpen(connectionId))
 	{
 		return;
 	}
 
 	if (mShouldQuitGameRef)
 	{
-		connectionManager->sendMessage(connectionId, HAL::ConnectionManager::Message{static_cast<u32>(NetworkMessageId::Disconnect), {}});
+		connectionManager->sendMessageToServer(connectionId, HAL::ConnectionManager::Message{static_cast<u32>(NetworkMessageId::Disconnect), {}});
 		return;
 	}
 
@@ -73,7 +73,7 @@ void ClientNetworkSystem::update()
 
 	for (auto&& [_, message] : newMessages)
 	{
-		switch (static_cast<NetworkMessageId>(message.type))
+		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
 			Network::ApplyMovesMessage(world, std::move(message));

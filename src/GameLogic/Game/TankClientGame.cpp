@@ -104,6 +104,8 @@ void TankClientGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 	SCOPED_PROFILER("TankClientGame::dynamicTimePreFrameUpdate");
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
 
+	mConnectionManager.processNetworkEvents();
+
 	processMoveCorrections();
 }
 
@@ -127,6 +129,13 @@ void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpda
 	if (mShouldQuitGameNextTick)
 	{
 		mShouldQuitGame = true;
+	}
+
+	auto [clientGameData] = getWorldHolder().getWorld().getWorldComponents().getComponents<ClientGameDataComponent>();
+	if (clientGameData != nullptr)
+	{
+		ConnectionId connectionId = clientGameData->getClientConnectionId();
+		mConnectionManager.flushMesssagesForServerConnection(connectionId);
 	}
 }
 
