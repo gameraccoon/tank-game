@@ -118,7 +118,7 @@ function(add_folder_as_library folder_path name)
 endfunction()
 
 macro(mark_option_internal _var)
-    set(${_var} ${${_var}} CACHE INTERNAL "hidden" FORCE)
+	set(${_var} ${${_var}} CACHE INTERNAL "hidden" FORCE)
 endmacro(mark_option_internal _var)
 
 add_folder_as_library(${GAME_SRC_DIR}/Base Base)
@@ -138,17 +138,19 @@ if (MSVC)
 endif()
 
 # ImGui
-add_library(Imgui EXCLUDE_FROM_ALL
-	${EXTERNALS_DIR}/sources/imgui/imgui.cpp
-	${EXTERNALS_DIR}/sources/imgui/imgui_demo.cpp
-	${EXTERNALS_DIR}/sources/imgui/imgui_draw.cpp
-	${EXTERNALS_DIR}/sources/imgui/imgui_widgets.cpp
-	${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_opengl2.cpp
-	${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_sdl.cpp
-)
+if(IMGUI_ENABLED)
+	add_library(Imgui EXCLUDE_FROM_ALL
+		${EXTERNALS_DIR}/sources/imgui/imgui.cpp
+		${EXTERNALS_DIR}/sources/imgui/imgui_demo.cpp
+		${EXTERNALS_DIR}/sources/imgui/imgui_draw.cpp
+		${EXTERNALS_DIR}/sources/imgui/imgui_widgets.cpp
+		${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_opengl2.cpp
+		${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_sdl.cpp
+	)
 add_dependencies(${APP_NAME} Imgui)
 include_directories(${EXTERNALS_DIR}/sources/imgui)
 target_compile_options(Imgui PRIVATE ${EXTERNALS_CXX_FLAGS})
+endif()
 
 # GameNetworkingSockets
 include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
@@ -178,14 +180,19 @@ set(GENERAL_PROJECT_LIBS
 	GameData
 	Base
 
-	Imgui
-
 	SDL2
 	SDL2_image
 	SDL2_mixer
 	SDL2main
 	GameNetworkingSockets
 )
+
+if(IMGUI_ENABLED)
+	set(GENERAL_PROJECT_LIBS
+		${GENERAL_PROJECT_LIBS}
+		Imgui
+	)
+endif()
 
 if (WIN32)
 	set(GENERAL_PROJECT_LIBS
