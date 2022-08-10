@@ -19,6 +19,12 @@ ApplicationData::ApplicationData(int threadsCount)
 	resourceManager.startLoadingThread([this]{ threadSaveProfileData(ResourceLoadingThreadId); });
 }
 
+void ApplicationData::startRenderThread()
+{
+	engine.releaseRenderContext();
+	renderThread.startThread(resourceManager, engine, [&engine = this->engine]{ engine.acquireRenderContext(); });
+}
+
 void ApplicationData::writeProfilingData()
 {
 #ifdef ENABLE_SCOPED_PROFILER
@@ -71,58 +77,4 @@ void ApplicationData::shutdownThreads()
 	threadPool.shutdown();
 	renderThread.shutdownThread();
 	resourceManager.stopLoadingThread();
-}
-
-void ApplicationData::serverThreadFunction(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
-{
-	TankServerGame serverGame(resourceManager, threadPool);
-	constexpr auto oneFrameDuration = HAL::Engine::ONE_FIXED_UPDATE_DURATION;
-
-	serverGame.preStart(arguments, renderAccessor);
-	auto lastFrameTime = std::chrono::steady_clock::now() - oneFrameDuration;
-
-	while (!serverGame.shouldQuitGame() && !ShouldQuit)
-	{
-		auto timeNow = std::chrono::steady_clock::now();
-
-		int iterations = 0;
-		auto passedTime = timeNow - lastFrameTime;
-		if (passedTime >= oneFrameDuration)
-		{
-			// if we exceeded max frame ticks last frame, that likely mean we were staying on a breakpoint
-			// readjust to normal ticking speed
-			if (passedTime > HAL::Engine::MAX_FRAME_DURATION)
-			{
-				passedTime = HAL::Engine::ONE_FIXED_UPDATE_DURATION;
-			}
-
-			const float lastFrameDurationSec = std::chrono::duration<float>(passedTime).count();
-
-			while (passedTime >= oneFrameDuration)
-			{
-				passedTime -= oneFrameDuration;
-				++iterations;
-			}
-
-			serverGame.dynamicTimePreFrameUpdate(lastFrameDurationSec, iterations);
-			for (int i = 0; i < iterations; ++i)
-			{
-				serverGame.fixedTimeUpdate(HAL::Engine::ONE_FIXED_UPDATE_SEC);
-			}
-			serverGame.dynamicTimePostFrameUpdate(lastFrameDurationSec, iterations);
-
-			lastFrameTime = timeNow - passedTime;
-		}
-
-		if (iterations <= 1)
-		{
-			std::this_thread::yield();
-		}
-	}
-	serverGame.onGameShutdown();
-
-#ifdef ENABLE_SCOPED_PROFILER
-	std::lock_guard l(mScopedProfileRecordsMutex);
-	mScopedProfileRecords.emplace_back(ServerThreadId, gtlScopedProfilerData.getAllRecords());
-#endif // ENABLE_SCOPED_PROFILER
 }

@@ -38,6 +38,8 @@ private:
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 
+	HAL::ConnectionManager::NetworkAddress mServerAddress{HAL::ConnectionManager::NetworkAddress::Ipv4({127, 0, 0, 1}, 14436)};
+
 #ifdef IMGUI_ENABLED
 	ImguiDebugData mImguiDebugData{getWorldHolder(), getComponentFactory(), {}, {}};
 #endif // IMGUI_ENABLED

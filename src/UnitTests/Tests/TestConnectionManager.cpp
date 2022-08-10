@@ -50,7 +50,7 @@ TEST(ConnectionManager, ConnectAndDisconnectToOpenPort)
 		HAL::ConnectionManager connectionManagerClient;
 
 		connectionManagerClient.processNetworkEvents();
-		auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::IpV4Address{127, 0, 0, 1}, port);
+		auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
 		ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 		EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
@@ -93,7 +93,7 @@ TEST(ConnectionManager, SendMessageToOpenPortAndRecieve)
 
 	HAL::ConnectionManager connectionManagerClient;
 	connectionManagerClient.processNetworkEvents();
-	auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::IpV4Address{127, 0, 0, 1}, port);
+	auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
 	ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 	EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
@@ -118,7 +118,7 @@ TEST(ConnectionManager, SendMessageBackFromServerAndRecieve)
 
 		HAL::ConnectionManager connectionManagerClient;
 		connectionManagerClient.processNetworkEvents();
-		auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::IpV4Address{127, 0, 0, 1}, port);
+		auto connectionResult = connectionManagerClient.connectToServer(HAL::ConnectionManager::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
 		ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 		EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 

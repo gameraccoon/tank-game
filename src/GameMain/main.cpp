@@ -2,6 +2,7 @@
 
 #include <ctime>
 #include <chrono>
+#include <iostream>
 
 #include <raccoon-ecs/error_handling.h>
 
@@ -11,8 +12,9 @@
 
 #include "HAL/Base/Engine.h"
 
-#include "GameLogic/Game/TankClientGame.h"
 #include "GameLogic/Game/ApplicationData.h"
+#include "GameLogic/Game/GraphicalClient.h"
+#include "GameLogic/Game/Server.h"
 
 int main(int argc, char** argv)
 {
@@ -24,27 +26,52 @@ int main(int argc, char** argv)
 
 	ArgumentsParser arguments(argc, argv);
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("profile-systems", ApplicationData::DefaultWorkerThreadCount));
-	HAL::Engine engine(800, 600);
+	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount));
 
-	// switch render context to render thread
-	engine.releaseRenderContext();
-	applicationData.renderThread.startThread(applicationData.resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
-	applicationData.renderThread.setAmountOfRenderedGameInstances(2);
-	RenderAccessor& renderAccessor = applicationData.renderThread.getAccessor();
+	const bool runGraphicalClient = !arguments.hasArgument("open-port");
+	const bool runServer = !arguments.hasArgument("connect");
 
-	TankClientGame clientGame(&engine, applicationData.resourceManager, applicationData.threadPool);
+	AssertFatal(runGraphicalClient || runServer, "Can't specify --connect and --open-port at the same time");
 
-	std::thread serverThread([&applicationData, &arguments, &renderAccessor]{
-		applicationData.serverThreadFunction(arguments, RenderAccessorGameRef(renderAccessor, 1));
-	});
+	applicationData.startRenderThread();
 
-	clientGame.preStart(arguments, RenderAccessorGameRef(renderAccessor, 0));
-	clientGame.start(); // this call waits until the game is being shut down
-	clientGame.onGameShutdown();
+	int graphicalInstanceIndex = 0;
+	applicationData.renderThread.setAmountOfRenderedGameInstances(static_cast<int>(runGraphicalClient) + static_cast<int>(runServer));
 
-	applicationData.ShouldQuit = true;
-	serverThread.join();
+	std::unique_ptr<std::thread> serverThread;
+	std::atomic_bool shouldStopServer;
+	if (runServer)
+	{
+		int serverGraphicalInstance = graphicalInstanceIndex++;
+		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, &renderAccessor = applicationData.renderThread.getAccessor(), serverGraphicalInstance, &shouldStopServer]{
+			Server::ServerThreadFunction(applicationData, arguments, RenderAccessorGameRef(renderAccessor, serverGraphicalInstance), shouldStopServer);
+		});
+	}
+
+	std::unique_ptr<GraphicalClient> client;
+	if (runGraphicalClient)
+	{
+		client = std::make_unique<GraphicalClient>(applicationData);
+		client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), graphicalInstanceIndex++)); // blocking call
+	}
+	else
+	{
+		std::string command;
+		while(true)
+		{
+			std::cin >> command;
+			if (command == "quit" || command == "exit" || command == "stop")
+			{
+				break;
+			}
+		}
+	}
+
+	if (runServer)
+	{
+		shouldStopServer = true;
+		serverThread->join(); // this call waits for the server thread to be joined
+	}
 
 	applicationData.shutdownThreads(); // this call waits for the threads to be joined
 

@@ -38,4 +38,5 @@ private:
 private:
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGame = false;
+	u16 mServerPort = 14436;
 };

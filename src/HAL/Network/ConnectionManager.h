@@ -3,8 +3,10 @@
 #include <array>
 #include <functional>
 #include <memory>
-#include <vector>
+#include <optional>
 #include <set>
+#include <variant>
+#include <vector>
 
 #include "Base/Types/BasicTypes.h"
 
@@ -27,8 +29,30 @@ namespace HAL
 			Status status;
 		};
 
-		using IpV4Address = std::array<u8, 4>;
-		using IpV6Address = std::array<u8, 16>;
+		class NetworkAddress
+		{
+			friend ConnectionManager;
+
+		public:
+			NetworkAddress(const NetworkAddress& other);
+			NetworkAddress& operator=(const NetworkAddress& other);
+			NetworkAddress(NetworkAddress&&) = default;
+			NetworkAddress& operator=(NetworkAddress&&) = default;
+			~NetworkAddress();
+
+			static std::optional<NetworkAddress> FromString(const std::string& str);
+			static NetworkAddress Ipv4(std::array<u8, 4> addr, u16 port);
+			static NetworkAddress Ipv6(std::array<u8, 16> addr, u16 port);
+
+		private:
+			struct Impl;
+
+		private:
+			NetworkAddress(std::unique_ptr<Impl>&& pimpl);
+
+		private:
+			std::unique_ptr<Impl> mPimpl;
+		};
 
 		struct ConnectResult
 		{
@@ -99,10 +123,6 @@ namespace HAL
 		using OnServerConnectionEstablishedFn = std::function<void(ConnectionId)>;
 
 	public:
-		static constexpr IpV4Address LocalhostV4 { 127, 0, 0, 1 };
-		static constexpr IpV6Address LocalhostV6 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
-
-	public:
 		ConnectionManager();
 		~ConnectionManager();
 
@@ -122,8 +142,7 @@ namespace HAL
 		void stopListeningToPort(u16 port);
 
 		// client logic
-		[[nodiscard]] ConnectResult connectToServer(IpV4Address address, u16 port);
-		[[nodiscard]] ConnectResult connectToServer(IpV6Address address, u16 port);
+		[[nodiscard]] ConnectResult connectToServer(const NetworkAddress& address);
 		[[nodiscard]] bool isServerConnectionOpen(ConnectionId connectionId) const;
 		SendMessageResult sendMessageToServer(ConnectionId connectionId, Message&& message, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
 		void flushMesssagesForServerConnection(ConnectionId connectionId);

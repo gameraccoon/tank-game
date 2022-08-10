@@ -44,6 +44,8 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
+	mServerPort = arguments.getIntArgumentValue("open-port", 14436);
+
 	const bool shouldRender = renderAccessor.has_value();
 
 	initSystems(shouldRender);
@@ -108,7 +110,7 @@ void TankServerGame::initSystems(bool shouldRender)
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
-	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mShouldQuitGame);
+	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mServerPort, mShouldQuitGame);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());

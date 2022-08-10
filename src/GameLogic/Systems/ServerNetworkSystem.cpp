@@ -20,16 +20,15 @@
 #include "GameLogic/SharedManagers/WorldHolder.h"
 
 
-ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, bool& shouldQuitGame) noexcept
+ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, u16 serverPort, bool& shouldQuitGame) noexcept
 	: mWorldHolder(worldHolder)
+	, mServerPort(serverPort)
 	, mShouldQuitGame(shouldQuitGame)
 {
 }
 
 void ServerNetworkSystem::update()
 {
-	static const u16 SERVER_PORT = 14436;
-
 	SCOPED_PROFILER("ServerNetworkSystem::update");
 
 	World& world = mWorldHolder.getWorld();
@@ -44,13 +43,13 @@ void ServerNetworkSystem::update()
 		return;
 	}
 
-	if (!connectionManager->isPortOpen(SERVER_PORT))
+	if (!connectionManager->isPortOpen(mServerPort))
 	{
-		connectionManager->startListeningToPort(SERVER_PORT);
+		connectionManager->startListeningToPort(mServerPort);
 		return;
 	}
 
-	auto newMessages = connectionManager->consumeReceivedServerMessages(SERVER_PORT);
+	auto newMessages = connectionManager->consumeReceivedServerMessages(mServerPort);
 
 	for (auto&& [connectionId, message] : newMessages)
 	{

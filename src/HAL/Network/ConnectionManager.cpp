@@ -504,7 +504,7 @@ namespace HAL
 			);
 		}
 
-		ConnectionManager::ConnectResult addServerConnectionAndReturnClientConnectionId(const SteamNetworkingIPAddr& serverAddr)
+		ConnectionManager::ConnectResult addClientToServerConnection(const SteamNetworkingIPAddr& serverAddr)
 		{
 			ConnectionId newConnectionId = nextConnectionId++;
 
@@ -543,6 +543,55 @@ namespace HAL
 	};
 
 	ConnectionManager::Impl ConnectionManager::StaticImpl;
+
+	struct ConnectionManager::NetworkAddress::Impl
+	{
+		SteamNetworkingIPAddr addr;
+	};
+
+	ConnectionManager::NetworkAddress::NetworkAddress(std::unique_ptr<Impl>&& pimpl)
+		: mPimpl(std::move(pimpl))
+	{
+	}
+
+	ConnectionManager::NetworkAddress::NetworkAddress(const NetworkAddress& other)
+		: mPimpl(std::make_unique<ConnectionManager::NetworkAddress::Impl>(other.mPimpl->addr))
+	{
+	}
+
+	ConnectionManager::NetworkAddress& ConnectionManager::NetworkAddress::operator=(const NetworkAddress& other)
+	{
+		mPimpl->addr = other.mPimpl->addr;
+		return *this;
+	}
+
+	ConnectionManager::NetworkAddress::~NetworkAddress() = default;
+
+	std::optional<ConnectionManager::NetworkAddress> ConnectionManager::NetworkAddress::FromString(const std::string& str)
+	{
+		SteamNetworkingIPAddr addr;
+		if (SteamNetworkingIPAddr_ParseString(&addr, str.c_str()))
+		{
+			return ConnectionManager::NetworkAddress(std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr));
+		}
+
+		return std::nullopt;
+	}
+
+	ConnectionManager::NetworkAddress ConnectionManager::NetworkAddress::Ipv4(std::array<u8, 4> address, u16 port)
+	{
+		SteamNetworkingIPAddr addr;
+		const uint32 ipAddressNumber = (address[0] << (3*8)) + (address[1] << (2*8)) + (address[2] << 8) + (address[3]);
+		addr.SetIPv4(ipAddressNumber, port);
+		return ConnectionManager::NetworkAddress{ std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr) };
+	}
+
+	ConnectionManager::NetworkAddress ConnectionManager::NetworkAddress::Ipv6(std::array<u8, 16> address, u16 port)
+	{
+		SteamNetworkingIPAddr addr;
+		addr.SetIPv6(address.data(), port);
+		return ConnectionManager::NetworkAddress{ std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr) };
+	}
 
 	ConnectionManager::Message::Message(u32 type)
 	{
@@ -705,38 +754,18 @@ namespace HAL
 		mOpenedPorts.erase(port);
 	}
 
-	ConnectionManager::ConnectResult ConnectionManager::connectToServer(IpV4Address address, u16 port)
+	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const NetworkAddress& address)
 	{
-		const uint32 ipAddressNumber = (address[0] << (3*8)) + (address[1] << (2*8)) + (address[2] << 8) + (address[3]);
-
-		SteamNetworkingIPAddr steamAddress;
-		steamAddress.SetIPv4(ipAddressNumber, port);
-
 		std::lock_guard l(StaticImpl.dataMutex);
 
-		const ConnectionManager::ConnectResult connectionResult = StaticImpl.addServerConnectionAndReturnClientConnectionId(steamAddress);
+		const ConnectionManager::ConnectResult connectionResult = StaticImpl.addClientToServerConnection(address.mPimpl->addr);
 
-		Assert(connectionResult.status == ConnectionManager::ConnectResult::Status::Success, "Can't connect to %u.%u.%u.%u:%u", (int)address[0], (int)address[1], (int)address[2], (int)address[3], port);
-
-		mOpenedServerConnections.insert(connectionResult.connectionId);
-
-		return connectionResult;
-	}
-
-	ConnectionManager::ConnectResult ConnectionManager::connectToServer(IpV6Address address, u16 port)
-	{
-		SteamNetworkingIPAddr steamAddress;
-		steamAddress.SetIPv6(address.data(), port);
-
-		std::lock_guard l(StaticImpl.dataMutex);
-
-		const ConnectionManager::ConnectResult connectionResult = StaticImpl.addServerConnectionAndReturnClientConnectionId(steamAddress);
-
-		Assert(connectionResult.status == ConnectionManager::ConnectResult::Status::Success, "Can't connect to %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%u",
-			(int)address[0], (int)address[1], (int)address[2], (int)address[3], (int)address[4], (int)address[5],
-			(int)address[6], (int)address[7], (int)address[8], (int)address[9], (int)address[10], (int)address[11],
-			(int)address[12], (int)address[13], port
-		);
+		if (connectionResult.status != ConnectionManager::ConnectResult::Status::Success)
+		{
+			char buf[50];
+			SteamNetworkingIPAddr_ToString(&address.mPimpl->addr, buf, 50, true);
+			ReportError("Can't connect to %s", buf);
+		}
 
 		mOpenedServerConnections.insert(connectionResult.connectionId);
 

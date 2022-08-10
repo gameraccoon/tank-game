@@ -18,8 +18,13 @@
 #include "GameLogic/SharedManagers/WorldHolder.h"
 
 
-ClientNetworkSystem::ClientNetworkSystem(WorldHolder& worldHolder, const bool& shouldQuitGame) noexcept
+ClientNetworkSystem::ClientNetworkSystem(
+		WorldHolder& worldHolder,
+		const HAL::ConnectionManager::NetworkAddress& serverAddress,
+		const bool& shouldQuitGame
+	) noexcept
 	: mWorldHolder(worldHolder)
+	, mServerAddress(serverAddress)
 	, mShouldQuitGameRef(shouldQuitGame)
 {
 }
@@ -44,7 +49,7 @@ void ClientNetworkSystem::update()
 	ConnectionId connectionId = clientGameData->getClientConnectionId();
 	if (connectionId == InvalidConnectionId || !connectionManager->isServerConnectionOpen(connectionId))
 	{
-		const auto result = connectionManager->connectToServer(HAL::ConnectionManager::LocalhostV4, 14436);
+		const auto result = connectionManager->connectToServer(mServerAddress);
 		if (result.status == HAL::ConnectionManager::ConnectResult::Status::Success)
 		{
 			connectionId = result.connectionId;

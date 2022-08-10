@@ -56,6 +56,12 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef 
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
+	std::optional<HAL::ConnectionManager::NetworkAddress> newNetworkAddress = HAL::ConnectionManager::NetworkAddress::FromString(arguments.getArgumentValue("connect", "127.0.0.1:14436"));
+	if (newNetworkAddress.has_value())
+	{
+		mServerAddress = *newNetworkAddress;
+	}
+
 	initSystems();
 
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
@@ -147,7 +153,7 @@ void TankClientGame::initSystems()
 
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
-	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mShouldQuitGameNextTick);
+	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mServerAddress, mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());

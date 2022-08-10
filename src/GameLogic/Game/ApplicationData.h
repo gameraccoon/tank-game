@@ -1,19 +1,11 @@
 #pragma once
 
-#include <optional>
-#include <atomic>
-
-#include "GameData/Render/RenderAccessorGameRef.h"
-
-#include "HAL/Base/Engine.h"
-
 #include "Utils/Multithreading/ThreadPool.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 
-#include "GameLogic/Render/RenderThreadManager.h"
+#include "HAL/Base/Engine.h"
 
-class ArgumentsParser;
-class ResourceManager;
+#include "GameLogic/Render/RenderThreadManager.h"
 
 class ApplicationData
 {
@@ -25,20 +17,19 @@ public:
 	const int ResourceLoadingThreadId = RenderThreadId + 1;
 	const int ServerThreadId = ResourceLoadingThreadId + 1;
 	std::string ScopedProfileOutputPath = "./scoped_profile.json";
-	std::atomic_bool ShouldQuit = false;
 
 	ThreadPool threadPool;
 	RenderThreadManager renderThread;
 	ResourceManager resourceManager;
+	HAL::Engine engine{800, 600};
 
 public:
 	ApplicationData(int threadsCount);
 
+	void startRenderThread();
 	void writeProfilingData();
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();
-
-	void serverThreadFunction(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 
 private:
 #ifdef ENABLE_SCOPED_PROFILER
