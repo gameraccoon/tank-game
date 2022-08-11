@@ -19,14 +19,18 @@ public:
 	std::string ScopedProfileOutputPath = "./scoped_profile.json";
 
 	ThreadPool threadPool;
-	RenderThreadManager renderThread;
 	ResourceManager resourceManager;
+#ifndef DEDICATED_SERVER
+	RenderThreadManager renderThread;
 	HAL::Engine engine{800, 600};
+#endif // !DEDICATED_SERVER
 
 public:
 	ApplicationData(int threadsCount);
 
+#ifndef DEDICATED_SERVER
 	void startRenderThread();
+#endif // !DEDICATED_SERVER
 	void writeProfilingData();
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();

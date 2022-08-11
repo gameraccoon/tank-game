@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "SdlWindow.h"
 
 #include <stdexcept>
@@ -40,3 +42,5 @@ namespace HAL
 		}
 	}
 }
+
+#endif // !DEDICATED_SERVER

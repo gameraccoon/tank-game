@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include "Utils/Application/ArgumentsParser.h"
 
 #include "GameData/Render/RenderAccessorGameRef.h"
@@ -18,3 +20,5 @@ struct GraphicalClient
 
 	TankClientGame game;
 };
+
+#endif // !DEDICATED_SERVER

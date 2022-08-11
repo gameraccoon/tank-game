@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "HAL/Graphics/Font.h"
 
 #include "HAL/Base/Engine.h"
@@ -34,3 +36,5 @@ namespace Graphics
 		return mFont;
 	}
 }
+
+#endif // !DEDICATED_SERVER

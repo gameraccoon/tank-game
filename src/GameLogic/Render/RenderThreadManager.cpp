@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Render/RenderThreadManager.h"
 
 #include <SDL_video.h>
@@ -376,3 +378,5 @@ void RenderThreadManager::RenderThreadFunction(RenderAccessor& renderAccessor, R
 	renderAccessor.scopedProfilerRecords = gtlScopedProfilerData.getAllRecords();
 #endif // ENABLE_SCOPED_PROFILER
 }
+
+#endif // !DEDICATED_SERVER

@@ -33,21 +33,28 @@ int main(int argc, char** argv)
 
 	AssertFatal(runGraphicalClient || runServer, "Can't specify --connect and --open-port at the same time");
 
+#ifndef DEDICATED_SERVER
 	applicationData.startRenderThread();
 
 	int graphicalInstanceIndex = 0;
 	applicationData.renderThread.setAmountOfRenderedGameInstances(static_cast<int>(runGraphicalClient) + static_cast<int>(runServer));
+#endif // !DEDICATED_SERVER
 
 	std::unique_ptr<std::thread> serverThread;
 	std::atomic_bool shouldStopServer;
 	if (runServer)
 	{
+		std::optional<RenderAccessorGameRef> renderAccessor;
+#ifndef DEDICATED_SERVER
 		int serverGraphicalInstance = graphicalInstanceIndex++;
-		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, &renderAccessor = applicationData.renderThread.getAccessor(), serverGraphicalInstance, &shouldStopServer]{
-			Server::ServerThreadFunction(applicationData, arguments, RenderAccessorGameRef(renderAccessor, serverGraphicalInstance), shouldStopServer);
+		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
+#endif // !DEDICATED_SERVER
+		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer]{
+			Server::ServerThreadFunction(applicationData, arguments, renderAccessor, shouldStopServer);
 		});
 	}
 
+#ifndef DEDICATED_SERVER
 	std::unique_ptr<GraphicalClient> client;
 	if (runGraphicalClient)
 	{
@@ -55,6 +62,7 @@ int main(int argc, char** argv)
 		client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), graphicalInstanceIndex++)); // blocking call
 	}
 	else
+#endif // !DEDICATED_SERVER
 	{
 		std::string command;
 		while(true)

@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "Sdl.h"
 
 #include <sdl/SDL.h>
@@ -23,3 +25,5 @@ namespace HAL
 		}
 	}
 }
+
+#endif // !DEDICATED_SERVER

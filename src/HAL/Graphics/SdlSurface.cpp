@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "SdlSurface.h"
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
@@ -173,3 +175,5 @@ namespace Graphics
 		};
 	}
 }
+
+#endif // !DEDICATED_SERVER

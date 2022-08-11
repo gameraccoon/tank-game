@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "HAL/Audio/Music.h"
 
 #include "sdl/SDL_mixer.h"
@@ -28,3 +30,5 @@ namespace Audio
 		return mMusic != nullptr;
 	}
 }
+
+#endif // !DEDICATED_SERVER

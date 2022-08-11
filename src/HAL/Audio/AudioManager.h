@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 namespace Audio
 {
 	class Sound;
@@ -25,3 +27,4 @@ namespace Audio
 		float GetMusicVolume();
 	}
 }
+#endif // !DEDICATED_SERVER

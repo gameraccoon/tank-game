@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include <raccoon-ecs/system.h>
 
 #include "GameData/Geometry/Vector2D.h"
@@ -32,3 +34,5 @@ private:
 	ResourceManager& mResourceManager;
 	ThreadPool& mThreadPool;
 };
+
+#endif // !DEDICATED_SERVER

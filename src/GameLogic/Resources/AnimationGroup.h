@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include <memory>
 #include <vector>
 #include <map>
@@ -34,3 +36,5 @@ namespace Graphics
 		StringId mDefaultState;
 	};
 }
+
+#endif // !DEDICATED_SERVER

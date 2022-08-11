@@ -34,9 +34,10 @@ void ResourceStreamingSystem::update()
 {
 	SCOPED_PROFILER("ResourceStreamingSystem::update");
 	World& world = mWorldHolder.getWorld();
-
-	// load sprites
 	EntityManager& entityManager = world.getEntityManager();
+
+#ifndef DEDICATED_SERVER
+	// load sprites
 	entityManager.forEachComponentSetWithEntity<SpriteCreatorComponent>(
 			[this, &entityManager](Entity entity, SpriteCreatorComponent* spriteCreator)
 	{
@@ -151,6 +152,7 @@ void ResourceStreamingSystem::update()
 		entityManager.scheduleRemoveComponent<AnimationGroupCreatorComponent>(entity);
 	});
 	entityManager.executeScheduledActions();
+#endif // !DEDICATED_SERVER
 
 	// load tile grids
 	entityManager.forEachComponentSetWithEntity<TileGridCreatorComponent>(

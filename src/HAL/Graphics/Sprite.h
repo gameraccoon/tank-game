@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include "HAL/EngineFwd.h"
 
 #include "GameData/Resources/Resource.h"
@@ -32,3 +34,5 @@ namespace Graphics
 		QuadUV mUV;
 	};
 }
+
+#endif // !DEDICATED_SERVER

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include "Base/Types/String/Path.h"
 
 #include "GameData/Resources/Resource.h"
@@ -33,3 +35,5 @@ namespace Graphics
 		FC_Font* mFont = nullptr;
 	};
 }
+
+#endif // !DEDICATED_SERVER

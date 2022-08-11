@@ -16,9 +16,8 @@ namespace HAL
 	class IGame;
 	class InputControllersData;
 
-	class Engine
+	namespace Constants
 	{
-	public:
 		// note that instead of counting in fractions of seconds we count in integral milliseconds/ticks
 		// so the frame rate is not exactly 60 FPS and the frame time is not exactly 1/60 sec
 		static constexpr int ONE_SECOND_TICKS = 1000;
@@ -29,7 +28,11 @@ namespace HAL
 
 		static constexpr std::chrono::duration ONE_FIXED_UPDATE_DURATION = std::chrono::milliseconds{16};
 		static constexpr std::chrono::duration MAX_FRAME_DURATION = std::chrono::milliseconds{1000};
+	}
 
+#ifndef DEDICATED_SERVER
+	class Engine
+	{
 	public:
 		Engine(int windowWidth, int windowHeight) noexcept;
 
@@ -59,4 +62,6 @@ namespace HAL
 		struct Impl;
 		std::unique_ptr<Impl> mPimpl;
 	};
+#endif // !DEDICATED_SERVER
 }
+

@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Game/GraphicalClient.h"
 
 #include "GameLogic/Game/ApplicationData.h"
@@ -16,3 +18,5 @@ void GraphicalClient::run(ArgumentsParser& arguments, const RenderAccessorGameRe
 	game.start(); // this call waits until the game is being shut down
 	game.onGameShutdown();
 }
+
+#endif // !DEDICATED_SERVER

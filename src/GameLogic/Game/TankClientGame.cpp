@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Game/TankClientGame.h"
 
 #include <unordered_map>
@@ -323,3 +325,5 @@ void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex, const GameplayT
 
 	clientMovesHistory->getDataRef().lastUpdateIdx = inputUpdateIndex;
 }
+
+#endif // !DEDICATED_SERVER

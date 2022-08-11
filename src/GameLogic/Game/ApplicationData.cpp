@@ -19,23 +19,27 @@ ApplicationData::ApplicationData(int threadsCount)
 	resourceManager.startLoadingThread([this]{ threadSaveProfileData(ResourceLoadingThreadId); });
 }
 
+#ifndef DEDICATED_SERVER
 void ApplicationData::startRenderThread()
 {
 	engine.releaseRenderContext();
 	renderThread.startThread(resourceManager, engine, [&engine = this->engine]{ engine.acquireRenderContext(); });
 }
+#endif // !DEDICATED_SERVER
 
 void ApplicationData::writeProfilingData()
 {
 #ifdef ENABLE_SCOPED_PROFILER
 	{
 		ProfileDataWriter::ProfileData data;
+#ifndef DEDICATED_SERVER
 		{
 			data.scopedProfilerDatas.emplace_back();
 			ProfileDataWriter::ScopedProfilerData& renderScopedProfilerData = data.scopedProfilerDatas.back();
 			renderScopedProfilerData.records = renderThread.getAccessor().consumeScopedProfilerRecordsUnsafe();
 			renderScopedProfilerData.threadId = RenderThreadId;
 		}
+#endif // !DEDICATED_SERVER
 		{
 			data.scopedProfilerDatas.emplace_back();
 			ProfileDataWriter::ScopedProfilerData& mainScopedProfilerData = data.scopedProfilerDatas.back();
@@ -74,7 +78,9 @@ void ApplicationData::threadSaveProfileData([[maybe_unused]] size_t threadIndex)
 
 void ApplicationData::shutdownThreads()
 {
-	threadPool.shutdown();
+#ifndef DEDICATED_SERVER
 	renderThread.shutdownThread();
+#endif // !DEDICATED_SERVER
+	threadPool.shutdown();
 	resourceManager.stopLoadingThread();
 }

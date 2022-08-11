@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "HAL/Base/Engine.h"
 
 #include <algorithm>
@@ -164,30 +166,30 @@ namespace HAL
 
 			int iterations = 0;
 			Uint64 fixedFrameticksLeft = currentTicks - lastFixedFrameTicks;
-			if (fixedFrameticksLeft >= ONE_FIXED_UPDATE_TICKS)
+			if (fixedFrameticksLeft >= Constants::ONE_FIXED_UPDATE_TICKS)
 			{
 				Uint64 passedRealTicks = currentTicks - lastRealFrameTicks;
 				// if we exceeded max frame ticks last frame, that likely mean we were staying on a breakpoint
 				// readjust to normal ticking speed
-				if (fixedFrameticksLeft > MAX_FRAME_TICKS)
+				if (fixedFrameticksLeft > Constants::MAX_FRAME_TICKS)
 				{
 					LogInfo("Continued from a breakpoint or had a huge lag");
-					fixedFrameticksLeft = ONE_FIXED_UPDATE_TICKS;
-					passedRealTicks = ONE_FIXED_UPDATE_TICKS;
+					fixedFrameticksLeft = Constants::ONE_FIXED_UPDATE_TICKS;
+					passedRealTicks = Constants::ONE_FIXED_UPDATE_TICKS;
 				}
 
-				const float lastFrameDurationSec = passedRealTicks * ONE_TICK_SECONDS;
+				const float lastFrameDurationSec = passedRealTicks * Constants::ONE_TICK_SECONDS;
 
-				while (fixedFrameticksLeft >= ONE_FIXED_UPDATE_TICKS)
+				while (fixedFrameticksLeft >= Constants::ONE_FIXED_UPDATE_TICKS)
 				{
-					fixedFrameticksLeft -= ONE_FIXED_UPDATE_TICKS;
+					fixedFrameticksLeft -= Constants::ONE_FIXED_UPDATE_TICKS;
 					++iterations;
 				}
 
 				mGame->dynamicTimePreFrameUpdate(lastFrameDurationSec, iterations);
 				for (int i = 0; i < iterations; ++i)
 				{
-					mGame->fixedTimeUpdate(ONE_FIXED_UPDATE_SEC);
+					mGame->fixedTimeUpdate(Constants::ONE_FIXED_UPDATE_SEC);
 				}
 				mGame->dynamicTimePostFrameUpdate(lastFrameDurationSec, iterations);
 
@@ -265,3 +267,5 @@ namespace HAL
 		}
 	}
 }
+
+#endif // DEDICATED_SERVER

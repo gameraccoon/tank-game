@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Systems/RenderSystem.h"
 
 #include <algorithm>
@@ -165,3 +167,5 @@ void RenderSystem::drawTileGridLayer(RenderData& renderData, World& world, const
 		}
 	});
 }
+
+#endif // !DEDICATED_SERVER

@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "Base/Types/String/Path.h"
 
 #include "HAL/Graphics/Sprite.h"
@@ -116,3 +118,5 @@ namespace Graphics
 		return {};
 	}
 }
+
+#endif // !DEDICATED_SERVER

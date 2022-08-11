@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+include(CMakeDependentOption)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -15,6 +16,8 @@ option(MEMLEAK_DETECTION "Enable memory leaks detection code (slow)" OFF)
 option(MEMLEAK_REDEFINE_NEW "Redefine default new (provide more detailed info but can conflict with some libs)" OFF)
 option(CONCURRENT_ACCESS_DETECTION "Enable concurrent access detection" ON)
 option(IMGUI_ENABLED "Enable imgui in the build" ON)
+option(DEDICATED_SERVER "Are we building dedicated server" OFF)
+CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DEDICATED_SERVER" OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -34,26 +37,30 @@ project(${APP_NAME} VERSION ${EXECUTABLE_VERSION})
 file(MAKE_DIRECTORY ${GAME_BIN_DIR})
 
 # definitions
-if(DEBUG_CHECKS)
+if (DEBUG_CHECKS)
 	add_definitions(-DDEBUG_CHECKS -DRACCOON_ECS_DEBUG_CHECKS_ENABLED)
 endif(DEBUG_CHECKS)
 
-if(ENABLE_SCOPED_PROFILER)
+if (ENABLE_SCOPED_PROFILER)
 	add_definitions(-DENABLE_SCOPED_PROFILER)
 endif(ENABLE_SCOPED_PROFILER)
 
-if(MEMLEAK_DETECTION)
+if (MEMLEAK_DETECTION)
 	add_definitions(-DDETECT_MEMORY_LEAKS)
 	if(MEMLEAK_REDEFINE_NEW)
 		add_definitions(-DREDEFINE_NEW)
 	endif()
 endif()
 
-if(IMGUI_ENABLED)
+if (DEDICATED_SERVER)
+	add_definitions(-DDEDICATED_SERVER)
+endif()
+
+if (IMGUI_ENABLED)
 	add_definitions(-DIMGUI_ENABLED)
 endif()
 
-if(CONCURRENT_ACCESS_DETECTION)
+if (CONCURRENT_ACCESS_DETECTION)
 	add_definitions(-DCONCURRENT_ACCESS_DETECTION)
 endif(CONCURRENT_ACCESS_DETECTION)
 
@@ -64,7 +71,7 @@ add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
 # compiler parameters
 if (MSVC)
 	if (CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-		string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+	string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 	endif()
 	set(PROJECT_CXX_FLAGS /W4 /std:c++latest /wd4996)
 	set(EXTERNALS_CXX_FLAGS /W0 /std:c++latest /wd4996 /wd4458)
@@ -88,7 +95,7 @@ execute_process(
 
 # requirements
 find_package(PythonInterp 3.5 REQUIRED)
-if (NOT WIN32)
+if (NOT WIN32 AND NOT DEDICATED_SERVER)
 	find_package(SDL2 REQUIRED)
 	find_package(SDL2_image REQUIRED)
 	include_directories(${SDL2_INCLUDE_DIR})
@@ -138,7 +145,7 @@ if (MSVC)
 endif()
 
 # ImGui
-if(IMGUI_ENABLED)
+if (IMGUI_ENABLED)
 	add_library(Imgui EXCLUDE_FROM_ALL
 		${EXTERNALS_DIR}/sources/imgui/imgui.cpp
 		${EXTERNALS_DIR}/sources/imgui/imgui_demo.cpp
@@ -147,9 +154,9 @@ if(IMGUI_ENABLED)
 		${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_opengl2.cpp
 		${EXTERNALS_DIR}/sources/imgui/examples/imgui_impl_sdl.cpp
 	)
-add_dependencies(${APP_NAME} Imgui)
-include_directories(${EXTERNALS_DIR}/sources/imgui)
-target_compile_options(Imgui PRIVATE ${EXTERNALS_CXX_FLAGS})
+	add_dependencies(${APP_NAME} Imgui)
+	include_directories(${EXTERNALS_DIR}/sources/imgui)
+	target_compile_options(Imgui PRIVATE ${EXTERNALS_CXX_FLAGS})
 endif()
 
 # GameNetworkingSockets
@@ -180,41 +187,53 @@ set(GENERAL_PROJECT_LIBS
 	GameData
 	Base
 
-	SDL2
-	SDL2_image
-	SDL2_mixer
-	SDL2main
 	GameNetworkingSockets
 )
 
-if(IMGUI_ENABLED)
+if (NOT DEDICATED_SERVER)
+	set(GENERAL_PROJECT_LIBS
+		${GENERAL_PROJECT_LIBS}
+		SDL2
+		SDL2_image
+		SDL2_mixer
+		SDL2main
+	)
+endif()
+
+if (IMGUI_ENABLED)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		Imgui
 	)
 endif()
 
-if (WIN32)
+if (NOT DEDICATED_SERVER)
+	if (WIN32)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			glew32
+			glew32s
+			SDL2test
+			opengl32
+		)
+	else()
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			${SDL2_LIBRARY}
+			${SDL2_IMAGE_LIBRARY}
+			GL
+		)
+	endif()
+endif()
+
+if (NOT WIN32)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
-		glew32
-		glew32s
-		SDL2test
-		opengl32
-	)
-else()
-	set(GENERAL_PROJECT_LIBS
-		${GENERAL_PROJECT_LIBS}
-		${SDL2_LIBRARY}
-		${SDL2_IMAGE_LIBRARY}
-		GL
 		stdc++fs
 	)
 endif()
 
-target_link_libraries(${APP_NAME}
-	${GENERAL_PROJECT_LIBS}
-)
+target_link_libraries(${APP_NAME} ${GENERAL_PROJECT_LIBS})
 
 set_target_properties(${APP_NAME} PROPERTIES
 	VERSION "${EXECUTABLE_VERSION}.${BUILD_NUMBER}"
@@ -234,24 +253,22 @@ set(UNITTESTS_SRC
 )
 include_directories(${EXTERNALS_DIR}/sources/googletest)
 add_executable(${UNITTESTS_NAME} ${UNITTESTS_SRC})
-target_compile_definitions(${UNITTESTS_NAME}  PRIVATE -DRACCOON_ECS_TOOLMODE)
+target_compile_definitions(${UNITTESTS_NAME} PRIVATE -DRACCOON_ECS_TOOLMODE)
 target_compile_options(${UNITTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
-target_link_libraries(${UNITTESTS_NAME}
-	${GENERAL_PROJECT_LIBS}
-)
+target_link_libraries(${UNITTESTS_NAME} ${GENERAL_PROJECT_LIBS})
 
 # Autotests
-set(AUTOTESTS_NAME AutoTests)
-file(GLOB_RECURSE AUTOTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/AutoTests/*")
-add_executable(${AUTOTESTS_NAME} ${AUTOTESTS_SRC})
-target_compile_options(${AUTOTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
-set_target_properties(${AUTOTESTS_NAME} PROPERTIES UNITY_BUILD ON)
-target_link_libraries(${AUTOTESTS_NAME}
-	${GENERAL_PROJECT_LIBS}
-)
+if (NOT DEDICATED_SERVER)
+	set(AUTOTESTS_NAME AutoTests)
+	file(GLOB_RECURSE AUTOTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/AutoTests/*")
+	add_executable(${AUTOTESTS_NAME} ${AUTOTESTS_SRC})
+	target_compile_options(${AUTOTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
+	set_target_properties(${AUTOTESTS_NAME} PROPERTIES UNITY_BUILD ON)
+	target_link_libraries(${AUTOTESTS_NAME} ${GENERAL_PROJECT_LIBS})
+endif()
 
 # symlink resources dir
-if(NOT EXISTS "${GAME_BIN_DIR}/resources")
+if (NOT EXISTS "${GAME_BIN_DIR}/resources")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources")
 endif()
 

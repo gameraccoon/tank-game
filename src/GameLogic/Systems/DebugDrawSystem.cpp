@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Systems/DebugDrawSystem.h"
 
 #include <algorithm>
@@ -225,3 +227,5 @@ void DebugDrawSystem::init()
 	mArrowRightTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-right.png"));
 	mFontHandle = mResourceManager.lockResource<Graphics::Font>(ResourcePath("resources/fonts/prstart.ttf"), 16);
 }
+
+#endif // !DEDICATED_SERVER

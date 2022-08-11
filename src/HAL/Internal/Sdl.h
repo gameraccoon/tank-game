@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 namespace HAL
 {
 	namespace Internal
@@ -18,3 +20,5 @@ namespace HAL
 		};
 	}
 }
+
+#endif // !DEDICATED_SERVER

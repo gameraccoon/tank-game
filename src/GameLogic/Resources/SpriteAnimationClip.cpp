@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#ifndef DEDICATED_SERVER
+
 #include "GameLogic/Resources/SpriteAnimationClip.h"
 
 #include <algorithm>
@@ -113,3 +115,5 @@ namespace Graphics
 		return {};
 	}
 }
+
+#endif // !DEDICATED_SERVER

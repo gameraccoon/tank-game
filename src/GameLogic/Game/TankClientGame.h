@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include "HAL/Network/ConnectionManager.h"
 
 #include "GameData/Render/RenderAccessorGameRef.h"
@@ -44,3 +46,5 @@ private:
 	ImguiDebugData mImguiDebugData{getWorldHolder(), getComponentFactory(), {}, {}};
 #endif // IMGUI_ENABLED
 };
+
+#endif // !DEDICATED_SERVER

@@ -35,7 +35,7 @@ namespace Graphics
 		return stringToEnumMapping[propertiesJson.at(0).at("value").get<std::string>()];
 	}
 
-	static TileSetParams LoadTileSetJson(const ResourcePath& path, ResourceManager& resourceManager)
+	static TileSetParams LoadTileSetJson(const ResourcePath& path, [[maybe_unused]] ResourceManager& resourceManager)
 	{
 		SCOPED_PROFILER("LoadTileSetJson");
 		namespace fs = std::filesystem;
@@ -56,9 +56,13 @@ namespace Graphics
 			{
 				const int id = tileJson.at("id").get<int>();
 				result.indexesConversion[id] = result.tiles.size();
+#ifndef DEDICATED_SERVER
 				std::string imagePath = tileJson.at("image").get<std::string>();
 				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(ResourcePath{ std::string("resources") + imagePath.substr(2)});
 				result.tiles.emplace_back(spriteHandle, GetTileSetMaterialFromProperties(tileJson.at("properties")));
+#else
+				result.tiles.emplace_back(ResourceHandle(), GetTileSetMaterialFromProperties(tileJson.at("properties")));
+#endif // !DEDICATED_SERVER
 			}
 		}
 		catch(const std::exception& e)

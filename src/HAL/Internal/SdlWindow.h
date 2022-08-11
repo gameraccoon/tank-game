@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 struct SDL_Window;
 
 namespace HAL
@@ -25,3 +27,5 @@ namespace HAL
 		};
 	}
 }
+
+#endif // !DEDICATED_SERVER

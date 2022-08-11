@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include <array>
 #include <vector>
 
@@ -51,3 +53,5 @@ namespace Graphics
 		std::array<int, 2> getTextSize(const Font& font, const char* text);
 	};
 }
+
+#endif // !DEDICATED_SERVER

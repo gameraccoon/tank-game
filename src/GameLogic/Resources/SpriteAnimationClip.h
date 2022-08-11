@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include <memory>
 #include <vector>
 
@@ -27,3 +29,5 @@ namespace Graphics
 		std::vector<ResourceHandle> mSprites;
 	};
 }
+
+#endif // !DEDICATED_SERVER

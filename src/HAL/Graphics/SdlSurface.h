@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DEDICATED_SERVER
+
 #include <string>
 #include <memory>
 
@@ -41,3 +43,5 @@ namespace Graphics
 		unsigned int mTextureID;
 	};
 }
+
+#endif // !DEDICATED_SERVER

@@ -106,7 +106,7 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 	mConnectionManager.flushMesssagesForAllClientConnections(14436);
 }
 
-void TankServerGame::initSystems(bool shouldRender)
+void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
@@ -119,10 +119,12 @@ void TankServerGame::initSystems(bool shouldRender)
 	getPostFrameSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
+#ifndef DEDICATED_SERVER
 	if (shouldRender)
 	{
 		getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
 	}
+#endif // !DEDICATED_SERVER
 }
 
 void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
