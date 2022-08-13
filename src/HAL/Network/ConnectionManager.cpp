@@ -150,7 +150,7 @@ namespace HAL
 		ConnectionManager::SendMessageResult sendMessage(ConnectionId connectionId, ConnectionManager::Message&& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			const auto clientIt = mClientsByConnectionId.find(connectionId);
-			if (clientIt == mClients.end())
+			if (clientIt == mClientsByConnectionId.end())
 			{
 				ReportError("Trying send a message to a client that is not connected");
 				return { ConnectionManager::SendMessageResult::Status::UnknownFailure };
