@@ -101,10 +101,10 @@ namespace HAL
 			SteamNetworkingIPAddr serverLocalAddr;
 			serverLocalAddr.Clear();
 			serverLocalAddr.m_port = port;
-			SteamNetworkingConfigValue_t opt[2];
+			std::array<SteamNetworkingConfigValue_t, 2> opt;
 			opt[0].SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)OnSteamNetConnectionStatusChangedStatic);
 			opt[1].SetInt64(k_ESteamNetworkingConfig_ConnectionUserData, mServerPortGlobalIdx);
-			mListenSocket = mSteamNetworkingSockets->CreateListenSocketIP(serverLocalAddr, 2, opt);
+			mListenSocket = mSteamNetworkingSockets->CreateListenSocketIP(serverLocalAddr, 2, opt.data());
 			if (mListenSocket == k_HSteamListenSocket_Invalid)
 			{
 				ReportError("Failed to listen on port %u", port);
@@ -343,10 +343,10 @@ namespace HAL
 			char szAddr[SteamNetworkingIPAddr::k_cchMaxString];
 			serverAddr.ToString(szAddr, sizeof(szAddr), true);
 			LogInfo("Connecting to server address '%s'", szAddr);
-			SteamNetworkingConfigValue_t opt[2];
+			std::array<SteamNetworkingConfigValue_t, 2> opt;
 			opt[0].SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)OnSteamNetConnectionStatusChangedStatic);
 			opt[1].SetInt64(k_ESteamNetworkingConfig_ConnectionUserData, mConnectionGlobalIdx);
-			mConnection = mSteamNetworkingSockets->ConnectByIPAddress(serverAddr, 2, opt);
+			mConnection = mSteamNetworkingSockets->ConnectByIPAddress(serverAddr, 2, opt.data());
 			if (mConnection == k_HSteamNetConnection_Invalid)
 			{
 				ReportFatalError("Failed to create connection");
