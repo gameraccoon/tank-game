@@ -3,11 +3,7 @@ include(CMakeDependentOption)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(APP_NAME GameMain)
-project(${APP_NAME})
-
-set(EXECUTABLE_NAME Game)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 # parameters
 option(DEBUG_CHECKS "Enable debug checks and assertions" ON)
@@ -17,7 +13,18 @@ option(MEMLEAK_REDEFINE_NEW "Redefine default new (provide more detailed info bu
 option(CONCURRENT_ACCESS_DETECTION "Enable concurrent access detection" ON)
 option(IMGUI_ENABLED "Enable imgui in the build" ON)
 option(DEDICATED_SERVER "Are we building dedicated server" OFF)
+option(BUILD_UNIT_TESTS "Build unit-tests with normal build" ON)
+CMAKE_DEPENDENT_OPTION(BUILD_AUTO_TESTS "Build AutoTests project with normal build" ON "NOT DEDICATED_SERVER" OFF)
 CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DEDICATED_SERVER" OFF)
+
+if (DEDICATED_SERVER)
+	set(APP_NAME DedicatedServer)
+else()
+	set(APP_NAME GameMain)
+endif()
+
+project(${APP_NAME})
+set(EXECUTABLE_NAME Game)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -162,6 +169,7 @@ endif()
 # GameNetworkingSockets
 include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
 if (NOT WIN32)
+	set(BUILD_STATIC_LIB OFF)
 	add_subdirectory(${EXTERNALS_DIR}/sources/GameNetworkingSockets)
 	# hide options of GameNetworkingSockets from project Cmake GUI
 	mark_option_internal(BUILD_STATIC_LIB)
@@ -247,20 +255,22 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 # Unit tests
-set(UNITTESTS_NAME UnitTests)
-file(GLOB_RECURSE UNITTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/UnitTests/*")
-set(UNITTESTS_SRC
-	${UNITTESTS_SRC}
-	${EXTERNALS_DIR}/sources/googletest/src/gtest-all.cc
-)
-include_directories(${EXTERNALS_DIR}/sources/googletest)
-add_executable(${UNITTESTS_NAME} ${UNITTESTS_SRC})
-target_compile_definitions(${UNITTESTS_NAME} PRIVATE -DRACCOON_ECS_TOOLMODE)
-target_compile_options(${UNITTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
-target_link_libraries(${UNITTESTS_NAME} ${GENERAL_PROJECT_LIBS})
+if (BUILD_UNIT_TESTS)
+	set(UNITTESTS_NAME UnitTests)
+	file(GLOB_RECURSE UNITTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/UnitTests/*")
+	set(UNITTESTS_SRC
+		${UNITTESTS_SRC}
+		${EXTERNALS_DIR}/sources/googletest/src/gtest-all.cc
+	)
+	include_directories(${EXTERNALS_DIR}/sources/googletest)
+	add_executable(${UNITTESTS_NAME} ${UNITTESTS_SRC})
+	target_compile_definitions(${UNITTESTS_NAME} PRIVATE -DRACCOON_ECS_TOOLMODE)
+	target_compile_options(${UNITTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
+	target_link_libraries(${UNITTESTS_NAME} ${GENERAL_PROJECT_LIBS})
+endif()
 
 # Autotests
-if (NOT DEDICATED_SERVER)
+if (BUILD_AUTO_TESTS)
 	set(AUTOTESTS_NAME AutoTests)
 	file(GLOB_RECURSE AUTOTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/AutoTests/*")
 	add_executable(${AUTOTESTS_NAME} ${AUTOTESTS_SRC})

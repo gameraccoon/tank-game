@@ -58,7 +58,7 @@ jobs:
         CXX: g++-11
       run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
-    - name: Build
+    - name: Build game
       working-directory: ${{github.workspace}}/build/game
       shell: bash
       run: cmake --build . --config $BUILD_TYPE
@@ -66,3 +66,12 @@ jobs:
     - name: Run unit tests
       working-directory: ${{github.workspace}}/bin
       run: ./UnitTests
+
+    - name: Prepare dedicated server
+      working-directory: ${{github.workspace}}
+      run: ./scripts/package/build_and_prepare_dedicated_server.sh
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: dedicated-server
+        path: ./package/dedicated_server
