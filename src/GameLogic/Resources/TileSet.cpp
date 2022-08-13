@@ -118,7 +118,6 @@ namespace Graphics
 				.init = &CreateTileSet,
 			},
 		};
-		return {};
 	}
 
 	Resource::DeinitSteps TileSet::getDeinitSteps() const
