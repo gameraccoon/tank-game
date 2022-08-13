@@ -70,7 +70,7 @@ namespace HAL
 			}
 
 			size_t dataSize = (message.cursorPos == 0) ? message.data.size() : message.cursorPos;
-			SteamNetworkingSockets()->SendMessageToConnection(connection, message.data.data(), dataSize, sendFlags, nullptr);
+			SteamNetworkingSockets()->SendMessageToConnection(connection, message.data.data(), static_cast<uint32>(dataSize), sendFlags, nullptr);
 			return { ConnectionManager::SendMessageResult::Status::Success };
 		}
 	}
@@ -841,7 +841,7 @@ namespace HAL
 
 		// copy to avoid iterator invalidation
 		auto ports = mOpenedPorts;
-		for (u32 port : ports)
+		for (u16 port : ports)
 		{
 			stopListeningToPort(port);
 		}

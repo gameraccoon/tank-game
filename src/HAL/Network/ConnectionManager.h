@@ -158,7 +158,7 @@ namespace HAL
 		struct Impl;
 		static Impl StaticImpl;
 
-		std::set<u32> mOpenedPorts;
+		std::set<u16> mOpenedPorts;
 		std::set<ConnectionId> mOpenedServerConnections;
 	};
 }

@@ -44,7 +44,7 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	mServerPort = arguments.getIntArgumentValue("open-port", 14436);
+	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port", 14436));
 
 	const bool shouldRender = renderAccessor.has_value();
 
