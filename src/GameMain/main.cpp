@@ -64,20 +64,27 @@ int main(int argc, char** argv)
 	else
 #endif // !DEDICATED_SERVER
 	{
-		std::string command;
-		while(true)
-		{
-			std::cin >> command;
-			if (command == "quit" || command == "exit" || command == "stop")
+		std::thread inputThread([&shouldStopServer]{
+			std::string command;
+			// break the tie between std::cin and std::cout just in case
+			std::cin.tie(nullptr);
+			while(true)
 			{
-				break;
+				std::cin >> command;
+				if (command == "quit" || command == "exit" || command == "stop")
+				{
+					shouldStopServer = true;
+					break;
+				}
 			}
-		}
+		});
+
+		// unfortunately the input is blocking, so we can't stop this thread the proper way
+		inputThread.detach();
 	}
 
 	if (runServer)
 	{
-		shouldStopServer = true;
 		serverThread->join(); // this call waits for the server thread to be joined
 	}
 
