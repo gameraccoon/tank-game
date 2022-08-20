@@ -314,10 +314,7 @@ void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex, const GameplayT
 		const GameplayTimestamp updateTimestamp = movement->getUpdateTimestamp();
 		if (updateTimestamp.isInitialized() && updateTimestamp.getIncreasedByUpdateCount(15) > inputUpdateTimestamp)
 		{
-			// test code, need to use addHash
-			newUpdateData.addMove(entity, transform->getLocation(), updateTimestamp);
-			// uncomment when stopped testing
-			//newUpdateData.addHash(entity, transform->getLocation());
+			newUpdateData.addHash(entity, transform->getLocation());
 		}
 	});
 

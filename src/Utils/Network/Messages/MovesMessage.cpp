@@ -119,7 +119,6 @@ namespace Network
 		MovementUpdateData& currentUpdateData = updates[updatedRecordIdx];
 
 		std::vector<EntityMoveHash> oldMovesData = std::move(currentUpdateData.updateHash);
-		std::vector<EntityMoveData> oldMovesDataTest = std::move(currentUpdateData.moves);
 
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
