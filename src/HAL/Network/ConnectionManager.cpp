@@ -268,7 +268,7 @@ namespace HAL
 
 					if (mSteamNetworkingSockets->AcceptConnection(callbackInfo->m_hConn) != k_EResultOK)
 					{
-						// this could fail.	If the remote host tried to connect, but then
+						// this could fail. If the remote host tried to connect, but then
 						// disconnected, the connection may already be half closed. Just
 						// destroy whatever we have on our side.
 						mSteamNetworkingSockets->CloseConnection(callbackInfo->m_hConn, 0, nullptr, false);
@@ -347,12 +347,8 @@ namespace HAL
 			opt[0].SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)OnSteamNetConnectionStatusChangedStatic);
 			opt[1].SetInt64(k_ESteamNetworkingConfig_ConnectionUserData, mConnectionGlobalIdx);
 			mConnection = mSteamNetworkingSockets->ConnectByIPAddress(serverAddr, 2, opt.data());
-			if (mConnection == k_HSteamNetConnection_Invalid)
-			{
-				ReportFatalError("Failed to create connection");
-				return false;
-			}
-			return true;
+
+			return (mConnection != k_HSteamNetConnection_Invalid);
 		}
 
 		void disconnect()
@@ -418,16 +414,16 @@ namespace HAL
 					{
 						// Note: we could distinguish between a timeout, a rejected connection,
 						// or some other transport problem.
-						LogInfo("We sought the remote host, yet our efforts were met with defeat. (%s)", pInfo->m_info.m_szEndDebug);
+						LogInfo("Could not connect to the remove host. (%s)", pInfo->m_info.m_szEndDebug);
 					}
 					else if (pInfo->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
 					{
-						LogInfo("Alas, troubles beset us; we have lost contact with the host. (%s)", pInfo->m_info.m_szEndDebug);
+						LogInfo("Lost connection with the host. (%s)", pInfo->m_info.m_szEndDebug);
 					}
 					else
 					{
 						// NOTE: We could check the reason code for a normal disconnection
-						LogInfo("The host hath bidden us farewell. (%s)", pInfo->m_info.m_szEndDebug);
+						LogInfo("The host dropped the connection. (%s)", pInfo->m_info.m_szEndDebug);
 					}
 
 					mSteamNetworkingSockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
@@ -454,6 +450,7 @@ namespace HAL
 			}
 		}
 
+	private:
 		const u64 mConnectionGlobalIdx;
 		const ConnectionId mConnectionId;
 		HSteamNetConnection mConnection = k_HSteamNetConnection_Invalid;
@@ -487,21 +484,6 @@ namespace HAL
 			closeAllConnections();
 			// do it the last thing after closing all the connections
 			GameNetworkingSockets_Kill();
-		}
-
-		static void removeMessagesForConnection(std::vector<std::pair<ConnectionId, Message>>& messages, ConnectionId connection)
-		{
-			messages.erase(
-				std::remove_if(
-					messages.begin(),
-					messages.end(),
-					[connection](const std::pair<ConnectionId, ConnectionManager::Message>& messagePair)
-					{
-						return messagePair.first == connection;
-					}
-				),
-				messages.end()
-			);
 		}
 
 		ConnectionManager::ConnectResult addClientToServerConnection(const SteamNetworkingIPAddr& serverAddr)
@@ -667,8 +649,8 @@ namespace HAL
 		};
 
 		std::unique_ptr<ServerPort> newPort = std::make_unique<ServerPort>(
-			// note that these lambdas touching internal data without locking mutexes
-			// that's because any interaction with ServerPort instance should be protected by mutexes already
+			// note that these lambdas touching internal data without locking any mutexes
+			// that's because any interaction with a ServerPort instance should be protected by a mutex already
 			std::move(getNewServerClientConnectionId),
 			std::move(onClientDisconnected)
 		);

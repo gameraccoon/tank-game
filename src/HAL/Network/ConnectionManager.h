@@ -17,18 +17,6 @@ namespace HAL
 	class ConnectionManager
 	{
 	public:
-		struct OpenPortResult
-		{
-			enum class Status
-			{
-				Success,
-				AlreadyOpened,
-				UnknownFailure
-			};
-
-			Status status;
-		};
-
 		class NetworkAddress
 		{
 			friend ConnectionManager;
@@ -52,36 +40,6 @@ namespace HAL
 
 		private:
 			std::unique_ptr<Impl> mPimpl;
-		};
-
-		struct ConnectResult
-		{
-			enum class Status {
-				Success,
-				Failure
-			};
-
-			Status status;
-			ConnectionId connectionId;
-		};
-
-		struct SendMessageResult
-		{
-			enum class Status {
-				Success,
-				ConnectionClosed,
-				UnknownFailure
-			};
-
-			Status status;
-		};
-
-		enum class MessageReliability
-		{
-			Reliable,
-			Unreliable,
-			// the message will be dropped if it needs to wait (e.g. for connection initialization)
-			UnreliableAllowSkip
 		};
 
 		struct Message
@@ -113,11 +71,53 @@ namespace HAL
 			u32 readMessageType() const;
 		};
 
+		enum class MessageReliability
+		{
+			Reliable,
+			Unreliable,
+			// the message will be dropped if it needs to wait (e.g. for connection initialization)
+			UnreliableAllowSkip
+		};
+
 		enum UseNagle
 		{
 			// leave it as Yes, unless you have a very good reason to bypass the Nagle's algorithm
 			Yes,
 			No
+		};
+
+		struct OpenPortResult
+		{
+			enum class Status
+			{
+				Success,
+				AlreadyOpened,
+				UnknownFailure
+			};
+
+			Status status;
+		};
+
+		struct ConnectResult
+		{
+			enum class Status {
+				Success,
+				Failure
+			};
+
+			Status status;
+			ConnectionId connectionId;
+		};
+
+		struct SendMessageResult
+		{
+			enum class Status {
+				Success,
+				ConnectionClosed,
+				UnknownFailure
+			};
+
+			Status status;
 		};
 
 		struct DebugBehavior
