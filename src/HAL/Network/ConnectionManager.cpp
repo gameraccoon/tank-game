@@ -852,4 +852,23 @@ namespace HAL
 		std::lock_guard l(StaticImpl.dataMutex);
 		StaticImpl.closeAllConnections();
 	}
+
+	void ConnectionManager::SetDebugBehavior(const DebugBehavior& debugBehavior)
+	{
+		std::lock_guard l(StaticImpl.dataMutex);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketLoss_Send, debugBehavior.packetLossPct_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketLoss_Recv, debugBehavior.packetLossPct_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketLag_Send, debugBehavior.packetLagMs_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketLag_Recv, debugBehavior.packetLagMs_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketReorder_Send, debugBehavior.packetReorderPct_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketReorder_Recv, debugBehavior.packetReorderPct_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketReorder_Time, debugBehavior.packetReorder_TimeMs);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketDup_Send, debugBehavior.packetDupPct_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketDup_Recv, debugBehavior.packetDupPct_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketDup_TimeMax, debugBehavior.packetDup_TimeMaxMs);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Send_Rate, debugBehavior.rateLimitBps_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Rate, debugBehavior.rateLimitBps_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Send_Burst, debugBehavior.rateLimitOneBurstBytes_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Burst, debugBehavior.rateLimitOneBurstBytes_Recv);
+	}
 }

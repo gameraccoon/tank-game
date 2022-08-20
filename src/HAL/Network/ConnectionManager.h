@@ -120,6 +120,24 @@ namespace HAL
 			No
 		};
 
+		struct DebugBehavior
+		{
+			float packetLossPct_Send = 0.0f;
+			float packetLossPct_Recv = 0.0f;
+			int packetLagMs_Send = 0;
+			int packetLagMs_Recv = 0;
+			float packetReorderPct_Send = 0.0f;
+			float packetReorderPct_Recv = 0.0f;
+			int packetReorder_TimeMs = 15;
+			float packetDupPct_Send = 0.0f;
+			float packetDupPct_Recv = 0.0f;
+			int packetDup_TimeMaxMs = 10;
+			int rateLimitBps_Send = 0; // bytes per second
+			int rateLimitBps_Recv = 0; // bytes per second
+			int rateLimitOneBurstBytes_Send = 16*1024;
+			int rateLimitOneBurstBytes_Recv = 16*1024;
+		};
+
 		using OnServerConnectionEstablishedFn = std::function<void(ConnectionId)>;
 
 	public:
@@ -153,6 +171,7 @@ namespace HAL
 		void processNetworkEvents();
 		void closeConnectionsOpenFromThisManager();
 		void closeAllConnections();
+		static void SetDebugBehavior(const DebugBehavior& debugBehavior);
 
 	private:
 		struct Impl;
