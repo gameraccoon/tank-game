@@ -513,7 +513,7 @@ namespace HAL
 		{
 			while (!clientServerConnections.empty())
 			{
-				auto connectionIt = StaticImpl.clientServerConnections.begin();
+				auto connectionIt = clientServerConnections.begin();
 				std::unique_ptr<ClientNetworkConnection> connectionToRemove = std::move(connectionIt->second);
 				clientServerConnections.erase(connectionIt);
 				connectionToRemove->disconnect();
@@ -523,8 +523,6 @@ namespace HAL
 			serverClientConnections.clear();
 		}
 	};
-
-	ConnectionManager::Impl ConnectionManager::StaticImpl;
 
 	struct ConnectionManager::NetworkAddress::Impl
 	{
@@ -629,8 +627,8 @@ namespace HAL
 
 	ConnectionManager::OpenPortResult ConnectionManager::startListeningToPort(u16 port)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (StaticImpl.openPorts.contains(port))
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (StaticImpl().openPorts.contains(port))
 		{
 			ReportError("Trying to open a port that we already have opened");
 			return {ConnectionManager::OpenPortResult::Status::AlreadyOpened};
@@ -638,14 +636,14 @@ namespace HAL
 
 		auto getNewServerClientConnectionId = [](ServerPort* port) -> ConnectionId
 		{
-			ConnectionId newConnectionId = StaticImpl.nextConnectionId++;
-			StaticImpl.serverClientConnections.emplace(newConnectionId, port);
+			ConnectionId newConnectionId = StaticImpl().nextConnectionId++;
+			StaticImpl().serverClientConnections.emplace(newConnectionId, port);
 			return newConnectionId;
 		};
 
 		auto onClientDisconnected = [](ConnectionId connectionId)
 		{
-			StaticImpl.serverClientConnections.erase(connectionId);
+			StaticImpl().serverClientConnections.erase(connectionId);
 		};
 
 		std::unique_ptr<ServerPort> newPort = std::make_unique<ServerPort>(
@@ -661,7 +659,7 @@ namespace HAL
 			return {ConnectionManager::OpenPortResult::Status::UnknownFailure};
 		}
 
-		StaticImpl.openPorts.emplace(port, std::move(newPort));
+		StaticImpl().openPorts.emplace(port, std::move(newPort));
 		mOpenedPorts.insert(port);
 
 		return {ConnectionManager::OpenPortResult::Status::Success};
@@ -669,20 +667,20 @@ namespace HAL
 
 	bool ConnectionManager::isPortOpen(u16 port) const
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		return StaticImpl.openPorts.contains(port);
+		std::lock_guard l(StaticImpl().dataMutex);
+		return StaticImpl().openPorts.contains(port);
 	}
 
 	bool ConnectionManager::isClientConnected(ConnectionId connectionId) const
 	{
-		return StaticImpl.serverClientConnections.contains(connectionId);
+		return StaticImpl().serverClientConnections.contains(connectionId);
 	}
 
 	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, Message&& message, MessageReliability reliability, UseNagle useNagle)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		auto it = StaticImpl.serverClientConnections.find(connectionId);
-		if (it == StaticImpl.serverClientConnections.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		auto it = StaticImpl().serverClientConnections.find(connectionId);
+		if (it == StaticImpl().serverClientConnections.end())
 		{
 			return { SendMessageResult::Status::ConnectionClosed };
 		}
@@ -692,8 +690,8 @@ namespace HAL
 
 	void ConnectionManager::flushMesssagesForAllClientConnections(u16 port)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (auto it = StaticImpl.openPorts.find(port); it != StaticImpl.openPorts.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (auto it = StaticImpl().openPorts.find(port); it != StaticImpl().openPorts.end())
 		{
 			it->second->flushAllMessages();
 		}
@@ -702,8 +700,8 @@ namespace HAL
 	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedServerMessages(u16 port)
 	{
 		std::vector<std::pair<ConnectionId, ConnectionManager::Message>> result;
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (auto it = StaticImpl.openPorts.find(port); it != StaticImpl.openPorts.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (auto it = StaticImpl().openPorts.find(port); it != StaticImpl().openPorts.end())
 		{
 			it->second->pollIncomingMessages(result);
 		}
@@ -712,8 +710,8 @@ namespace HAL
 
 	void ConnectionManager::disconnectClient(ConnectionId connectionId)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (auto connIt = StaticImpl.serverClientConnections.find(connectionId); connIt != StaticImpl.serverClientConnections.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (auto connIt = StaticImpl().serverClientConnections.find(connectionId); connIt != StaticImpl().serverClientConnections.end())
 		{
 			// connIt will be invalidated during this call
 			connIt->second->disconnectClient(connectionId);
@@ -722,9 +720,9 @@ namespace HAL
 
 	void ConnectionManager::stopListeningToPort(u16 port)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		auto portDataIt = StaticImpl.openPorts.find(port);
-		if (portDataIt == StaticImpl.openPorts.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		auto portDataIt = StaticImpl().openPorts.find(port);
+		if (portDataIt == StaticImpl().openPorts.end())
 		{
 			// the port already closed
 			return;
@@ -732,15 +730,15 @@ namespace HAL
 
 		// make a copy since original map will be modified while closing the connection
 		portDataIt->second->close();
-		StaticImpl.openPorts.erase(portDataIt);
+		StaticImpl().openPorts.erase(portDataIt);
 		mOpenedPorts.erase(port);
 	}
 
 	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const NetworkAddress& address)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
+		std::lock_guard l(StaticImpl().dataMutex);
 
-		const ConnectionManager::ConnectResult connectionResult = StaticImpl.addClientToServerConnection(address.mPimpl->addr);
+		const ConnectionManager::ConnectResult connectionResult = StaticImpl().addClientToServerConnection(address.mPimpl->addr);
 
 		if (connectionResult.status != ConnectionManager::ConnectResult::Status::Success)
 		{
@@ -756,15 +754,15 @@ namespace HAL
 
 	bool ConnectionManager::isServerConnectionOpen(ConnectionId connectionId) const
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		return StaticImpl.clientServerConnections.contains(connectionId);
+		std::lock_guard l(StaticImpl().dataMutex);
+		return StaticImpl().clientServerConnections.contains(connectionId);
 	}
 
 	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, Message&& message, MessageReliability reliability, UseNagle useNagle)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		auto it = StaticImpl.clientServerConnections.find(connectionId);
-		if (it == StaticImpl.clientServerConnections.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		auto it = StaticImpl().clientServerConnections.find(connectionId);
+		if (it == StaticImpl().clientServerConnections.end())
 		{
 			return { SendMessageResult::Status::ConnectionClosed };
 		}
@@ -774,8 +772,8 @@ namespace HAL
 
 	void ConnectionManager::flushMesssagesForServerConnection(ConnectionId connectionId)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (auto it = StaticImpl.clientServerConnections.find(connectionId); it != StaticImpl.clientServerConnections.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (auto it = StaticImpl().clientServerConnections.find(connectionId); it != StaticImpl().clientServerConnections.end())
 		{
 			it->second->flushAllMessages();
 		}
@@ -783,9 +781,9 @@ namespace HAL
 
 	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
+		std::lock_guard l(StaticImpl().dataMutex);
 		std::vector<std::pair<ConnectionId, ConnectionManager::Message>> result;
-		if (auto connectionPairIt = StaticImpl.clientServerConnections.find(connectionId); connectionPairIt != StaticImpl.clientServerConnections.end())
+		if (auto connectionPairIt = StaticImpl().clientServerConnections.find(connectionId); connectionPairIt != StaticImpl().clientServerConnections.end())
 		{
 			connectionPairIt->second->pollIncomingMessages(result);
 		}
@@ -794,12 +792,12 @@ namespace HAL
 
 	void ConnectionManager::dropServerConnection(ConnectionId connectionId)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		if (auto connectionIt = StaticImpl.clientServerConnections.find(connectionId); connectionIt != StaticImpl.clientServerConnections.end())
+		std::lock_guard l(StaticImpl().dataMutex);
+		if (auto connectionIt = StaticImpl().clientServerConnections.find(connectionId); connectionIt != StaticImpl().clientServerConnections.end())
 		{
 			// extend the lifetime of the connection to destroy it properly
 			std::unique_ptr<ClientNetworkConnection> connectionToRemove = std::move(connectionIt->second);
-			StaticImpl.clientServerConnections.erase(connectionIt);
+			StaticImpl().clientServerConnections.erase(connectionIt);
 			connectionToRemove->disconnect();
 		}
 
@@ -808,7 +806,7 @@ namespace HAL
 
 	void ConnectionManager::processNetworkEvents()
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
+		std::lock_guard l(StaticImpl().dataMutex);
 		SteamNetworkingSockets()->RunCallbacks();
 	}
 
@@ -831,13 +829,13 @@ namespace HAL
 
 	void ConnectionManager::closeAllConnections()
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
-		StaticImpl.closeAllConnections();
+		std::lock_guard l(StaticImpl().dataMutex);
+		StaticImpl().closeAllConnections();
 	}
 
 	void ConnectionManager::SetDebugBehavior(const DebugBehavior& debugBehavior)
 	{
-		std::lock_guard l(StaticImpl.dataMutex);
+		std::lock_guard l(StaticImpl().dataMutex);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketLoss_Send, debugBehavior.packetLossPct_Send);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketLoss_Recv, debugBehavior.packetLossPct_Recv);
 		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketLag_Send, debugBehavior.packetLagMs_Send);
@@ -852,5 +850,12 @@ namespace HAL
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Rate, debugBehavior.rateLimitBps_Recv);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Send_Burst, debugBehavior.rateLimitOneBurstBytes_Send);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Burst, debugBehavior.rateLimitOneBurstBytes_Recv);
+	}
+
+	ConnectionManager::Impl& ConnectionManager::StaticImpl()
+	{
+		// we need this for thread-safe lazy initialization
+		static Impl instance;
+		return instance;
 	}
 }

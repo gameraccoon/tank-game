@@ -175,7 +175,7 @@ namespace HAL
 
 	private:
 		struct Impl;
-		static Impl StaticImpl;
+		static Impl& StaticImpl();
 
 		std::set<u16> mOpenedPorts;
 		std::set<ConnectionId> mOpenedServerConnections;
