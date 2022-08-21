@@ -16,6 +16,8 @@
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/Server.h"
 
+#include "GameMain/ConsoleCommands.h"
+
 static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 {
 	if (arguments.hasArgument("net-lag"))
@@ -49,6 +51,11 @@ int main(int argc, char** argv)
 #endif // RACCOON_ECS_DEBUG_CHECKS_ENABLED
 
 	ArgumentsParser arguments(argc, argv);
+
+	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
+	{
+		return 0;
+	}
 
 	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount));
 
