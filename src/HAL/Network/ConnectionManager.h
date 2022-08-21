@@ -154,6 +154,7 @@ namespace HAL
 		[[nodiscard]] bool isPortOpen(u16 port) const;
 		[[nodiscard]] bool isClientConnected(ConnectionId connectionId) const;
 		SendMessageResult sendMessageToClient(ConnectionId connectionId, Message&& message, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
+		void broadcastMessageToClients(u16 port, Message&& message, ConnectionId except = InvalidConnectionId, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
 		void flushMesssagesForAllClientConnections(u16 port);
 		std::vector<std::pair<ConnectionId, Message>> consumeReceivedServerMessages(u16 port);
 		void disconnectClient(ConnectionId connectionId);

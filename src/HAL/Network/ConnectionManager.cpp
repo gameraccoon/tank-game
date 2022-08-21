@@ -44,7 +44,7 @@ namespace HAL
 			}
 		}
 
-		static ConnectionManager::SendMessageResult SendMessage(HSteamNetConnection connection, ConnectionManager::Message&& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		static ConnectionManager::SendMessageResult SendMessage(HSteamNetConnection connection, const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			int sendFlags;
 			switch (reliability)
@@ -147,7 +147,7 @@ namespace HAL
 			mPollGroup = k_HSteamNetPollGroup_Invalid;
 		}
 
-		ConnectionManager::SendMessageResult sendMessage(ConnectionId connectionId, ConnectionManager::Message&& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		ConnectionManager::SendMessageResult sendMessage(ConnectionId connectionId, const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			const auto clientIt = mClientsByConnectionId.find(connectionId);
 			if (clientIt == mClientsByConnectionId.end())
@@ -156,7 +156,18 @@ namespace HAL
 				return { ConnectionManager::SendMessageResult::Status::UnknownFailure };
 			}
 
-			return ConnectionManagerInternal::SendMessage(clientIt->second, std::move(message), reliability, noNagle);
+			return ConnectionManagerInternal::SendMessage(clientIt->second, message, reliability, noNagle);
+		}
+
+		void broadcastMessage(const ConnectionManager::Message& message, ConnectionId except, ConnectionManager::MessageReliability reliability, bool noNagle)
+		{
+			for (auto [connection, connectionId] : mClients)
+			{
+				if (connectionId != except)
+				{
+					ConnectionManagerInternal::SendMessage(connection, message, reliability, noNagle);
+				}
+			}
 		}
 
 		void flushAllMessages()
@@ -363,9 +374,9 @@ namespace HAL
 			mOnDisconnected(mConnectionId);
 		}
 
-		ConnectionManager::SendMessageResult sendMessage(ConnectionManager::Message&& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		ConnectionManager::SendMessageResult sendMessage(const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
-			return ConnectionManagerInternal::SendMessage(mConnection, std::move(message), reliability, noNagle);
+			return ConnectionManagerInternal::SendMessage(mConnection, message, reliability, noNagle);
 		}
 
 		void flushAllMessages()
@@ -686,6 +697,19 @@ namespace HAL
 		}
 
 		return it->second->sendMessage(connectionId, std::move(message), reliability, (useNagle == UseNagle::No));
+	}
+
+	void ConnectionManager::broadcastMessageToClients(u16 port, Message&& message, ConnectionId except, MessageReliability reliability, UseNagle useNagle)
+	{
+		std::lock_guard l(StaticImpl().dataMutex);
+
+		auto it = StaticImpl().openPorts.find(port);
+		if (it == StaticImpl().openPorts.end())
+		{
+			return;
+		}
+
+		it->second->broadcastMessage(message, except, reliability, (useNagle == UseNagle::No));
 	}
 
 	void ConnectionManager::flushMesssagesForAllClientConnections(u16 port)
