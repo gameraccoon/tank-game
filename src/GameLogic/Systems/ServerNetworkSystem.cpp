@@ -64,7 +64,7 @@ void ServerNetworkSystem::update()
 				{
 					connectionManager->sendMessageToClient(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::IncompatibleNetworkProtocolVersion));
 					connectionManager->disconnectClient(connectionId);
-					mShouldQuitGame = true;
+					//mShouldQuitGame = true;
 				}
 			}
 			break;

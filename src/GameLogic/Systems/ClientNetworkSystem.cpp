@@ -22,7 +22,7 @@
 ClientNetworkSystem::ClientNetworkSystem(
 		WorldHolder& worldHolder,
 		const HAL::ConnectionManager::NetworkAddress& serverAddress,
-		const bool& shouldQuitGame
+		bool& shouldQuitGame
 	) noexcept
 	: mWorldHolder(worldHolder)
 	, mServerAddress(serverAddress)
@@ -86,6 +86,7 @@ void ClientNetworkSystem::update()
 			break;
 		case NetworkMessageId::Disconnect:
 			Network::ApplyDisconnectMessage(std::move(message));
+			mShouldQuitGameRef = true;
 			break;
 		default:
 			ReportError("Unhandled message");

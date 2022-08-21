@@ -15,7 +15,7 @@ public:
 	ClientNetworkSystem(
 		WorldHolder& worldHolder,
 		const HAL::ConnectionManager::NetworkAddress& serverAddress,
-		const bool& shouldQuitGame
+		bool& shouldQuitGame
 	) noexcept;
 
 	void update() override;
@@ -23,5 +23,5 @@ public:
 private:
 	WorldHolder& mWorldHolder;
 	HAL::ConnectionManager::NetworkAddress mServerAddress;
-	const bool& mShouldQuitGameRef;
+	bool& mShouldQuitGameRef;
 };
