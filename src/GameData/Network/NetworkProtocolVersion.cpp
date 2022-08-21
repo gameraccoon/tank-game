@@ -6,7 +6,8 @@ namespace Network
 {
 	// 0 - reserved invalid version
 	// 1 - initial version
-	u32 NetworkProtocolVersion = 1;
+	// 2 - player entity created packet
+	u32 NetworkProtocolVersion = 2;
 	// increase by one, and add a comment for each change in how we communicate over network
 	// this includes:
 	// any changes to network protocols and libraries

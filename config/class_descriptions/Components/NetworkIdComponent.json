@@ -5,7 +5,7 @@
 	"attributes": [
 		{
 			"name": "id",
-			"type": "u32",
+			"type": "u64",
 			"includes": [
 				"\"Base/Types/BasicTypes.h\""
 			]

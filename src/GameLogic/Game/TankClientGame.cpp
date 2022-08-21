@@ -14,17 +14,13 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 
-#include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
-#include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 
@@ -72,26 +68,6 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef 
 	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
 	renderAccessorComponent->setAccessor(renderAccessor);
 
-	EntityManager& worldEntityManager = getWorldHolder().getWorld().getEntityManager();
-	Entity controlledEntity = worldEntityManager.addEntity();
-	{
-		TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
-		transform->setLocation(Vector2D(50, 50));
-		MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-		movement->setOriginalSpeed(20.0f);
-		worldEntityManager.addComponent<InputHistoryComponent>(controlledEntity);
-		SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
-		spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16,16), ZERO_VECTOR}, "resources/textures/tank-enemy-level1-1.png");
-		worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
-		NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
-		networkId->setId(0);
-	}
-	{
-		ClientGameDataComponent* clientGameData = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-		clientGameData->setControlledPlayer(controlledEntity);
-		NetworkIdMappingComponent* networkIdMapping = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-		networkIdMapping->getNetworkIdToEntityRef().emplace(0, controlledEntity);
-	}
 	{
 		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().getOrAddComponent<ConnectionManagerComponent>();
 		connectionManager->setManagerPtr(&mConnectionManager);

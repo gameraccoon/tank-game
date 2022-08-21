@@ -6,7 +6,6 @@
 #include "Base/Types/BasicTypes.h"
 
 #include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"

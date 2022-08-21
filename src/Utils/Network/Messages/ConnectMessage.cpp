@@ -7,8 +7,6 @@
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdComponent.generated.h"
-#include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -49,8 +47,6 @@ namespace Network
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
 			movement->setOriginalSpeed(20.0f);
 			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
-			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
-			networkId->setId(0);
 
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);

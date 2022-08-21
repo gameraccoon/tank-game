@@ -13,6 +13,7 @@
 #include "Utils/Network/Messages/ConnectMessage.h"
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/Network/Messages/PlayerEntityCreatedMessage.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -87,6 +88,9 @@ void ClientNetworkSystem::update()
 		case NetworkMessageId::Disconnect:
 			Network::ApplyDisconnectMessage(std::move(message));
 			mShouldQuitGameRef = true;
+			break;
+		case NetworkMessageId::PlayerEntityCreated:
+			Network::ApplyPlayerEntityCreatedMessage(world, std::move(message));
 			break;
 		default:
 			ReportError("Unhandled message");
