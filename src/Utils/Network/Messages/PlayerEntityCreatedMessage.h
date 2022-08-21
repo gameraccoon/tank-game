@@ -8,6 +8,6 @@ class World;
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreatePlayerEntityCreatedMessage(World& world, ConnectionId connectionId);
+	HAL::ConnectionManager::Message CreatePlayerEntityCreatedMessage(World& world, ConnectionId connectionId, bool isOwner);
 	void ApplyPlayerEntityCreatedMessage(World& world, HAL::ConnectionManager::Message&& message);
 }

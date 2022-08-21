@@ -31,6 +31,18 @@ ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, u16 serverPor
 {
 }
 
+static void SynchronizeServerStateToNewPlayer(World& world, ConnectionId newPlayerConnection, HAL::ConnectionManager& connectionManager)
+{
+	ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
+	{
+		if (optionalEntity.isValid() && connectionId != newPlayerConnection)
+		{
+			connectionManager.sendMessageToClient(newPlayerConnection, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false));
+		}
+	}
+}
+
 void ServerNetworkSystem::update()
 {
 	SCOPED_PROFILER("ServerNetworkSystem::update");
@@ -64,7 +76,10 @@ void ServerNetworkSystem::update()
 				const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, std::move(message), connectionId);
 				if (clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
 				{
-					connectionManager->sendMessageToClient(connectionId, Network::CreatePlayerEntityCreatedMessage(world, connectionId));
+					connectionManager->sendMessageToClient(connectionId, Network::CreatePlayerEntityCreatedMessage(world, connectionId, true));
+					connectionManager->broadcastMessageToClients(mServerPort, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false), connectionId);
+
+					SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
 				}
 				else
 				{

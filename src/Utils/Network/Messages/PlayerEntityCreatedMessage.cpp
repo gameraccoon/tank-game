@@ -20,10 +20,12 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreatePlayerEntityCreatedMessage(World& world, ConnectionId connectionId)
+	HAL::ConnectionManager::Message CreatePlayerEntityCreatedMessage(World& world, ConnectionId connectionId, bool isOwner)
 	{
 		std::vector<std::byte> messageData;
-		messageData.reserve(8 + 4*2);
+		messageData.reserve(1 + 8 + 4*2);
+
+		Serialization::AppendNumber<u8>(messageData, static_cast<u8>(isOwner));
 
 		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 		auto controlledEntityIt = serverConnections->getControlledPlayersRef().find(connectionId);
@@ -64,12 +66,13 @@ namespace Network
 	{
 		size_t streamIndex = message.payloadStartPos;
 
-		if (message.data.size() - message.headerSize != (8+4*2))
+		if (message.data.size() - message.headerSize != (1 + 8 + 4*2))
 		{
 			ReportFatalError("Server sent incorrect PlayerEntityCreate message");
 			return;
 		}
 
+		const bool isOwner = (Serialization::ReadNumber<u8>(message.data, streamIndex) != 0);
 		const u64 serverEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex);
 		const float playerPosX = Serialization::ReadNumber<f32>(message.data, streamIndex);
 		const float playerPosY = Serialization::ReadNumber<f32>(message.data, streamIndex);
@@ -89,8 +92,11 @@ namespace Network
 			networkId->setId(serverEntityId);
 		}
 		{
-			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-			clientGameData->setControlledPlayer(controlledEntity);
+			if (isOwner)
+			{
+				ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+				clientGameData->setControlledPlayer(controlledEntity);
+			}
 			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
 			networkIdMapping->getNetworkIdToEntityRef().emplace(serverEntityId, controlledEntity);
 		}
