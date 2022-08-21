@@ -11,6 +11,7 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/Messages/ConnectMessage.h"
+#include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/MovesMessage.h"
 
 #include "HAL/Network/ConnectionManager.h"
@@ -70,7 +71,7 @@ void ClientNetworkSystem::update()
 
 	if (mShouldQuitGameRef)
 	{
-		connectionManager->sendMessageToServer(connectionId, HAL::ConnectionManager::Message{static_cast<u32>(NetworkMessageId::Disconnect), {}});
+		connectionManager->sendMessageToServer(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::ClientShutdown));
 		return;
 	}
 
@@ -82,6 +83,9 @@ void ClientNetworkSystem::update()
 		{
 		case NetworkMessageId::EntityMove:
 			Network::ApplyMovesMessage(world, std::move(message));
+			break;
+		case NetworkMessageId::Disconnect:
+			Network::ApplyDisconnectMessage(std::move(message));
 			break;
 		default:
 			ReportError("Unhandled message");

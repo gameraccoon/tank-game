@@ -152,7 +152,7 @@ namespace HAL
 			const auto clientIt = mClientsByConnectionId.find(connectionId);
 			if (clientIt == mClientsByConnectionId.end())
 			{
-				ReportError("Trying send a message to a client that is not connected");
+				ReportError("Trying to send a message to a client that is not connected");
 				return { ConnectionManager::SendMessageResult::Status::UnknownFailure };
 			}
 

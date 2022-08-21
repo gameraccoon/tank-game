@@ -9,5 +9,6 @@ class World;
 namespace Network
 {
 	HAL::ConnectionManager::Message CreateConnectMessage(World& world);
-	void ApplyConnectMessage(World& world, HAL::ConnectionManager::Message&& message, ConnectionId connectionId);
+	// returns client network protocol version
+	u32 ApplyConnectMessage(World& world, HAL::ConnectionManager::Message&& message, ConnectionId connectionId);
 }

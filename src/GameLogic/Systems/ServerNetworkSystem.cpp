@@ -9,12 +9,14 @@
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/NetworkMessageIds.h"
+#include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/World.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
 #include "Utils/Network/CompressedInput.h"
 #include "Utils/Network/Messages/ConnectMessage.h"
+#include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
@@ -56,7 +58,15 @@ void ServerNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
-			Network::ApplyConnectMessage(world, std::move(message), connectionId);
+			{
+				const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, std::move(message), connectionId);
+				if (clientNetworkProtocolVersion != Network::NetworkProtocolVersion)
+				{
+					connectionManager->sendMessageToClient(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::IncompatibleNetworkProtocolVersion));
+					connectionManager->disconnectClient(connectionId);
+					mShouldQuitGame = true;
+				}
+			}
 			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;
