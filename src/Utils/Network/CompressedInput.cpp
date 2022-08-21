@@ -2,29 +2,110 @@
 
 #include "Utils/Network/CompressedInput.h"
 
-#include "GameData/Components/InputHistoryComponent.generated.h"
+#include <array>
+#include <vector>
 
 #include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
 
+#include "GameData/Components/InputHistoryComponent.generated.h"
+#include "GameData/Input/InputHistory.h"
+
 namespace Utils
 {
+	struct KeyInputChange
+	{
+		GameplayInput::KeyState state;
+		GameplayTimestamp lastFlipTime;
+		size_t index;
+	};
+
+	struct OneKeyHistory
+	{
+		size_t count = 0;
+		std::array<KeyInputChange, Input::MAX_INPUT_HISTORY_SEND_SIZE> changes;
+	};
+
 	void AppendInputHistory(std::vector<std::byte>& stream, const std::vector<GameplayInput::FrameState>& inputs, size_t inputsToSend)
 	{
 		const size_t offset = inputs.size() - inputsToSend;
+
+		// collect indexes of axes that have non-zero values
+		using AxisInputChangeSet = std::array<bool, static_cast<size_t>(GameplayInput::InputAxis::Count)>;
+		AxisInputChangeSet axisInputChangesSet;
+		axisInputChangesSet.fill(false);
 		for (size_t i = 0; i < inputsToSend; ++i)
 		{
 			const GameplayInput::FrameState& input = inputs[offset + i];
 
-			for (float axisValue : input.getRawAxesData())
+			for (size_t axisIndex = 0; axisIndex < static_cast<size_t>(GameplayInput::InputAxis::Count); ++axisIndex)
 			{
-				Serialization::AppendNumber<f32>(stream, axisValue);
+				axisInputChangesSet[axisIndex] |= (input.getRawAxisState(axisIndex) != 0.0f);
 			}
+		}
 
-			for (GameplayInput::FrameState::KeyInfo keyInfo : input.getRawKeysData())
+		// collect changes to keys
+		using KeyInputHistory = std::array<OneKeyHistory, static_cast<size_t>(GameplayInput::InputKey::Count)>;
+		KeyInputHistory keyInputChanges;
+		for (size_t i = 0; i < inputsToSend; ++i)
+		{
+			const GameplayInput::FrameState& input = inputs[offset + i];
+
+			for (size_t keyIndex = 0; keyIndex < static_cast<size_t>(GameplayInput::InputKey::Count); ++keyIndex)
 			{
-				Serialization::AppendNumber<s8>(stream, static_cast<s8>(keyInfo.state));
-				Serialization::AppendNumber<u32>(stream, keyInfo.lastFlipTime.getRawValue());
+				GameplayInput::FrameState::KeyInfo keyInfo = input.getRawKeyState(keyIndex);
+				OneKeyHistory& oneKeyHistory = keyInputChanges[keyIndex];
+
+				if (i == 0
+					|| oneKeyHistory.changes[oneKeyHistory.count - 1].state != keyInfo.state
+					|| oneKeyHistory.changes[oneKeyHistory.count - 1].lastFlipTime != keyInfo.lastFlipTime
+				)
+				{
+					oneKeyHistory.changes[oneKeyHistory.count].state = keyInfo.state;
+					oneKeyHistory.changes[oneKeyHistory.count].lastFlipTime = keyInfo.lastFlipTime;
+					oneKeyHistory.changes[oneKeyHistory.count].index = i;
+					++oneKeyHistory.count;
+				}
+			}
+		}
+
+		const size_t nonZeroAxesCount = std::count(axisInputChangesSet.begin(), axisInputChangesSet.end(), true);
+
+		static_assert(static_cast<size_t>(GameplayInput::InputAxis::Count) <= 256, "u8 is too small to represent amount of axes");
+		Serialization::AppendNumberNarrowCast<u8>(stream, nonZeroAxesCount);
+
+		// send full input history for every axis that has at least one non-zero frame
+		for (size_t axisIndex = 0; axisIndex < static_cast<size_t>(GameplayInput::InputAxis::Count); ++axisIndex)
+		{
+			if (axisInputChangesSet[axisIndex])
+			{
+				static_assert(static_cast<size_t>(GameplayInput::InputAxis::Count) <= 256, "u8 is too small to represent amount of axes");
+				Serialization::AppendNumberNarrowCast<u8>(stream, axisIndex);
+
+				for (size_t i = 0; i < inputsToSend; ++i)
+				{
+					const GameplayInput::FrameState& input = inputs[offset + i];
+					Serialization::AppendNumber<f32>(stream, input.getRawAxisState(axisIndex));
+				}
+			}
+		}
+
+		// write delta-compressed key states
+		for (size_t keyIndex = 0; keyIndex < static_cast<size_t>(GameplayInput::InputKey::Count); ++keyIndex)
+		{
+			OneKeyHistory& oneKeyHistory = keyInputChanges[keyIndex];
+			AssertFatal(oneKeyHistory.count > 0 && oneKeyHistory.changes[0].index == 0, "We should always have the first frame filled for each key");
+
+			for (size_t changeIdx = 0; changeIdx < oneKeyHistory.count; ++changeIdx)
+			{
+				const KeyInputChange& keyChange	= oneKeyHistory.changes[changeIdx];
+				const size_t endFrameIdx = (changeIdx < oneKeyHistory.count - 1) ? oneKeyHistory.changes[changeIdx + 1].index : inputsToSend;
+
+				static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE <= 256, "u8 is too small to fit history length");
+				Serialization::AppendNumberNarrowCast<u8>(stream, endFrameIdx);
+				static_assert(static_cast<size_t>(GameplayInput::InputKey::Count) <= 256, "u8 is too small to represent amount of keys");
+				Serialization::AppendNumber<u8>(stream, static_cast<u8>(keyChange.state));
+				Serialization::AppendNumber<u32>(stream, keyChange.lastFlipTime.getRawValue());
 			}
 		}
 	}
@@ -34,23 +115,35 @@ namespace Utils
 		std::vector<GameplayInput::FrameState> result;
 		result.resize(inputsToRead);
 
-		GameplayInput::FrameState::RawAxesData axesData;
-		GameplayInput::FrameState::RawKeysData keysData;
+		const size_t changedAxesCount = Serialization::ReadNumber<u8>(stream, streamIndex);
 
-		for (size_t idx = 0; idx < inputsToRead; ++idx)
+		// fill non-zero axes, zero values should be filled by default
+		for (size_t i = 0; i < changedAxesCount; ++i)
 		{
-			for (float& axisValue : axesData)
+			const size_t axisIndex = Serialization::ReadNumber<u8>(stream, streamIndex);
+			for (size_t frameIdx = 0; frameIdx < inputsToRead; ++frameIdx)
 			{
-				axisValue = Serialization::ReadNumber<f32>(stream, streamIndex);
+				const float value = Serialization::ReadNumber<f32>(stream, streamIndex);
+				result[frameIdx].setRawAxisState(axisIndex, value);
 			}
+		}
 
-			for (GameplayInput::FrameState::KeyInfo& keyInfo : keysData)
+		// fill keys data
+		for (size_t keyIndex = 0; keyIndex < static_cast<size_t>(GameplayInput::InputKey::Count); ++keyIndex)
+		{
+			size_t nextFrameToProcess = 0;
+			while (nextFrameToProcess < inputsToRead)
 			{
-				keyInfo.state = static_cast<GameplayInput::KeyState>(Serialization::ReadNumber<s8>(stream, streamIndex));
-				keyInfo.lastFlipTime = GameplayTimestamp(Serialization::ReadNumber<u32>(stream, streamIndex));
-			}
+				const size_t frameEndIdx = Serialization::ReadNumber<u8>(stream, streamIndex);
+				const GameplayInput::KeyState state = static_cast<GameplayInput::KeyState>(Serialization::ReadNumber<u8>(stream, streamIndex));
+				const GameplayTimestamp lastFlipTimestamp{Serialization::ReadNumber<u32>(stream, streamIndex)};
 
-			result[idx] = GameplayInput::FrameState(axesData, keysData);
+				for (; nextFrameToProcess < frameEndIdx; ++nextFrameToProcess)
+				{
+					result[nextFrameToProcess].setRawKeyState(keyIndex, state, lastFlipTimestamp);
+				}
+				AssertFatal(nextFrameToProcess <= inputsToRead, "Writing out of bounds");
+			}
 		}
 
 		return result;

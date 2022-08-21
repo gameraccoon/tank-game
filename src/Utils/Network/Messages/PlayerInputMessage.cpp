@@ -23,11 +23,12 @@ namespace Network
 		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
 
 		const size_t inputsSize = inputHistory->getInputs().size();
-		const size_t inputsToSend = std::min(inputsSize, static_cast<size_t>(10));
+		const size_t inputsToSend = std::min(inputsSize, Input::MAX_INPUT_HISTORY_SEND_SIZE);
 
 		resultMesssage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
 		Serialization::AppendNumber<u32>(resultMesssage.data, inputHistory->getLastInputUpdateIdx());
+		static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE < 256, "u8 is too small to fit input history size");
 		Serialization::AppendNumberNarrowCast<u8>(resultMesssage.data, inputsToSend);
 
 		Utils::AppendInputHistory(resultMesssage.data, inputHistory->getInputs(), inputsToSend);

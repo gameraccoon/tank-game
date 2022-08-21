@@ -65,8 +65,11 @@ namespace GameplayInput
 		bool isKeyJustDeactivated(InputKey key) const;
 		GameplayTimestamp getLastFlipTime(InputKey key) const;
 
-		const RawAxesData& getRawAxesData() const { return mAxes; }
-		const RawKeysData& getRawKeysData() const { return mKeys; }
+		// for serialization and deserialization
+		float getRawAxisState(size_t axisIdx) const;
+		KeyInfo getRawKeyState(size_t keyIdx) const;
+		void setRawAxisState(size_t axisIdx, float value);
+		void setRawKeyState(size_t keyIdx, KeyState state, GameplayTimestamp lastFlipTimestamp);
 
 	private:
 		RawAxesData mAxes{};

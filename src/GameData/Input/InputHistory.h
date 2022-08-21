@@ -8,6 +8,9 @@
 
 namespace Input
 {
+	// how many frames of input we send per update
+	constexpr size_t MAX_INPUT_HISTORY_SEND_SIZE = 10;
+
 	struct InputHistory
 	{
 		std::vector<GameplayInput::FrameState> inputs;
