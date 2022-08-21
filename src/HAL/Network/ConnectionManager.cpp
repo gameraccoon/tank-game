@@ -870,10 +870,10 @@ namespace HAL
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketDup_Send, debugBehavior.packetDupPct_Send);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketDup_Recv, debugBehavior.packetDupPct_Recv);
 		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakePacketDup_TimeMax, debugBehavior.packetDup_TimeMaxMs);
-		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Send_Rate, debugBehavior.rateLimitBps_Send);
-		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Rate, debugBehavior.rateLimitBps_Recv);
-		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Send_Burst, debugBehavior.rateLimitOneBurstBytes_Send);
-		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Burst, debugBehavior.rateLimitOneBurstBytes_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakeRateLimit_Send_Rate, debugBehavior.rateLimitBps_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Rate, debugBehavior.rateLimitBps_Recv);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakeRateLimit_Send_Burst, debugBehavior.rateLimitOneBurstBytes_Send);
+		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Burst, debugBehavior.rateLimitOneBurstBytes_Recv);
 	}
 
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()
