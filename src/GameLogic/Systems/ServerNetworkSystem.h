@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <chrono>
 
 #include <raccoon-ecs/system.h>
 
@@ -22,4 +23,5 @@ private:
 	WorldHolder& mWorldHolder;
 	const u16 mServerPort;
 	bool& mShouldQuitGame;
+	std::chrono::time_point<std::chrono::system_clock> mLastClientInterationTime;
 };

@@ -26,6 +26,7 @@ ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, u16 serverPor
 	: mWorldHolder(worldHolder)
 	, mServerPort(serverPort)
 	, mShouldQuitGame(shouldQuitGame)
+	, mLastClientInterationTime(std::chrono::system_clock::now())
 {
 }
 
@@ -77,5 +78,13 @@ void ServerNetworkSystem::update()
 		default:
 			ReportError("Unhandled message");
 		}
+
+		mLastClientInterationTime = std::chrono::system_clock::now();
+	}
+
+	if (mLastClientInterationTime + std::chrono::seconds(60) < std::chrono::system_clock::now())
+	{
+		LogInfo("No connections or messages from client for 60 seconds. Shuting down the server");
+		mShouldQuitGame = true;
 	}
 }
