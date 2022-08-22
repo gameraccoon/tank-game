@@ -62,7 +62,7 @@ namespace Network
 		};
 	}
 
-	void ApplyPlayerEntityCreatedMessage(World& world, HAL::ConnectionManager::Message&& message)
+	void ApplyPlayerEntityCreatedMessage(World& world, const HAL::ConnectionManager::Message& message)
 	{
 		size_t streamIndex = message.payloadStartPos;
 

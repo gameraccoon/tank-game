@@ -9,5 +9,5 @@ class World;
 namespace Network
 {
 	HAL::ConnectionManager::Message CreatePlayerEntityCreatedMessage(World& world, ConnectionId connectionId, bool isOwner);
-	void ApplyPlayerEntityCreatedMessage(World& world, HAL::ConnectionManager::Message&& message);
+	void ApplyPlayerEntityCreatedMessage(World& world, const HAL::ConnectionManager::Message& message);
 }

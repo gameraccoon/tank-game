@@ -29,7 +29,7 @@ namespace Network
 		};
 	}
 
-	u32 ApplyConnectMessage(World& world, HAL::ConnectionManager::Message&& message, ConnectionId connectionId)
+	u32 ApplyConnectMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
 		size_t streamIndex = message.payloadStartPos;
 		const u32 clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(message.data, streamIndex);

@@ -56,7 +56,7 @@ namespace Network
 		};
 	}
 
-	void ApplyMovesMessage(World& world, HAL::ConnectionManager::Message&& message)
+	void ApplyMovesMessage(World& world, const HAL::ConnectionManager::Message& message)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();

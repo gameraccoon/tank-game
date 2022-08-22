@@ -83,14 +83,14 @@ void ClientNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ApplyMovesMessage(world, std::move(message));
+			Network::ApplyMovesMessage(world, message);
 			break;
 		case NetworkMessageId::Disconnect:
-			Network::ApplyDisconnectMessage(std::move(message));
+			Network::ApplyDisconnectMessage(message);
 			mShouldQuitGameRef = true;
 			break;
 		case NetworkMessageId::PlayerEntityCreated:
-			Network::ApplyPlayerEntityCreatedMessage(world, std::move(message));
+			Network::ApplyPlayerEntityCreatedMessage(world, message);
 			break;
 		default:
 			ReportError("Unhandled message");

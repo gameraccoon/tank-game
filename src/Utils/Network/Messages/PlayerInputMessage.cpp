@@ -59,16 +59,16 @@ namespace Network
 		}
 	}
 
-	void ApplyPlayerInputMessage(World& world, HAL::ConnectionManager::Message&& message, ConnectionId connectionId)
+	void ApplyPlayerInputMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
 		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
-		std::vector<std::byte>& data = message.data;
+		const std::vector<std::byte>& data = message.data;
 
 		const u32 frameIndex = Serialization::ReadNumber<u32>(data, streamIndex);
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
-		std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
+		const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
 		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
 		const u32 lastStoredFrameIndex = inputHistory.lastInputUpdateIdx;

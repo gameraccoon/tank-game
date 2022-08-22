@@ -687,7 +687,7 @@ namespace HAL
 		return StaticImpl().serverClientConnections.contains(connectionId);
 	}
 
-	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, Message&& message, MessageReliability reliability, UseNagle useNagle)
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, const Message& message, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		auto it = StaticImpl().serverClientConnections.find(connectionId);
@@ -696,10 +696,10 @@ namespace HAL
 			return { SendMessageResult::Status::ConnectionClosed };
 		}
 
-		return it->second->sendMessage(connectionId, std::move(message), reliability, (useNagle == UseNagle::No));
+		return it->second->sendMessage(connectionId, message, reliability, (useNagle == UseNagle::No));
 	}
 
-	void ConnectionManager::broadcastMessageToClients(u16 port, Message&& message, ConnectionId except, MessageReliability reliability, UseNagle useNagle)
+	void ConnectionManager::broadcastMessageToClients(u16 port, const Message& message, ConnectionId except, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 
@@ -782,7 +782,7 @@ namespace HAL
 		return StaticImpl().clientServerConnections.contains(connectionId);
 	}
 
-	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, Message&& message, MessageReliability reliability, UseNagle useNagle)
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, const Message& message, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		auto it = StaticImpl().clientServerConnections.find(connectionId);
@@ -791,7 +791,7 @@ namespace HAL
 			return { SendMessageResult::Status::ConnectionClosed };
 		}
 
-		return it->second->sendMessage(std::move(message), reliability, (useNagle == UseNagle::No));
+		return it->second->sendMessage(message, reliability, (useNagle == UseNagle::No));
 	}
 
 	void ConnectionManager::flushMesssagesForServerConnection(ConnectionId connectionId)

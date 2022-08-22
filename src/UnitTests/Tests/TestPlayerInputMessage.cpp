@@ -62,7 +62,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
 			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
-		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
 
 		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
@@ -131,7 +131,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
 
-		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
 
 		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
@@ -195,7 +195,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 			time->getValueRef().lastFixedUpdateIndex = 48;
 		}
 
-		Network::ApplyPlayerInputMessage(serverGame->world, std::move(message), connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
 
 		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);

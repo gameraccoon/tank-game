@@ -17,5 +17,5 @@ namespace Network
 	};
 
 	HAL::ConnectionManager::Message CreateDisconnectMessage(DisconnectReason reason);
-	DisconnectReason ApplyDisconnectMessage(HAL::ConnectionManager::Message&& message);
+	DisconnectReason ApplyDisconnectMessage(const HAL::ConnectionManager::Message& message);
 }

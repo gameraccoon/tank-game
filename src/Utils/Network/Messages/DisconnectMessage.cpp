@@ -28,7 +28,7 @@ namespace Network
 		};
 	}
 
-	DisconnectReason ApplyDisconnectMessage(HAL::ConnectionManager::Message&& message)
+	DisconnectReason ApplyDisconnectMessage(const HAL::ConnectionManager::Message& message)
 	{
 		size_t streamIndex = message.payloadStartPos;
 		const DisconnectReason reason = static_cast<DisconnectReason>(Serialization::ReadNumber<u16>(message.data, streamIndex));

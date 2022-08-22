@@ -9,5 +9,5 @@ class World;
 namespace Network
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world);
-	void ApplyPlayerInputMessage(World& world, HAL::ConnectionManager::Message&& message, ConnectionId connectionId);
+	void ApplyPlayerInputMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId);
 }

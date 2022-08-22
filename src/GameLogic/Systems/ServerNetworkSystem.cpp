@@ -43,6 +43,23 @@ static void SynchronizeServerStateToNewPlayer(World& world, ConnectionId newPlay
 	}
 }
 
+static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& world, u16 serverPort, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+{
+	const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, message, connectionId);
+	if (clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
+	{
+		connectionManager->sendMessageToClient(connectionId, Network::CreatePlayerEntityCreatedMessage(world, connectionId, true));
+		connectionManager->broadcastMessageToClients(serverPort, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false), connectionId);
+
+		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
+	}
+	else
+	{
+		connectionManager->sendMessageToClient(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::IncompatibleNetworkProtocolVersion));
+		connectionManager->disconnectClient(connectionId);
+	}
+}
+
 void ServerNetworkSystem::update()
 {
 	SCOPED_PROFILER("ServerNetworkSystem::update");
@@ -67,32 +84,18 @@ void ServerNetworkSystem::update()
 
 	auto newMessages = connectionManager->consumeReceivedServerMessages(mServerPort);
 
-	for (auto&& [connectionId, message] : newMessages)
+	for (const auto& [connectionId, message] : newMessages)
 	{
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
-			{
-				const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, std::move(message), connectionId);
-				if (clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
-				{
-					connectionManager->sendMessageToClient(connectionId, Network::CreatePlayerEntityCreatedMessage(world, connectionId, true));
-					connectionManager->broadcastMessageToClients(mServerPort, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false), connectionId);
-
-					SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
-				}
-				else
-				{
-					connectionManager->sendMessageToClient(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::IncompatibleNetworkProtocolVersion));
-					connectionManager->disconnectClient(connectionId);
-				}
-			}
+			OnClientConnected(connectionManager, world, mServerPort, message, connectionId);
 			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;
 			break;
 		case NetworkMessageId::PlayerInput:
-			Network::ApplyPlayerInputMessage(world, std::move(message), connectionId);
+			Network::ApplyPlayerInputMessage(world, message, connectionId);
 			break;
 		default:
 			ReportError("Unhandled message");
