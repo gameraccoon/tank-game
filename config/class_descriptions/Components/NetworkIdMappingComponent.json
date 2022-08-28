@@ -5,7 +5,7 @@
 	"attributes": [
 		{
 			"name": "networkIdToEntity",
-			"type": "std::unordered_map<u32, Entity>",
+			"type": "std::unordered_map<u64, Entity>",
 			"includes": [
 				"<unordered_map>",
 				"\"Base/Types/BasicTypes.h\"",

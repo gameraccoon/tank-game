@@ -66,15 +66,15 @@ namespace Network
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;
 
-		const u32 frameIndex = Serialization::ReadNumber<u32>(data, streamIndex);
+		const u32 clientFrameIndex = Serialization::ReadNumber<u32>(data, streamIndex);
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
 		const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
 		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
 		const u32 lastStoredFrameIndex = inputHistory.lastInputUpdateIdx;
-		if (hasNewInput(lastStoredFrameIndex, frameIndex))
+		if (hasNewInput(lastStoredFrameIndex, clientFrameIndex))
 		{
-			const size_t newFramesCount = frameIndex - lastStoredFrameIndex;
+			const size_t newFramesCount = clientFrameIndex - lastStoredFrameIndex;
 			const size_t newInputsCount = std::min(newFramesCount, receivedInputsCount);
 			const size_t resultsOriginalSize = inputHistory.inputs.size();
 			const size_t resultsNewSize = resultsOriginalSize + newFramesCount;
@@ -98,14 +98,29 @@ namespace Network
 				inputHistory.inputs[idx] = inputToFillWith;
 			}
 
-			inputHistory.lastInputUpdateIdx = frameIndex;
+			inputHistory.lastInputUpdateIdx = clientFrameIndex;
 		}
 
+		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+		const s32 currentIndexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - clientFrameIndex + 1;
 		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
 		{
-			const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-			// calculate the shift in the way to use the last received data to process the next fixed update
-			inputHistory.indexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - frameIndex + 1;
+			inputHistory.indexShift = currentIndexShift;
+		}
+		else if (currentIndexShift != inputHistory.indexShift)
+		{
+			constexpr int INDEX_SHIFT_CHANGE_TOLERANCE = 2;
+			++inputHistory.indexShiftIncorrectFrames;
+			if (inputHistory.indexShiftIncorrectFrames > INDEX_SHIFT_CHANGE_TOLERANCE)
+			{
+				// correct index shift after we noticed it's incorrect for several frames
+				inputHistory.indexShift = currentIndexShift;
+				inputHistory.indexShiftIncorrectFrames = 0;
+			}
+		}
+		else
+		{
+			inputHistory.indexShiftIncorrectFrames = 0;
 		}
 	}
 }

@@ -61,6 +61,10 @@ void ServerMovesSendSystem::update()
 		return;
 	}
 
+	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+	AssertFatal(time, "TimeComponent should be created before the game run");
+	const TimeData& timeValue = time->getValue();
+
 	for (const ConnectionId connectionId : connections)
 	{
 		const auto inputIt = serverConnections->getInputs().find(connectionId);
@@ -79,10 +83,6 @@ void ServerMovesSendSystem::update()
 			// we don't yet know how to map input indexes to this player, skip this update
 			continue;
 		}
-
-		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		AssertFatal(time, "TimeComponent should be created before the game run");
-		const TimeData& timeValue = time->getValue();
 
 		if (timeValue.lastFixedUpdateIndex < static_cast<u32>(indexShift))
 		{

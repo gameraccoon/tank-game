@@ -16,5 +16,6 @@ namespace Input
 		std::vector<GameplayInput::FrameState> inputs;
 		u32 lastInputUpdateIdx = std::numeric_limits<u32>::max();
 		s32 indexShift = std::numeric_limits<s32>::max();
+		unsigned int indexShiftIncorrectFrames = 0;
 	};
 }

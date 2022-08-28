@@ -9,6 +9,7 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/EcsDefinitions.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -17,11 +18,17 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateConnectMessage(World& /*world*/)
+	HAL::ConnectionManager::Message CreateConnectMessage(World& world)
 	{
 		std::vector<std::byte> connectMessageData;
 
 		Serialization::AppendNumber<u32>(connectMessageData, Network::NetworkProtocolVersion);
+
+		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+		AssertFatal(time, "TimeComponent should be created before the game run");
+		const TimeData& timeValue = time->getValue();
+
+		Serialization::AppendNumber<u32>(connectMessageData, timeValue.lastFixedUpdateIndex);
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::Connect),
@@ -38,6 +45,8 @@ namespace Network
 		{
 			return clientNetworkProtocolVersion;
 		}
+
+		const u32 clientFrameIndex = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity controlledEntity = worldEntityManager.addEntity();
@@ -56,6 +65,11 @@ namespace Network
 
 		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 		serverConnections->getControlledPlayersRef().emplace(connectionId, controlledEntity);
+
+		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+		AssertFatal(time, "TimeComponent should be created before the game run");
+		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
+		inputHistory.indexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - clientFrameIndex + 1;
 
 		return clientNetworkProtocolVersion;
 	}
