@@ -2,7 +2,9 @@
 
 #include "GameMain/ConsoleCommands.h"
 
+#include <algorithm>
 #include <iostream>
+
 #include "GameData/Network/NetworkProtocolVersion.h"
 
 #include "Utils/Application/ArgumentsParser.h"
