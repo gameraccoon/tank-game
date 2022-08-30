@@ -80,6 +80,8 @@ namespace Network
 		// for any non-relevant value, assume it is equal to updateIdx
 		lastReceivedInputUpdateIdx = hasMissingInput ? std::min(lastReceivedInputUpdateIdx, updateIdx) : updateIdx;
 
+		AssertFatal(lastReceivedInputUpdateIdx <= updateIdx, "We can't have input update from the future");
+
 		if (updateIdx > lastUpdateIdx)
 		{
 			// during debugging we can have situations when server thread tempararely went ahead with simulating the game
@@ -112,16 +114,23 @@ namespace Network
 			return;
 		}
 
-		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-
 		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
 
+		const size_t firstKnowwnInputUpdateIndex = inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size();
 		const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
+
+		if (updateIdx < firstKnowwnInputUpdateIndex)
+		{
+			// we didn't record input for this frame yet, so no need to correct it
+			return;
+		}
 
 		AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
 		MovementUpdateData& currentUpdateData = updates[updatedRecordIdx];
 
 		std::vector<EntityMoveHash> oldMovesData = std::move(currentUpdateData.updateHash);
+
+		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
 
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
@@ -180,6 +189,7 @@ namespace Network
 			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
 		}
 
+		// trim inputs to the last received by server input, updates before it don't interest us anymore
 		const size_t updatesCountAfterTrim = inputHistory->getLastInputUpdateIdx() - lastReceivedInputUpdateIdx + 1;
 		std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputsRef();
 		inputs.erase(inputs.begin(), inputs.begin() + (inputs.size() - std::min(updatesCountAfterTrim, inputs.size())));

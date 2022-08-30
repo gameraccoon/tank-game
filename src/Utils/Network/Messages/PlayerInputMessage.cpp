@@ -18,7 +18,7 @@ namespace Network
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world)
 	{
 		HAL::ConnectionManager::Message resultMesssage(static_cast<u32>(NetworkMessageId::PlayerInput));
-		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+		const InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<const InputHistoryComponent>();
 
 		const size_t inputsSize = inputHistory->getInputs().size();
 		const size_t inputsToSend = std::min(inputsSize, Input::MAX_INPUT_HISTORY_SEND_SIZE);
