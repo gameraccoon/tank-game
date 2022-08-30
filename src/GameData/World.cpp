@@ -82,6 +82,11 @@ void World::trimOldFrames(size_t oldFramesLeft)
 	}
 }
 
+size_t World::getStoredFramesCount() const
+{
+	return mCurrentFrameIdx;
+}
+
 void World::unwindBackInHistory(size_t framesBackCount)
 {
 	if (framesBackCount >= mCurrentFrameIdx)

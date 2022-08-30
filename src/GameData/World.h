@@ -54,6 +54,7 @@ public:
 
 	void addNewFrameToTheHistory();
 	void trimOldFrames(size_t oldFramesLeft);
+	size_t getStoredFramesCount() const;
 
 	void unwindBackInHistory(size_t framesBackCount);
 

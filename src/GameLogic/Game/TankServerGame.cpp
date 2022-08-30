@@ -192,6 +192,9 @@ void TankServerGame::processInputCorrections()
 		}
 	}
 
+	// don't try to correct frames that we have already trimmed
+	firstUpdateToCorrect = std::max(firstUpdateToCorrect, static_cast<u32>(lastProcessedUpdateIdx + 2 - getWorldHolder().getWorld().getStoredFramesCount()));
+
 	// limit amount of frames to a predefined value
 	firstNotConfirmedUpdateIdx = std::max(firstNotConfirmedUpdateIdx + MAX_STORED_UPDATES_COUNT, lastProcessedUpdateIdx) - MAX_STORED_UPDATES_COUNT;
 
