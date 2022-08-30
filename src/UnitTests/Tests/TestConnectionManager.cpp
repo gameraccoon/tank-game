@@ -7,7 +7,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-TEST(ConnectionManager, OpenAndClosePort)
+TEST(ConnectionManager, DISABLED_OpenAndClosePort)
 {
 	const u16 port = 48630;
 	const u16 incorrectPort = 48629;
@@ -20,7 +20,7 @@ TEST(ConnectionManager, OpenAndClosePort)
 	EXPECT_FALSE(connectionManager.isPortOpen(port));
 }
 
-TEST(ConnectionManager, OpenAndCloseTwoPorts)
+TEST(ConnectionManager, DISABLED_OpenAndCloseTwoPorts)
 {
 	HAL::ConnectionManager connectionManager;
 	const u16 port1 = 48631;
@@ -39,7 +39,7 @@ TEST(ConnectionManager, OpenAndCloseTwoPorts)
 	EXPECT_FALSE(connectionManager.isPortOpen(port2));
 }
 
-TEST(ConnectionManager, ConnectAndDisconnectToOpenPort)
+TEST(ConnectionManager, DISABLED_ConnectAndDisconnectToOpenPort)
 {
 	HAL::ConnectionManager connectionManagerServer;
 	static const u16 port = 48633;
@@ -65,7 +65,7 @@ TEST(ConnectionManager, ConnectAndDisconnectToOpenPort)
 	clientThread.join();
 }
 
-TEST(ConnectionManager, SendMessageToOpenPortAndRecieve)
+TEST(ConnectionManager, DISABLED_SendMessageToOpenPortAndRecieve)
 {
 	static const std::vector<std::byte> testMessageData = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	static const u16 port = 48634;
@@ -103,7 +103,7 @@ TEST(ConnectionManager, SendMessageToOpenPortAndRecieve)
 	serverThread.join();
 }
 
-TEST(ConnectionManager, SendMessageBackFromServerAndRecieve)
+TEST(ConnectionManager, DISABLED_SendMessageBackFromServerAndRecieve)
 {
 	static const std::vector<std::byte> testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	static const std::vector<std::byte> testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
