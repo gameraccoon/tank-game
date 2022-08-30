@@ -25,9 +25,9 @@ namespace String
 	// will result in UB if the conversion can't be performed
 	int ParseIntUnsafe(const char* str, int base = 10)
 	{
-		[[maybe_unused]] char *end;
+		char *end;
 		errno = 0;
-		[[maybe_unused]] long l = std::strtol(str, &end, base);
+		long l = std::strtol(str, &end, base);
 		Assert((errno != ERANGE || l != LONG_MAX) && l <= INT_MAX, "Overflow during string to int conversion '%s'", str);
 		Assert((errno != ERANGE || l != LONG_MIN) && l >= INT_MIN, "Underflow during string to int conversion '%s'", str);
 		Assert(*str != '\0' && *end == '\0', "Can't convert string '%s' to number", str);
