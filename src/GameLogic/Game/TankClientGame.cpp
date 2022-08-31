@@ -40,6 +40,7 @@
 #include "GameLogic/Systems/DebugDrawSystem.h"
 #include "GameLogic/Systems/InputSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
+#include "GameLogic/Systems/PopulateInputHistorySystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 
@@ -131,6 +132,7 @@ void TankClientGame::initSystems()
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
+	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder());
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mServerAddress, mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
