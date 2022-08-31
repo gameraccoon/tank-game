@@ -5,12 +5,10 @@
 #include <sdl/SDL_keycode.h>
 #include <sdl/SDL_mouse.h>
 
-#include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/InputBindings.h"
 #include "GameData/World.h"
@@ -93,25 +91,11 @@ void InputSystem::processGameplayInput()
 
 	World& world = mWorldHolder.getWorld();
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
-	EntityManager& entityManager = world.getEntityManager();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
 
-	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-
-	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
-
-	if (!controlledEntity.isValid())
-	{
-		return;
-	}
-
-	auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(controlledEntity.getEntity());
-	if (gameplayInput == nullptr)
-	{
-		gameplayInput = entityManager.addComponent<GameplayInputComponent>(controlledEntity.getEntity());
-	}
+	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
 
 	GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameStateRef();
 

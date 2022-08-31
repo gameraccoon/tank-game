@@ -31,6 +31,7 @@
 #include "HAL/Base/Engine.h"
 
 #include "GameLogic/Systems/AnimationSystem.h"
+#include "GameLogic/Systems/ApplyInputToEntitySystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
 #include "GameLogic/Systems/ClientNetworkSystem.h"
@@ -132,6 +133,7 @@ void TankClientGame::initSystems()
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mServerAddress, mShouldQuitGameNextTick);
+	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
@@ -198,25 +200,12 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	size_t inputHistoryIndexShift = inputs.size() - framesToResimulate;
 	for (u32 i = 0; i < framesToResimulate; ++i)
 	{
-		ClientGameDataComponent* clientGameData = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-		OptionalEntity optionalControlledEntity = clientGameData->getControlledPlayer();
+		ComponentSetHolder& thisFrameWorldComponents = getWorldHolder().getWorld().getWorldComponents();
 
-		if (!optionalControlledEntity.isValid())
-		{
-			ReportError("The controlled entity should be set when we do movement correction on the client");
-			break;
-		}
-
-		EntityManager& frameEntityManager = getWorldHolder().getWorld().getEntityManager();
-
-		auto [gameplayInput] = frameEntityManager.getEntityComponents<GameplayInputComponent>(optionalControlledEntity.getEntity());
-		if (gameplayInput == nullptr)
-		{
-			gameplayInput = frameEntityManager.addComponent<GameplayInputComponent>(optionalControlledEntity.getEntity());
-		}
-
+		GameplayInputComponent* gameplayInput = thisFrameWorldComponents.getOrAddComponent<GameplayInputComponent>();
 		gameplayInput->setCurrentFrameState(inputs[i + inputHistoryIndexShift]);
 
+		// this adds a new frame to the history
 		fixedTimeUpdate(fixedUpdateDt);
 	}
 }

@@ -7,7 +7,6 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/World.h"
@@ -30,7 +29,6 @@ void ClientInputSendSystem::update()
 
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
-	EntityManager& entityManager = world.getEntityManager();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const u32 lastUpdateIndex = time->getValue().lastFixedUpdateIndex;
@@ -52,18 +50,7 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
-
-	if (!controlledEntity.isValid())
-	{
-		return;
-	}
-
-	auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(controlledEntity.getEntity());
-	if (gameplayInput == nullptr)
-	{
-		gameplayInput = entityManager.addComponent<GameplayInputComponent>(controlledEntity.getEntity());
-	}
+	const GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<const GameplayInputComponent>();
 	const GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameState();
 
 	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
