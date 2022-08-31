@@ -116,14 +116,9 @@ namespace Network
 
 		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
 
-		const size_t firstKnowwnInputUpdateIndex = inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size();
 		const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
 
-		if (updateIdx < firstKnowwnInputUpdateIndex)
-		{
-			// we didn't record input for this frame yet, so no need to correct it
-			return;
-		}
+		AssertFatal(updateIdx >= inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size(), "Trying to correct a frame with missing input");
 
 		AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
 		MovementUpdateData& currentUpdateData = updates[updatedRecordIdx];
