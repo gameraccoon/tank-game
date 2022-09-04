@@ -43,6 +43,7 @@
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
+#include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Systems/ImguiSystem.h"
@@ -102,9 +103,6 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	getWorldHolder().getWorld().addNewFrameToTheHistory();
 
 	Game::fixedTimeUpdate(dt);
-
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	saveMovesForLastFrame(time->getValue().lastFixedUpdateIndex, time->getValue().lastFixedUpdateTimestamp);
 }
 
 void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
@@ -141,6 +139,7 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
 	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getResourceManager());
@@ -259,35 +258,6 @@ void TankClientGame::processMoveCorrections()
 	updates.erase(updates.begin(), updates.begin() + updatesCountToTrim);
 
 	world.trimOldFrames(updatesCountAfterTrim);
-}
-
-void TankClientGame::saveMovesForLastFrame(u32 inputUpdateIndex, const GameplayTimestamp& inputUpdateTimestamp)
-{
-	SCOPED_PROFILER("TankClientGame::saveMovesForLastFrame");
-	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
-	ClientMovesHistoryComponent* clientMovesHistory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
-
-	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
-	AssertFatal(inputUpdateIndex == clientMovesHistory->getData().lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", inputUpdateIndex, clientMovesHistory->getData().lastUpdateIdx);
-	const size_t nextUpdateIndex = updates.size() + inputUpdateIndex - clientMovesHistory->getData().lastUpdateIdx - 1;
-	Assert(nextUpdateIndex == updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, updates.size());
-	updates.resize(nextUpdateIndex + 1);
-	MovementUpdateData& newUpdateData = updates[nextUpdateIndex];
-
-	entityManager.forEachComponentSetWithEntity<const MovementComponent, const TransformComponent>(
-		[&newUpdateData, inputUpdateTimestamp](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
-	{
-		// only if we moved within some agreed (between client and server) period of time
-		const GameplayTimestamp updateTimestamp = movement->getUpdateTimestamp();
-		if (updateTimestamp.isInitialized() && updateTimestamp.getIncreasedByUpdateCount(15) > inputUpdateTimestamp)
-		{
-			newUpdateData.addHash(entity, transform->getLocation());
-		}
-	});
-
-	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
-
-	clientMovesHistory->getDataRef().lastUpdateIdx = inputUpdateIndex;
 }
 
 #endif // !DEDICATED_SERVER
