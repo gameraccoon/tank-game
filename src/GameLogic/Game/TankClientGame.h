@@ -31,6 +31,7 @@ public:
 private:
 	void initSystems();
 	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves);
+	void removeOldUpdates();
 	void processMoveCorrections();
 
 private:

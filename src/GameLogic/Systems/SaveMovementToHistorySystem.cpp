@@ -1,5 +1,7 @@
 #include "Base/precomp.h"
 
+#include "GameLogic/Systems/SaveMovementToHistorySystem.h"
+
 #include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
@@ -27,7 +29,7 @@ void SaveMovementToHistorySystem::update()
 	const GameplayTimestamp& inputUpdateTimestamp = time->getValue().lastFixedUpdateTimestamp;
 
 	EntityManager& entityManager = world.getEntityManager();
-	ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
+	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
 
 	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
 	AssertFatal(inputUpdateIndex == clientMovesHistory->getData().lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", inputUpdateIndex, clientMovesHistory->getData().lastUpdateIdx);

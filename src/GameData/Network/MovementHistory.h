@@ -47,14 +47,16 @@ struct MovementUpdateData
 	void addHash(Entity entity, Vector2D location)
 	{
 		updateHash.emplace_back(entity, location);
-		AssertFatal(moves.empty(), "We should add hashes only to history records that doesn't contain real moves");
+		AssertFatal(moves.empty(), "We should add hashes only to history records that doen't contain real moves");
 	}
 };
 
 struct MovementHistory
 {
+	// we use indexes of updates when moves were created
+
 	std::vector<MovementUpdateData> updates;
 	u32 lastUpdateIdx = 0;
 	u32 lastConfirmedUpdateIdx = 0;
-	u32 desynchedUpdateIdx = std::numeric_limits<u32>::max();
+	u32 updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
 };

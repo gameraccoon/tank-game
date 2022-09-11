@@ -138,6 +138,8 @@ void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 	AssertFatal(firstIncorrectUpdateIdx <= timeValue.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = timeValue.lastFixedUpdateIndex - firstIncorrectUpdateIdx + 1;
 
+	LogInfo("Correct server updates from %u to %u", firstIncorrectUpdateIdx, timeValue.lastFixedUpdateIndex);
+
 	getWorldHolder().getWorld().unwindBackInHistory(framesToResimulate);
 
 	for (u32 i = 0; i < framesToResimulate; ++i)

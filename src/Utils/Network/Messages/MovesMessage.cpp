@@ -59,14 +59,14 @@ namespace Network
 	void ApplyMovesMessage(World& world, const HAL::ConnectionManager::Message& message)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		ClientMovesHistoryComponent* clientMovesHistory = world.getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
+		auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
 
 		const u32 lastUpdateIdx = time->getValue().lastFixedUpdateIndex;
 
 		std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
 		const u32 lastRecordUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
 		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
-		const u32 desynchedUpdateIdx = clientMovesHistory->getData().desynchedUpdateIdx;
+		const u32 updateIdxProducedDesyncedMoves = clientMovesHistory->getData().updateIdxProducedDesyncedMoves;
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
@@ -108,7 +108,7 @@ namespace Network
 			return;
 		}
 
-		if (desynchedUpdateIdx != std::numeric_limits<u32>::max() && updateIdx <= desynchedUpdateIdx)
+		if (updateIdxProducedDesyncedMoves != std::numeric_limits<u32>::max() && updateIdx <= updateIdxProducedDesyncedMoves)
 		{
 			// we have snapshots later than this that are confirmed to be desynchronized, no need to do anything
 			return;
@@ -144,16 +144,16 @@ namespace Network
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		bool areMovesDesynched = false;
+		bool areMovesDesynced = false;
 		if (oldMovesData != currentUpdateData.updateHash)
 		{
-			areMovesDesynched = true;
+			areMovesDesynced = true;
 
 			if (hasMissingInput)
 			{
 				const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
 				// check if the server was able to correctly predict our input for that frame
-				// and if it was able, then mark record as desynched, since then our prediction was definitely incorrect
+				// and if it was able, then mark record as desynced, since then our prediction was definitely incorrect
 				if (inputHistory->getLastInputUpdateIdx() >= updateIdx && (inputHistory->getLastInputUpdateIdx() + 1 - inputs.size() <= lastReceivedInputUpdateIdx))
 				{
 					const size_t indexShift = inputHistory->getLastInputUpdateIdx() + 1 - inputs.size();
@@ -163,7 +163,7 @@ namespace Network
 						{
 							// server couldn't predict our input correctly, we can't trust its movement prediction either
 							// mark as accepted to keep our local version until we get moves with confirmed input
-							areMovesDesynched = false;
+							areMovesDesynced = false;
 							break;
 						}
 					}
@@ -175,18 +175,13 @@ namespace Network
 			}
 		}
 
-		if (areMovesDesynched)
+		if (areMovesDesynced)
 		{
-			clientMovesHistory->getDataRef().desynchedUpdateIdx = updateIdx;
+			clientMovesHistory->getDataRef().updateIdxProducedDesyncedMoves = updateIdx;
 		}
 		else
 		{
 			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
 		}
-
-		// trim inputs to the last received by server input, updates before it don't interest us anymore
-		const size_t updatesCountAfterTrim = inputHistory->getLastInputUpdateIdx() - lastReceivedInputUpdateIdx + 1;
-		std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputsRef();
-		inputs.erase(inputs.begin(), inputs.begin() + (inputs.size() - std::min(updatesCountAfterTrim, inputs.size())));
 	}
 }
