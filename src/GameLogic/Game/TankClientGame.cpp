@@ -168,6 +168,8 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	const TimeData lastUpdateTime = std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 	const float fixedUpdateDt = lastUpdateTime.lastFixedUpdateDt;
 
+	LogInfo("Correct client updates from %u to %u", lastUpdateIdxWithAuthoritativeMoves + 1, lastUpdateTime.lastFixedUpdateIndex);
+
 	AssertFatal(lastUpdateIdxWithAuthoritativeMoves <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
 

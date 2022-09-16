@@ -31,7 +31,7 @@ void ClientInputSendSystem::update()
 	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
 
-	if (connectionManager == nullptr || clientGameData == nullptr)
+	if (connectionManager == nullptr)
 	{
 		return;
 	}

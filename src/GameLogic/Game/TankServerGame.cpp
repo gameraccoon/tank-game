@@ -223,7 +223,7 @@ void TankServerGame::processInputCorrections()
 
 void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 {
-	SCOPED_PROFILER("TankServerGame::updateInputForLastFrame");
+	SCOPED_PROFILER("TankServerGame::applyInputForCurrentUpdate");
 	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
 	ServerConnectionsComponent* serverConnections = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
@@ -246,7 +246,7 @@ void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 
 				if (inputUpdateIndex + inputHistory.inputs.size() - inputHistory.indexShift > inputHistory.lastInputUpdateIdx)
 				{
-					size_t index = inputUpdateIndex - inputHistory.indexShift - (inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
+					const size_t index = inputUpdateIndex - inputHistory.indexShift - (inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
 					gameplayInput->setCurrentFrameState(inputHistory.inputs[index]);
 				}
 			}

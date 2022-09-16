@@ -25,6 +25,7 @@ void PopulateInputHistorySystem::update()
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const u32 lastUpdateIndex = time->getValue().lastFixedUpdateIndex;
 	const u32 updatesThisFrame = time->getValue().countFixedTimeUpdatesThisFrame;
+	AssertFatal(updatesThisFrame > 0, "updatesThisFrame can't be zero");
 
 	const GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<const GameplayInputComponent>();
 	const GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameState();
