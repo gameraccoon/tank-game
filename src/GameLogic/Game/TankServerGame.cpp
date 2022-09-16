@@ -181,7 +181,7 @@ void TankServerGame::processInputCorrections()
 		const u32 lastAbsoluteInputUpdateIdx = inputHistory.lastInputUpdateIdx + inputHistory.indexShift;
 		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastAbsoluteInputUpdateIdx);
 		// will wrap after ~8.5 years of gameplay
-		const u32 inputFromFutureCount = ((lastAbsoluteInputUpdateIdx > lastProcessedUpdateIdx) ? lastAbsoluteInputUpdateIdx - lastProcessedUpdateIdx : 0);
+		const u32 inputFromFutureCount = ((lastAbsoluteInputUpdateIdx > lastProcessedUpdateIdx + 1) ? lastAbsoluteInputUpdateIdx - lastProcessedUpdateIdx - 1 : 0);
 		const size_t iEnd = std::min(inputHistory.inputs.size(), inputHistory.inputs.size() - static_cast<size_t>(inputFromFutureCount));
 		for (size_t i = 1; i < iEnd; ++i)
 		{
