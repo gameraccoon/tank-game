@@ -48,23 +48,8 @@ namespace Network
 
 		const u32 clientFrameIndex = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
-		EntityManager& worldEntityManager = world.getEntityManager();
-		Entity controlledEntity = worldEntityManager.addEntity();
-		{
-			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
-			transform->setLocation(Vector2D(50, 50));
-			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-			movement->setOriginalSpeed(20.0f);
-			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
-
-#ifndef DEDICATED_SERVER
-			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), ZERO_VECTOR}, "resources/textures/tank-enemy-level1-1.png");
-#endif // !DEDICATED_SERVER
-		}
-
 		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
-		serverConnections->getControlledPlayersRef().emplace(connectionId, controlledEntity);
+		serverConnections->getControlledPlayersRef().emplace(connectionId, OptionalEntity{});
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		AssertFatal(time, "TimeComponent should be created before the game run");

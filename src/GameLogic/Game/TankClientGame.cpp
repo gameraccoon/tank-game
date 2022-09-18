@@ -17,6 +17,7 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
@@ -27,6 +28,7 @@
 #include "GameData/Components/TransformComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
+#include "Utils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/World/GameDataLoader.h"
 
@@ -82,6 +84,9 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef 
 
 	ClientMovesHistoryComponent* clientMovesHistory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
 	clientMovesHistory->getDataRef().updates.emplace_back(); // emplace empty moves before the first frame, to be able to resimulate it
+
+	GameplayCommandFactoryComponent* gameplayFactory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandFactoryComponent>();
+	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
 
 	Game::preStart(arguments);
 }
@@ -223,7 +228,8 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 		// if we have confirmed updates for this frame, apply them instead of what we generated last frame
 		if (previousFrameIndex <= commandHistory->getLastCommandUpdateIdx() && previousFrameIndex >= commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1)
 		{
-			gameplayCommands->setData(commandHistory->getRecords()[commandHistory->getLastCommandUpdateIdx() - previousFrameIndex]);
+			const size_t idx = previousFrameIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);
+			gameplayCommands->setData(commandHistory->getRecords()[idx]);
 		}
 
 		// this adds a new frame to the history
@@ -247,7 +253,7 @@ void TankClientGame::processMoveCorrections()
 		const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 		const u32 firstUpdateIdx = lastUpdateIdx - world.getStoredFramesCount() + 1;
 		const u32 lastConfirmedMovesUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
-		AssertFatal(lastConfirmedMovesUpdateIdx != clientMovesHistory->getData().desyncedUpdate, "We can't have the same frame to be confermed and desynced at the same time");
+		AssertFatal(lastConfirmedMovesUpdateIdx != clientMovesHistory->getData().updateIdxProducedDesyncedMoves, "We can't have the same frame to be confermed and desynced at the same time");
 		const u32 desyncedMoveUpdateIdx = (clientMovesHistory->getData().updateIdxProducedDesyncedMoves > lastConfirmedMovesUpdateIdx) ? clientMovesHistory->getData().updateIdxProducedDesyncedMoves : std::numeric_limits<u32>::max();
 		const u32 desyncedCommandUpdateIdx = commandHistory->getUpdateIdxProducedDesyncedCommands();
 		const u32 firstDesyncedUpdate = std::min(desyncedMoveUpdateIdx, desyncedCommandUpdateIdx);

@@ -92,7 +92,7 @@ void ServerMovesSendSystem::update()
 
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift, inputHistory.lastInputUpdateIdx),
+			Network::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift, inputHistory.lastInputUpdateIdx),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

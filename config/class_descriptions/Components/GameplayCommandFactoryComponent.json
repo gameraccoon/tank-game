@@ -1,0 +1,15 @@
+{
+	"component": "gameplayCommandFactory",
+	"description": "Component that stores gameplay component factory",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "instance",
+			"type": "Network::GameplayCommandFactory",
+			"includes": [
+				"\"Utils/Network/GameplayCommands/GameplayCommandsFactory.h\""
+			],
+			"flags": ["transient", "get_by_ref"]
+		}
+	]
+}

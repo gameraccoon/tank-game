@@ -5,10 +5,20 @@
 	"attributes": [
 		{
 			"name": "networkIdToEntity",
-			"type": "std::unordered_map<u64, Entity>",
+			"type": "std::unordered_map<NetworkEntityId, Entity>",
 			"includes": [
 				"<unordered_map>",
-				"\"Base/Types/BasicTypes.h\"",
+				"\"GameData/Network/NetworkEntityIdGenerator.h\"",
+				"\"GameData/EcsDefinitions.h\""
+			],
+			"flags": ["get_by_ref"]
+		},
+		{
+			"name": "entityToNetworkId",
+			"type": "std::unordered_map<Entity, NetworkEntityId>",
+			"includes": [
+				"<unordered_map>",
+				"\"GameData/Network/NetworkEntityIdGenerator.h\"",
 				"\"GameData/EcsDefinitions.h\""
 			],
 			"flags": ["get_by_ref"]

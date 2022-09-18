@@ -7,7 +7,8 @@ namespace Network
 	// 0 - reserved invalid version
 	// 1 - initial version
 	// 2 - player entity created packet
-	u32 NetworkProtocolVersion = 2;
+	// 3 - added gamplay command packet, removed player entity created packet
+	u32 NetworkProtocolVersion = 3;
 	// increase by one, and add a comment for each change in how we communicate over network
 	// this includes:
 	// any changes to network protocols and libraries

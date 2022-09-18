@@ -23,12 +23,16 @@
 #include "GameLogic/Initialization/StateMachines.h"
 #include "GameLogic/Render/RenderAccessor.h"
 #include "GameLogic/Systems/AnimationSystem.h"
+#include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
+#include "GameLogic/Systems/FetchScheduledCommandsSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
+#include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
+#include "GameLogic/Systems/ServerCommandsSendSystem.h"
 #include "GameLogic/Systems/ServerMovesSendSystem.h"
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 
@@ -111,12 +115,16 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mServerPort, mShouldQuitGame);
+	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<FetchScheduledCommandsSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder());
+	getPostFrameSystemsManager().registerSystem<ServerCommandsSendSystem>(getWorldHolder());
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
 #ifndef DEDICATED_SERVER

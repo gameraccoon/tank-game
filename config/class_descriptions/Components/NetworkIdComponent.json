@@ -5,9 +5,9 @@
 	"attributes": [
 		{
 			"name": "id",
-			"type": "u64",
+			"type": "NetworkEntityId",
 			"includes": [
-				"\"Base/Types/BasicTypes.h\""
+				"\"GameData/Network/NetworkEntityIdGenerator.h\""
 			]
 		}
 	]

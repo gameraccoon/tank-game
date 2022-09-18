@@ -1,0 +1,15 @@
+{
+	"component": "networkEntityIdGenerator",
+	"description": "Component that generates unique network entity id",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "generator",
+			"type": "NetworkEntityIdGenerator",
+			"includes": [
+				"\"GameData/Network/NetworkEntityIdGenerator.h\""
+			],
+			"flags": ["get_by_ref", "transient"]
+		}
+	]
+}

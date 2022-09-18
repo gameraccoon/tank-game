@@ -9,6 +9,7 @@
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -18,7 +19,7 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastReceivedInputUpdateIdx)
+	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastReceivedInputUpdateIdx)
 	{
 		std::vector<std::byte> movesMessageData;
 
@@ -39,8 +40,10 @@ namespace Network
 			// only if we moved within some agreed (between client and server) period of time
 			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
 			{
-				// Fixme should use server entity for this, need to make network ids
-				Serialization::AppendNumber<u64>(movesMessageData, entity.getId());
+				NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
+				auto networkIdIt = networkIdMapping->getEntityToNetworkIdRef().find(entity);
+				AssertFatal(networkIdIt != networkIdMapping->getEntityToNetworkIdRef().end(), "We should have network id mapped for all entities that we replicate to clients");
+				Serialization::AppendNumber<u64>(movesMessageData, networkIdIt->second);
 				const Vector2D location = transform->getLocation();
 				Serialization::AppendNumber<f32>(movesMessageData, location.x);
 				Serialization::AppendNumber<f32>(movesMessageData, location.y);
