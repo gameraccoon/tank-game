@@ -4,6 +4,7 @@
 
 #include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/World.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
