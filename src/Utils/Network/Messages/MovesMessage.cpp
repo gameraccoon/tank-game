@@ -34,15 +34,16 @@ namespace Network
 
 		Serialization::AppendNumber<u32>(movesMessageData, clientUpdateIdx);
 
+		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
+
 		for (auto [entity, movement, transform] : components)
 		{
 			const GameplayTimestamp serverMoveTimestamp = movement->getUpdateTimestamp();
 			// only if we moved within some agreed (between client and server) period of time
 			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
 			{
-				NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-				auto networkIdIt = networkIdMapping->getEntityToNetworkIdRef().find(entity);
-				AssertFatal(networkIdIt != networkIdMapping->getEntityToNetworkIdRef().end(), "We should have network id mapped for all entities that we replicate to clients");
+				const auto networkIdIt = networkIdMapping->getEntityToNetworkId().find(entity);
+				AssertFatal(networkIdIt != networkIdMapping->getEntityToNetworkId().end(), "We should have network id mapped for all entities that we replicate to clients");
 				Serialization::AppendNumber<u64>(movesMessageData, networkIdIt->second);
 				const Vector2D location = transform->getLocation();
 				Serialization::AppendNumber<f32>(movesMessageData, location.x);

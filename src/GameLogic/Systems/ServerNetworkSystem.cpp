@@ -59,10 +59,10 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 		GameplayCommandUtils::AddCommandToHistory(
 			world,
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
-			std::make_unique<Network::CreatePlayerEntityCommand>(
+			Network::CreatePlayerEntityCommand::createServerSide(
 				Vector2D(50, 50),
-				connectionId,
-				networkEntityIdGenerator->getGeneratorRef().generateNext()
+				networkEntityIdGenerator->getGeneratorRef().generateNext(),
+				connectionId
 			)
 		);
 

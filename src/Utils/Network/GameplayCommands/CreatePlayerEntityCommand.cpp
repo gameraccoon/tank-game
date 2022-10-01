@@ -17,20 +17,14 @@
 
 namespace Network
 {
-	CreatePlayerEntityCommand::CreatePlayerEntityCommand(Vector2D pos, ConnectionId ownerConnectionId, NetworkEntityId networkEntityId)
-		: mIsServerSide(true)
-		, mPos(pos)
-		, mNetworkEntityId(networkEntityId)
-		, mOwnerConnectionId(ownerConnectionId)
+	GameplayCommand::Ptr CreatePlayerEntityCommand::createServerSide(Vector2D pos, NetworkEntityId networkEntityId, ConnectionId ownerConnectionId)
 	{
+		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, IsOwner::No, ownerConnectionId, NetworkSide::Server));
 	}
 
-	CreatePlayerEntityCommand::CreatePlayerEntityCommand(bool isOwner, Vector2D pos, NetworkEntityId networkEntityId)
-		: mIsOwner(isOwner)
-		, mIsServerSide(false)
-		, mPos(pos)
-		, mNetworkEntityId(networkEntityId)
+	GameplayCommand::Ptr CreatePlayerEntityCommand::createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner)
 	{
+		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
 	}
 
 	void CreatePlayerEntityCommand::execute(World& world) const
@@ -54,14 +48,14 @@ namespace Network
 			networkIdMapping->getEntityToNetworkIdRef().emplace(controlledEntity, mNetworkEntityId);
 		}
 
-		if (mIsServerSide)
+		if (mNetworkSide == NetworkSide::Server)
 		{
 			ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getControlledPlayersRef()[mOwnerConnectionId] = controlledEntity;
 		}
 		else
 		{
-			if (mIsOwner)
+			if (mIsOwner == IsOwner::Yes)
 			{
 				ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 				clientGameData->setControlledPlayer(controlledEntity);
@@ -86,20 +80,29 @@ namespace Network
 
 	GameplayCommand::Ptr CreatePlayerEntityCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
 	{
-		const bool isOwner = (Serialization::ReadNumber<u8>(stream, inOutCursorPos) != 0);
+		const IsOwner isOwner = (Serialization::ReadNumber<u8>(stream, inOutCursorPos) != 0) ? IsOwner::Yes : IsOwner::No;
 		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos);
 		const float playerPosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos);
 		const float playerPosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos);
 
-		return std::make_unique<Network::CreatePlayerEntityCommand>(
-			isOwner,
+		return createClientSide(
 			Vector2D(playerPosX, playerPosY),
-			serverEntityId
+			serverEntityId,
+			isOwner
 		);
 	}
 
 	GameplayCommandType CreatePlayerEntityCommand::GetType()
 	{
 		return GameplayCommandType::CreatePlayerEntity;
+	}
+
+	CreatePlayerEntityCommand::CreatePlayerEntityCommand(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner, ConnectionId ownerConnectionId, NetworkSide networkSide)
+		: mIsOwner(isOwner)
+		, mNetworkSide(networkSide)
+		, mPos(pos)
+		, mNetworkEntityId(networkEntityId)
+		, mOwnerConnectionId(ownerConnectionId)
+	{
 	}
 }
