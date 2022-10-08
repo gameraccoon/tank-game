@@ -22,6 +22,7 @@
 #include "Utils/Network/Messages/ConnectMessage.h"
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
+#include "Utils/Network/Messages/WorldSnapshotMessage.h"
 
 #include "GameLogic/SharedManagers/WorldHolder.h"
 
@@ -34,16 +35,12 @@ ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, u16 serverPor
 {
 }
 
-static void SynchronizeServerStateToNewPlayer(World& /*world*/, ConnectionId /*newPlayerConnection*/, HAL::ConnectionManager& /*connectionManager*/)
+static void SynchronizeServerStateToNewPlayer(World& /*world*/, ConnectionId /*newPlayerConnectionId*/, HAL::ConnectionManager& /*connectionManager*/)
 {
-	/*ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
-	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
-	{
-		if (optionalEntity.isValid() && connectionId != newPlayerConnection)
-		{
-			connectionManager.sendMessageToClient(newPlayerConnection, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false));
-		}
-	}*/
+	/*connectionManager.sendMessageToClient(
+		newPlayerConnectionId,
+		Network::CreateWorldSnapshotMessage(world, newPlayerConnectionId)
+	);*/
 }
 
 static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
@@ -56,6 +53,8 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 
 		NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = world.getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
 
+		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
+
 		GameplayCommandUtils::AddCommandToHistory(
 			world,
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
@@ -65,11 +64,6 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 				connectionId
 			)
 		);
-
-		//connectionManager->sendMessageToClient(connectionId, Network::CreatePlayerEntityCreatedMessage(world, connectionId, true));
-		//connectionManager->broadcastMessageToClients(serverPort, Network::CreatePlayerEntityCreatedMessage(world, connectionId, false), connectionId);
-
-		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
 	}
 	else
 	{

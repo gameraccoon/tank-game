@@ -57,4 +57,24 @@ namespace GameplayCommandUtils
 			commandHistory->setUpdateIdxProducedDesyncedCommands(std::min(creationFrameIndex, commandHistory->getUpdateIdxProducedDesyncedCommands()));
 		}
 	}
+
+	void AddOverwritingSnapshotToHistory(World& world, u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
+	{
+		GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+
+		AppendFrameToHistory(commandHistory, creationFrameIndex);
+
+		const size_t idx = creationFrameIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);
+
+		// we assume that messages are always received and processed in order
+		// so any commands we had before we got the snapshot are incorrect
+		for (Network::GameplayCommandList& commandList : commandHistory->getRecordsRef())
+		{
+			commandList.list.clear();
+		}
+
+		commandHistory->getRecordsRef()[idx].list = std::move(newCommands);
+		commandHistory->setUpdateIdxProducedDesyncedCommands(std::min(creationFrameIndex, commandHistory->getUpdateIdxProducedDesyncedCommands()));
+		commandHistory->setUpdateIdxWithRewritingCommands(std::min(creationFrameIndex, commandHistory->getUpdateIdxProducedDesyncedCommands()));
+	}
 } // namespace GameplayCommandUtils

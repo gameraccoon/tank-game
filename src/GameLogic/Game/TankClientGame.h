@@ -30,13 +30,13 @@ public:
 
 private:
 	void initSystems();
-	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves);
+	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, bool overrideState);
 	void removeOldUpdates();
 	void processMoveCorrections();
+	void clearFrameState(World& world);
 
 private:
 	HAL::ConnectionManager mConnectionManager;
-	std::vector<World> mPreviousFrameWorlds;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 

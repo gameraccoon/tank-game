@@ -29,6 +29,7 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
+#include "Utils/Network/Messages/WorldSnapshotMessage.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/World/GameDataLoader.h"
 
@@ -168,7 +169,7 @@ void TankClientGame::initSystems()
 #endif // IMGUI_ENABLED
 }
 
-void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
+void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, bool overrideState)
 {
 	SCOPED_PROFILER("TankClientGame::correctUpdates");
 
@@ -188,7 +189,7 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	std::vector<MovementUpdateData>& updates = movesHistory.updates;
 
 	// unwind the history back
-	world.unwindBackInHistory(framesToResimulate);
+	world.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate);
 	updates.erase(updates.begin() + (updates.size() - framesToResimulate), updates.end());
 	movesHistory.lastUpdateIdx -= framesToResimulate;
 
@@ -197,6 +198,11 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves)
 	for (const EntityMoveData& move : updates.back().moves)
 	{
 		entityMoves.emplace(move.entity, move);
+	}
+
+	if (overrideState)
+	{
+		clearFrameState(world);
 	}
 
 	world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
@@ -266,12 +272,16 @@ void TankClientGame::processMoveCorrections()
 		// if we need to process corrections
 		if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != std::numeric_limits<u32>::max())
 		{
-			correctUpdates(firstDesyncedUpdate);
+			const u32 updateIdxWithRewritingCommands = commandHistory->getUpdateIdxWithRewritingCommands() + 1;
+			const bool shouldOverride = updateIdxWithRewritingCommands != std::numeric_limits<u32>::max() && updateIdxWithRewritingCommands - 1 >= firstUpdateIdx && updateIdxWithRewritingCommands - 1 <= lastUpdateIdx;
+			const u32 firstUpdateToCorrect = shouldOverride ? updateIdxWithRewritingCommands - 1 : firstDesyncedUpdate;
+			correctUpdates(firstUpdateToCorrect, shouldOverride);
 
 			// mark the desynced update as confirmed since now we applied moves fror server to it
 			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = firstDesyncedUpdate;
 			clientMovesHistory->getDataRef().updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
 			commandHistory->setUpdateIdxProducedDesyncedCommands(std::numeric_limits<u32>::max());
+			commandHistory->setUpdateIdxWithRewritingCommands(std::numeric_limits<u32>::max());
 		}
 	}
 
@@ -329,6 +339,11 @@ void TankClientGame::removeOldUpdates()
 	}
 
 	world.trimOldFrames(updatesCountAfterTrim);
+}
+
+void TankClientGame::clearFrameState(World& world)
+{
+	Network::CleanBeforeApplyingSnapshot(world);
 }
 
 #endif // !DEDICATED_SERVER

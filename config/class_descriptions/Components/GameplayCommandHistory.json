@@ -30,6 +30,15 @@
 			]
 		},
 		{
+			"name": "updateIdxWithRewritingCommands",
+			"type": "u32",
+			"default": " = std::numeric_limits<u32>::max()",
+			"includes": [
+				"<limits>",
+				"\"Base/Types/BasicTypes.h\""
+			]
+		},
+		{
 			"name": "lastUpdateIdxWithAllPlayerInputsConfirmed",
 			"type": "u32",
 			"default": " = 0",

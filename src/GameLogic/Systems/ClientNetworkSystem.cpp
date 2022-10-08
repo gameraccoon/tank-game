@@ -14,6 +14,7 @@
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/GameplayCommandsMessage.h"
 #include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/Network/Messages/WorldSnapshotMessage.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -91,6 +92,9 @@ void ClientNetworkSystem::update()
 			break;
 		case NetworkMessageId::GameplayCommand:
 			Network::ApplyGameplayCommandsMessage(world, message);
+			break;
+		case NetworkMessageId::WorldSnapshot:
+			Network::ApplyWorldSnapshotMessage(world, message);
 			break;
 		default:
 			ReportError("Unhandled message");
