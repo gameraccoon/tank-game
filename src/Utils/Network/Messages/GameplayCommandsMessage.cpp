@@ -11,6 +11,7 @@
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
 
 namespace Network
@@ -35,11 +36,11 @@ namespace Network
 		};
 	}
 
-	void ApplyGameplayCommandsMessage(World& world, const HAL::ConnectionManager::Message& message)
+	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const HAL::ConnectionManager::Message& message)
 	{
 		size_t streamIndex = message.payloadStartPos;
 
-		const auto [gameplayCommandFactory] = world.getNotRewindableWorldComponents().getComponents<const GameplayCommandFactoryComponent>();
+		const auto [gameplayCommandFactory] = stateRewinder.getNotRewindableComponents().getComponents<const GameplayCommandFactoryComponent>();
 
 		const u32 clientUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
@@ -52,6 +53,6 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		GameplayCommandUtils::AddConfirmedSnapshotToHistory(world, clientUpdateIdx, std::move(commands));
+		GameplayCommandUtils::AddConfirmedSnapshotToHistory(stateRewinder, clientUpdateIdx, std::move(commands));
 	}
 }

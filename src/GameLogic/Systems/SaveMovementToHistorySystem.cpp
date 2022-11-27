@@ -10,11 +10,15 @@
 
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
-SaveMovementToHistorySystem::SaveMovementToHistorySystem(WorldHolder& worldHolder) noexcept
+SaveMovementToHistorySystem::SaveMovementToHistorySystem(
+	WorldHolder& worldHolder,
+	GameStateRewinder& gameStateRewinder
+) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -29,7 +33,7 @@ void SaveMovementToHistorySystem::update()
 	const GameplayTimestamp& inputUpdateTimestamp = time->getValue().lastFixedUpdateTimestamp;
 
 	EntityManager& entityManager = world.getEntityManager();
-	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
+	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 
 	std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
 	AssertFatal(inputUpdateIndex == clientMovesHistory->getData().lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", inputUpdateIndex, clientMovesHistory->getData().lastUpdateIdx);

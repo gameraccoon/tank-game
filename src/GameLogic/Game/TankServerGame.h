@@ -6,6 +6,8 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 #include "HAL/Network/ConnectionManager.h"
 
 #include "GameLogic/Game/Game.h"
@@ -36,6 +38,7 @@ private:
 	void applyInputForCurrentUpdate(u32 inputUpdateIndex);
 
 private:
+	GameStateRewinder mGameStateRewinder{getComponentFactory(), getEntityGenerator(), getWorldHolder()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGame = false;
 	u16 mServerPort = 14436;

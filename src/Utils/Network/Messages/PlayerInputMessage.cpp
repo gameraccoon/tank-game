@@ -15,10 +15,10 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world)
+	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
 		HAL::ConnectionManager::Message resultMesssage(static_cast<u32>(NetworkMessageId::PlayerInput));
-		const InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<const InputHistoryComponent>();
+		const InputHistoryComponent* inputHistory = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
 
 		const size_t inputsSize = inputHistory->getInputs().size();
 		const size_t inputsToSend = std::min(inputsSize, Input::MAX_INPUT_HISTORY_SEND_SIZE);
@@ -59,9 +59,9 @@ namespace Network
 		}
 	}
 
-	void ApplyPlayerInputMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
-		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;
@@ -113,6 +113,7 @@ namespace Network
 			++inputHistory.indexShiftIncorrectFrames;
 			if (inputHistory.indexShiftIncorrectFrames > INDEX_SHIFT_CHANGE_TOLERANCE)
 			{
+				LogInfo("Correct indexShift from %d to %d", inputHistory.indexShift, currentIndexShift);
 				// correct index shift after we noticed it's incorrect for several frames
 				inputHistory.indexShift = currentIndexShift;
 				inputHistory.indexShiftIncorrectFrames = 0;

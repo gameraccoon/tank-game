@@ -27,7 +27,7 @@ namespace Network
 		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
 	}
 
-	void CreatePlayerEntityCommand::execute(World& world) const
+	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, World& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity controlledEntity = worldEntityManager.addEntity();
@@ -50,7 +50,7 @@ namespace Network
 
 		if (mNetworkSide == NetworkSide::Server)
 		{
-			ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+			ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getControlledPlayersRef()[mOwnerConnectionId] = controlledEntity;
 		}
 		else

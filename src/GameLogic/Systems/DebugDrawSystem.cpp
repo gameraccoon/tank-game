@@ -21,18 +21,21 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 DebugDrawSystem::DebugDrawSystem(
 		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder,
 		ResourceManager& resourceManager) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 	, mResourceManager(resourceManager)
 {
 }
@@ -160,7 +163,7 @@ void DebugDrawSystem::update()
 		const Vector2D crossCenterOffset{60, 280};
 		const Vector2D crossPieceSize{23, 23};
 		const float crossPieceOffset = 25;
-		const InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<const InputHistoryComponent>();
+		const InputHistoryComponent* inputHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
 		if (!inputHistory->getInputs().empty())
 		{
 			const GameplayInput::FrameState& lastInput = inputHistory->getInputs().back();

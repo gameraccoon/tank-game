@@ -7,10 +7,13 @@
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/Messages/PlayerInputMessage.h"
+#include "Utils/Network/GameStateRewinder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
 namespace PlayerInputMessageInternal
@@ -20,6 +23,9 @@ namespace PlayerInputMessageInternal
 		ComponentFactory componentFactory;
 		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
 		World world{componentFactory, entityGenerator};
+		GameData gameData{componentFactory};
+		WorldHolder worldHolder{nullptr, gameData};
+		GameStateRewinder stateRewinder{componentFactory, entityGenerator, worldHolder};
 	};
 
 	static std::unique_ptr<TestGame> CreateGameInstance()
@@ -36,7 +42,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
 		inputHistory->getInputsRef().resize(5);
 		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
 		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
@@ -51,20 +57,20 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 		inputHistory->setLastInputUpdateIdx(4);
 	}
 
-	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->world);
+	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
 		{
-			ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getInputsRef()[connectionId];
 			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
 			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
-		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(5));
@@ -94,7 +100,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
 		inputHistory->getInputsRef().resize(5);
 		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
 		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
@@ -109,13 +115,13 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 		inputHistory->setLastInputUpdateIdx(4);
 	}
 
-	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->world);
+	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
 		{
-			ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getInputsRef()[connectionId];
 
 			Input::InputHistory& inputHistory = serverConnections->getInputsRef().at(connectionId);
@@ -131,9 +137,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 			time->getValueRef().lastFixedUpdateIndex = 6;
 		}
 
-		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(5));
@@ -163,7 +169,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
 		inputHistory->getInputsRef().resize(2);
 		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
 		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
@@ -172,13 +178,13 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 		inputHistory->setLastInputUpdateIdx(46);
 	}
 
-	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->world);
+	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
 		{
-			ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getInputsRef()[connectionId];
 
 			Input::InputHistory& inputHistory = serverConnections->getInputsRef().at(connectionId);
@@ -195,9 +201,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 			time->getValueRef().lastFixedUpdateIndex = 48;
 		}
 
-		Network::ApplyPlayerInputMessage(serverGame->world, message, connectionId);
+		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(7));

@@ -23,12 +23,17 @@
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
 #include "Utils/Network/Messages/WorldSnapshotMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-ServerNetworkSystem::ServerNetworkSystem(WorldHolder& worldHolder, u16 serverPort, bool& shouldQuitGame) noexcept
+ServerNetworkSystem::ServerNetworkSystem(
+		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder,
+		u16 serverPort,
+		bool& shouldQuitGame
+	) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 	, mServerPort(serverPort)
 	, mShouldQuitGame(shouldQuitGame)
 	, mLastClientInterationTime(std::chrono::system_clock::now())
@@ -43,9 +48,9 @@ static void SynchronizeServerStateToNewPlayer(World& /*world*/, ConnectionId /*n
 	);*/
 }
 
-static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 {
-	const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, message, connectionId);
+	const u32 clientNetworkProtocolVersion = Network::ApplyConnectMessage(world, gameStateRewinder, message, connectionId);
 	if (clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
@@ -56,7 +61,7 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
 
 		GameplayCommandUtils::AddCommandToHistory(
-			world,
+			gameStateRewinder,
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
 			Network::CreatePlayerEntityCommand::createServerSide(
 				Vector2D(50, 50),
@@ -101,13 +106,13 @@ void ServerNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
-			OnClientConnected(connectionManager, world, message, connectionId);
+			OnClientConnected(connectionManager, world, mGameStateRewinder, message, connectionId);
 			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;
 			break;
 		case NetworkMessageId::PlayerInput:
-			Network::ApplyPlayerInputMessage(world, message, connectionId);
+			Network::ApplyPlayerInputMessage(world, mGameStateRewinder, message, connectionId);
 			break;
 		default:
 			ReportError("Unhandled message");

@@ -8,11 +8,12 @@
 #include "HAL/Network/ConnectionManager.h"
 
 class World;
+class GameStateRewinder;
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateWorldSnapshotMessage(World& world, ConnectionId connectionId);
-	void ApplyWorldSnapshotMessage(World& world, const HAL::ConnectionManager::Message& message);
+	HAL::ConnectionManager::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, World& world, ConnectionId connectionId);
+	void ApplyWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message);
 
 	void CleanBeforeApplyingSnapshot(World& world);
 }

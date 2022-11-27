@@ -22,7 +22,7 @@ namespace Network
 		static GameplayCommand::Ptr createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner);
 
 		GameplayCommandType getType() const final { return GetType(); }
-		void execute(World& world) const final;
+		void execute(GameStateRewinder& gameStateRewinder, World& world) const final;
 		Ptr clone() const final;
 		virtual void serverSerialize(World& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const final;
 		static Ptr ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos);

@@ -5,9 +5,10 @@
 #include "HAL/Network/ConnectionManager.h"
 
 class World;
+class GameStateRewinder;
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreatePlayerInputMessage(World& world);
-	void ApplyPlayerInputMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId);
+	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder);
+	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId);
 }

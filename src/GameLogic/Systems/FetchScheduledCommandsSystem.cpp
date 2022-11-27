@@ -7,11 +7,13 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/Network/GameStateRewinder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
-FetchScheduledCommandsSystem::FetchScheduledCommandsSystem(WorldHolder& worldHolder) noexcept
+FetchScheduledCommandsSystem::FetchScheduledCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -25,7 +27,7 @@ void FetchScheduledCommandsSystem::update()
 
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 	if (commandHistory->getLastCommandUpdateIdx() >= currentUpdateIndex && commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1 <= currentUpdateIndex)
 	{
 		const size_t idx = currentUpdateIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);

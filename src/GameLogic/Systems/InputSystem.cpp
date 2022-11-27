@@ -13,9 +13,9 @@
 #include "GameData/Input/InputBindings.h"
 #include "GameData/World.h"
 
-#include "HAL/InputControllersData.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "HAL/InputControllersData.h"
 
 
 InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept

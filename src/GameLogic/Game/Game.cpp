@@ -34,8 +34,8 @@ void Game::preStart(const ArgumentsParser& arguments)
 	// ToDo: make an editor not to hardcode SM data
 	StateMachines::RegisterStateMachines(sm);
 
-	mWorld.getWorldComponents().addComponent<WorldCachedDataComponent>();
-	mWorld.getWorldComponents().addComponent<TimeComponent>();
+	getWorldHolder().getWorld().getWorldComponents().addComponent<WorldCachedDataComponent>();
+	getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
 }
 
 void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
@@ -45,14 +45,14 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 	mFrameBeginTime = std::chrono::steady_clock::now();
 #endif // ENABLE_SCOPED_PROFILER
 
-	auto [time] = mWorld.getWorldComponents().getComponents<TimeComponent>();
+	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
 	time->getValueRef().lastUpdateDt = dt;
 	time->getValueRef().countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
 
 #ifndef DEDICATED_SERVER
 	if (HAL::Engine* engine = getEngine())
 	{
-		mWorld.getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
+		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
 	}
 #endif // !DEDICATED_SERVER
 
@@ -65,7 +65,7 @@ void Game::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("Game::fixedTimeUpdate");
 
-	auto [time] = mWorld.getWorldComponents().getComponents<TimeComponent>();
+	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
 	time->getValueRef().fixedUpdate(dt);
 	mGameLogicSystemsManager.update();
 	mInputControllersData.resetLastFrameStates();
@@ -75,7 +75,7 @@ void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("Game::dynamicTimePostFrameUpdate");
 
-	auto [time] = mWorld.getWorldComponents().getComponents<TimeComponent>();
+	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
 	time->getValueRef().lastUpdateDt = dt;
 	time->getValueRef().countFixedTimeUpdatesThisFrame = processedFixedTimeUpdates;
 

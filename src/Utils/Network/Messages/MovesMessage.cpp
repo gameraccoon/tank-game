@@ -60,10 +60,10 @@ namespace Network
 		};
 	}
 
-	void ApplyMovesMessage(World& world, const HAL::ConnectionManager::Message& message)
+	void ApplyMovesMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
+		auto [clientMovesHistory] = gameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 
 		const u32 lastUpdateIdx = time->getValue().lastFixedUpdateIndex;
 
@@ -118,7 +118,7 @@ namespace Network
 			return;
 		}
 
-		InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
+		InputHistoryComponent* inputHistory = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
 
 		const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
 

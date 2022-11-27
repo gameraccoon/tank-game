@@ -10,12 +10,12 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/Messages/GameplayCommandsMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder) noexcept
+ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -34,7 +34,7 @@ void ServerCommandsSendSystem::update()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
 	std::vector<ConnectionId> connections;
 	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
@@ -52,7 +52,7 @@ void ServerCommandsSendSystem::update()
 	const TimeData timeValue = time->getValue();
 	const u32 firstFrameUpdateIdx = timeValue.lastFixedUpdateIndex - timeValue.countFixedTimeUpdatesThisFrame + 1;
 
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 	const u32 firstCommandsRecordUpdateIdx = commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1;
 
 	for (int i = 0; i < timeValue.countFixedTimeUpdatesThisFrame; ++i)

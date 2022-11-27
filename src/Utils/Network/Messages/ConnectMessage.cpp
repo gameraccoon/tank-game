@@ -16,6 +16,8 @@
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 namespace Network
 {
 	HAL::ConnectionManager::Message CreateConnectMessage(World& world)
@@ -36,7 +38,7 @@ namespace Network
 		};
 	}
 
-	u32 ApplyConnectMessage(World& world, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+	u32 ApplyConnectMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
 		size_t streamIndex = message.payloadStartPos;
 		const u32 clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(message.data, streamIndex);
@@ -48,7 +50,7 @@ namespace Network
 
 		const u32 clientFrameIndex = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
-		ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 		serverConnections->getControlledPlayersRef().emplace(connectionId, OptionalEntity{});
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();

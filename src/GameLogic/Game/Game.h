@@ -8,11 +8,12 @@
 #include "GameData/GameData.h"
 #include "GameData/Serialization/Json/JsonComponentSerializer.h"
 
+#include "Utils/SharedManagers/WorldHolder.h"
+
 #include "HAL/GameBase.h"
 #include "HAL/InputControllersData.h"
 
 #include "GameLogic/Debug/DebugGameBehavior.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 class ArgumentsParser;
 class ThreadPool;
@@ -38,6 +39,7 @@ public:
 
 protected:
 	ComponentFactory& getComponentFactory() { return mComponentFactory; }
+	RaccoonEcs::EntityGenerator& getEntityGenerator() { return mEntityGenerator; }
 	WorldHolder& getWorldHolder() { return mWorldHolder; }
 	RaccoonEcs::SystemsManager& getPreFrameSystemsManager() { return mPreFrameSystemsManager; }
 	RaccoonEcs::SystemsManager& getGameLogicSystemsManager() { return mGameLogicSystemsManager; }
@@ -53,9 +55,8 @@ private:
 private:
 	ComponentFactory mComponentFactory;
 	RaccoonEcs::IncrementalEntityGenerator mEntityGenerator;
-	World mWorld{mComponentFactory, mEntityGenerator};
 	GameData mGameData{mComponentFactory};
-	WorldHolder mWorldHolder{&mWorld, mGameData};
+	WorldHolder mWorldHolder{nullptr, mGameData};
 
 	HAL::InputControllersData mInputControllersData;
 
@@ -72,5 +73,5 @@ private:
 #endif // ENABLE_SCOPED_PROFILER
 
 	DebugGameBehavior mDebugBehavior;
-	friend DebugGameBehavior;
+	friend class DebugGameBehavior;
 };

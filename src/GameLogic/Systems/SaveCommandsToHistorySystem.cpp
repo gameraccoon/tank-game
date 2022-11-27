@@ -7,13 +7,17 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-SaveCommandsToHistorySystem::SaveCommandsToHistorySystem(WorldHolder& worldHolder) noexcept
+SaveCommandsToHistorySystem::SaveCommandsToHistorySystem(
+		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder
+	) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -27,7 +31,7 @@ void SaveCommandsToHistorySystem::update()
 
 	const GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<const GameplayCommandsComponent>();
 
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 
 	GameplayCommandUtils::AppendFrameToHistory(commandHistory, currentUpdateIndex);
 	const size_t idx = currentUpdateIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);

@@ -7,7 +7,8 @@
 #include "GameData/GameData.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
+
 #include "GameLogic/Imgui/ImguiDebugData.h"
 
 void ImguiRenderModeWindow::update(ImguiDebugData& debugData)

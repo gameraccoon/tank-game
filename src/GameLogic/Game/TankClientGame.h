@@ -6,6 +6,8 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 #include "GameLogic/Game/Game.h"
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Imgui/ImguiDebugData.h"
@@ -36,6 +38,7 @@ private:
 	void clearFrameState(World& world);
 
 private:
+	GameStateRewinder mGameStateRewinder{getComponentFactory(), getEntityGenerator(), getWorldHolder()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;

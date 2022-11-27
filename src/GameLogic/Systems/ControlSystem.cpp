@@ -14,7 +14,7 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
 ControlSystem::ControlSystem(WorldHolder& worldHolder) noexcept

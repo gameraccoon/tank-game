@@ -6,6 +6,7 @@
 
 #include "HAL/EngineFwd.h"
 
+class GameStateRewinder;
 class ResourceManager;
 class WorldHolder;
 
@@ -17,6 +18,7 @@ class DebugDrawSystem : public RaccoonEcs::System
 public:
 	DebugDrawSystem(
 		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder,
 		ResourceManager& resourceManager) noexcept;
 
 	void update() override;
@@ -24,6 +26,7 @@ public:
 
 private:
 	WorldHolder& mWorldHolder;
+	GameStateRewinder& mGameStateRewinder;
 	ResourceManager& mResourceManager;
 
 	ResourceHandle mCollisionSpriteHandle;

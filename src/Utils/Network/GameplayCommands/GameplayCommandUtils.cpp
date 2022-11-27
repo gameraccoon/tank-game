@@ -5,6 +5,8 @@
 #include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 namespace GameplayCommandUtils
 {
 	void AppendFrameToHistory(GameplayCommandHistoryComponent* commandHistory, u32 frameIndex)
@@ -30,9 +32,9 @@ namespace GameplayCommandUtils
 		}
 	}
 
-	void AddCommandToHistory(World& world, u32 creationFrameIndex, Network::GameplayCommand::Ptr&& newCommand)
+	void AddCommandToHistory(GameStateRewinder& stateRewinder, u32 creationFrameIndex, Network::GameplayCommand::Ptr&& newCommand)
 	{
-		GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+		GameplayCommandHistoryComponent* commandHistory = stateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 
 		AppendFrameToHistory(commandHistory, creationFrameIndex);
 
@@ -42,9 +44,9 @@ namespace GameplayCommandUtils
 		frameCommands.push_back(std::move(newCommand));
 	}
 
-	void AddConfirmedSnapshotToHistory(World& world, u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
+	void AddConfirmedSnapshotToHistory(GameStateRewinder& stateRewinder, u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
 	{
-		GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+		GameplayCommandHistoryComponent* commandHistory = stateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 
 		AppendFrameToHistory(commandHistory, creationFrameIndex);
 
@@ -58,9 +60,9 @@ namespace GameplayCommandUtils
 		}
 	}
 
-	void AddOverwritingSnapshotToHistory(World& world, u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
+	void AddOverwritingSnapshotToHistory(GameStateRewinder& stateRewinder, u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
 	{
-		GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+		GameplayCommandHistoryComponent* commandHistory = stateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 
 		AppendFrameToHistory(commandHistory, creationFrameIndex);
 

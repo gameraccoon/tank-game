@@ -12,17 +12,16 @@ public:
 		: mWorld(world)
 		, mGameData(gameData)
 	{
-		AssertFatal(mWorld, "World is not set");
 	}
 
-	void setWorld(World* newWorld)
+	void setWorld(World& newWorld)
 	{
-		AssertFatal(newWorld, "World is not set");
-		mWorld = newWorld;
+		mWorld = &newWorld;
 	}
 
 	World& getWorld()
 	{
+		AssertFatal(mWorld, "World is not set");
 		return *mWorld;
 	}
 

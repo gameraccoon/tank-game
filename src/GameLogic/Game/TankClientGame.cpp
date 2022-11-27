@@ -83,10 +83,10 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 		connectionManager->setManagerPtr(&mConnectionManager);
 	}
 
-	ClientMovesHistoryComponent* clientMovesHistory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<ClientMovesHistoryComponent>();
+	ClientMovesHistoryComponent* clientMovesHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ClientMovesHistoryComponent>();
 	clientMovesHistory->getDataRef().updates.emplace_back(); // emplace empty moves before the first frame, to be able to resimulate it
 
-	GameplayCommandFactoryComponent* gameplayFactory = getWorldHolder().getWorld().getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandFactoryComponent>();
+	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandFactoryComponent>();
 	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
 
 	Game::preStart(arguments);
@@ -118,7 +118,7 @@ void TankClientGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
 
-	getWorldHolder().getWorld().addNewFrameToTheHistory();
+	mGameStateRewinder.addNewFrameToTheHistory();
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -148,21 +148,21 @@ void TankClientGame::initSystems()
 	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
 
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
-	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder());
-	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder());
-	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mServerAddress, mShouldQuitGameNextTick);
-	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder());
+	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
+	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
+	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mShouldQuitGameNextTick);
+	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
-	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), getResourceManager());
+	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
 
 #ifdef IMGUI_ENABLED
 	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *getEngine());
@@ -184,12 +184,12 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 	AssertFatal(lastUpdateIdxWithAuthoritativeMoves <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
 
-	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
+	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 	MovementHistory& movesHistory = clientMovesHistory->getDataRef();
 	std::vector<MovementUpdateData>& updates = movesHistory.updates;
 
 	// unwind the history back
-	world.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate);
+	mGameStateRewinder.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate);
 	updates.erase(updates.begin() + (updates.size() - framesToResimulate), updates.end());
 	movesHistory.lastUpdateIdx -= framesToResimulate;
 
@@ -222,8 +222,8 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 	});
 
 	// resimulate later frames
-	InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<InputHistoryComponent>();
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	InputHistoryComponent* inputHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 	const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
 	AssertFatal(inputs.size() >= framesToResimulate, "Size of input history can't be less than size of move history");
 	size_t inputHistoryIndexShift = inputs.size() - framesToResimulate;
@@ -254,15 +254,15 @@ void TankClientGame::processMoveCorrections()
 
 	World& world = getWorldHolder().getWorld();
 
-	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 
 	// local scope because after the corrections the values can change
 	{
 		const TimeData lastUpdateTime = std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 
 		const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
-		const u32 firstUpdateIdx = lastUpdateIdx - world.getStoredFramesCount() + 1;
+		const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
 		const u32 lastConfirmedMovesUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
 		AssertFatal(lastConfirmedMovesUpdateIdx != clientMovesHistory->getData().updateIdxProducedDesyncedMoves, "We can't have the same frame to be confermed and desynced at the same time");
 		const u32 desyncedMoveUpdateIdx = (clientMovesHistory->getData().updateIdxProducedDesyncedMoves > lastConfirmedMovesUpdateIdx) ? clientMovesHistory->getData().updateIdxProducedDesyncedMoves : std::numeric_limits<u32>::max();
@@ -296,15 +296,15 @@ void TankClientGame::removeOldUpdates()
 
 	World& world = getWorldHolder().getWorld();
 
-	auto [clientMovesHistory] = world.getNotRewindableWorldComponents().getComponents<ClientMovesHistoryComponent>();
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
+	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
+	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
 	const TimeData lastUpdateTime = std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 
 	const MovementHistory& movementHistory = clientMovesHistory->getData();
 	std::vector<MovementUpdateData>& movementUpdates = clientMovesHistory->getDataRef().updates;
 
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
-	const u32 firstUpdateIdx = lastUpdateIdx - world.getStoredFramesCount() + 1;
+	const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
 	const u32 lastUpdateWithAllInputsConfirmed = commandHistory->getLastUpdateIdxWithAllPlayerInputsConfirmed();
 	const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
@@ -338,7 +338,7 @@ void TankClientGame::removeOldUpdates()
 		}
 	}
 
-	world.trimOldFrames(updatesCountAfterTrim);
+	mGameStateRewinder.trimOldFrames(updatesCountAfterTrim);
 }
 
 void TankClientGame::clearFrameState(World& world)

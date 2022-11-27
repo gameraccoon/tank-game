@@ -22,11 +22,11 @@
 
 #include "Utils/Multithreading/ThreadPool.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 
 RenderSystem::RenderSystem(

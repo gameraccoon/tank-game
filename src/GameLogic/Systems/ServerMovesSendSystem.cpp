@@ -13,12 +13,12 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-ServerMovesSendSystem::ServerMovesSendSystem(WorldHolder& worldHolder) noexcept
+ServerMovesSendSystem::ServerMovesSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -37,7 +37,7 @@ void ServerMovesSendSystem::update()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
 	std::vector<ConnectionId> connections;
 	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())

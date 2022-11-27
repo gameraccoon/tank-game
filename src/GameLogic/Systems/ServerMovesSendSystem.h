@@ -3,6 +3,7 @@
 #include <raccoon-ecs/system.h>
 
 class WorldHolder;
+class GameStateRewinder;
 
 /**
  * System that sends entity moves to client
@@ -10,10 +11,11 @@ class WorldHolder;
 class ServerMovesSendSystem : public RaccoonEcs::System
 {
 public:
-	ServerMovesSendSystem(WorldHolder& worldHolder) noexcept;
+	ServerMovesSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
 
 	void update() override;
 
 private:
 	WorldHolder& mWorldHolder;
+	GameStateRewinder& mGameStateRewinder;
 };
