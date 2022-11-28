@@ -10,11 +10,12 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 
+#include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
 
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
-#include "GameLogic/Game/Server.h"
+#include "GameLogic/Game/TankServerGame.h"
 
 #include "GameMain/ConsoleCommands.h"
 
@@ -83,7 +84,11 @@ int main(int argc, char** argv)
 		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
 #endif // !DEDICATED_SERVER
 		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer]{
-			Server::ServerThreadFunction(applicationData, arguments, renderAccessor, shouldStopServer);
+			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
+			serverGame.preStart(arguments, renderAccessor);
+			HAL::RunGameLoop(serverGame, [&shouldStopServer]{ return shouldStopServer.load(std::memory_order_acquire); });
+			serverGame.onGameShutdown();
+			applicationData.threadSaveProfileData(applicationData.ServerThreadId);
 		});
 	}
 
