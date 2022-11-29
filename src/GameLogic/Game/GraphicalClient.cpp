@@ -9,13 +9,15 @@
 
 GraphicalClient::GraphicalClient(ApplicationData& applicationData)
 	: game(&applicationData.engine, applicationData.resourceManager, applicationData.threadPool)
+	, engine(applicationData.engine)
 {
 }
 
-void GraphicalClient::run(ArgumentsParser& arguments, const RenderAccessorGameRef& renderAccessorGameRef)
+void GraphicalClient::run(const ArgumentsParser& arguments, const RenderAccessorGameRef& renderAccessorGameRef)
 {
 	game.preStart(arguments, renderAccessorGameRef);
-	game.start(); // this call waits until the game is being shut down
+	game.initResources();
+	engine.start(); // this call waits until the game is being shut down
 	game.onGameShutdown();
 }
 

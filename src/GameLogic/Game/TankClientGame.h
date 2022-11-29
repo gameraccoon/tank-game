@@ -19,7 +19,7 @@ class TankClientGame : public Game
 public:
 	using Game::Game;
 
-	void preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
+	void preStart(const ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
 	void initResources() override;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
 	void fixedTimeUpdate(float dt) final;

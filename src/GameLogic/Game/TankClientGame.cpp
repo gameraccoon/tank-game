@@ -56,7 +56,7 @@
 #endif // IMGUI_ENABLED
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)
+void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)
 {
 	SCOPED_PROFILER("TankClientGame::preStart");
 
@@ -89,6 +89,11 @@ void TankClientGame::preStart(ArgumentsParser& arguments, RenderAccessorGameRef 
 	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
 
 	Game::preStart(arguments);
+
+	if (HAL::Engine* engine = getEngine())
+	{
+		engine->init(this, &getInputData());
+	}
 }
 
 void TankClientGame::initResources()

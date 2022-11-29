@@ -12,13 +12,19 @@ class ApplicationData;
 class ArgumentsParser;
 class RenderAccessor;
 
+namespace HAL
+{
+	class Engine;
+}
+
 struct GraphicalClient
 {
 	GraphicalClient(ApplicationData& applicationData);
 
-	void run(ArgumentsParser& arguments, const RenderAccessorGameRef& renderAccessorGameRef);
+	void run(const ArgumentsParser& arguments, const RenderAccessorGameRef& renderAccessorGameRef);
 
 	TankClientGame game;
+	HAL::Engine& engine;
 };
 
 #endif // !DEDICATED_SERVER

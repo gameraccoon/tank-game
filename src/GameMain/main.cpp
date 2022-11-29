@@ -86,6 +86,7 @@ int main(int argc, char** argv)
 		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer]{
 			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
 			serverGame.preStart(arguments, renderAccessor);
+			serverGame.initResources();
 			HAL::RunGameLoop(serverGame, [&shouldStopServer]{ return shouldStopServer.load(std::memory_order_acquire); });
 			serverGame.onGameShutdown();
 			applicationData.threadSaveProfileData(applicationData.ServerThreadId);
