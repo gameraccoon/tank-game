@@ -30,6 +30,12 @@ public:
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) override;
 	void initResources() override;
 
+	template<typename T, typename... Args>
+	void injectSystem(Args&&... args)
+	{
+		getGameLogicSystemsManager().registerSystem<T>(getWorldHolder(), std::forward<Args>(args)...);
+	}
+
 protected:
 	ComponentFactory& getComponentFactory() { return mComponentFactory; }
 	WorldHolder& getWorldHolder() { return mWorldHolder; }

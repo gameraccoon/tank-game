@@ -1,35 +1,13 @@
 #pragma once
 
-#include "GameData/Render/RenderAccessorGameRef.h"
-
-#include "GameLogic/Game/Game.h"
-
 #include "AutoTests/TestChecklist.h"
 
-class RenderAccessor;
-class ArgumentParser;
+class ArgumentsParser;
 
-class BaseTestCase : public Game
+class BaseTestCase
 {
 public:
-	using Game::Game;
+	virtual ~BaseTestCase() = default;
 
-	TestChecklist start(const ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
-	void fixedTimeUpdate(float dt) final;
-
-	bool shouldQuitGame() const override { return mShouldQuit; }
-	void quitGame() override { mShouldQuit = true; }
-
-protected:
-	virtual void initTestCase(const ArgumentsParser& arguments) = 0;
-	virtual void finalizeTestCase();
-
-protected:
-	TestChecklist mTestChecklist;
-	int mTicksToFinish = 100;
-
-private:
-	int mTicksCount = 0;
-	bool mOneFrame = false;
-	bool mShouldQuit = false;
+	virtual TestChecklist start(const ArgumentsParser& arguments) = 0;
 };

@@ -8,24 +8,21 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 
-#include "HAL/Base/Engine.h"
-
-#include "GameLogic/Game/ApplicationData.h"
-
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/TestChecklist.h"
+#include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
 
-using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>(HAL::Engine*, ResourceManager&, ThreadPool&)>>;
+using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>()>>;
 
 static CasesMap GetCases()
 {
 	return CasesMap
 	({
 		{
-			/*"MyTestCaseName", [](HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool)
-			{
-				return std::make_unique<MyTestCaseClass>(*engine, resourceManager, threadPool);
-			}*/
+			"PlayerConnectedToServer",
+			[](){
+				return std::make_unique<PlayerConnectedToServerTestCase>();
+			}
 		}
 	});
 }
@@ -49,7 +46,7 @@ int main(int argc, char** argv)
 {
 	ArgumentsParser arguments(argc, argv);
 
-	unsigned int seed = 100500;
+	unsigned int seed = std::random_device()();
 	if (arguments.hasArgument("randseed"))
 	{
 		std::string seedStr = arguments.getArgumentValue("randseed");
@@ -61,6 +58,8 @@ int main(int argc, char** argv)
 #ifdef RACCOON_ECS_DEBUG_CHECKS_ENABLED
 	RaccoonEcs::gErrorHandler = [](const std::string& error) { ReportFatalError(error); };
 #endif // RACCOON_ECS_DEBUG_CHECKS_ENABLED
+
+	gGlobalAssertHandler = []{ std::terminate(); };
 
 	auto cases = GetCases();
 
@@ -75,28 +74,26 @@ int main(int argc, char** argv)
 
 	if (!arguments.hasArgument("case"))
 	{
-		LogError("Test case name not provided");
+		LogError("Test case name has not been provided");
 		return 1;
 	}
 
 	auto caseIt = cases.find(arguments.getArgumentValue("case"));
 	if (caseIt != cases.end())
 	{
-		ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount));
-		HAL::Engine engine(800, 600);
+		LogInit("Random seed is %u", seed);
 
-		// switch render context to render thread
-		engine.releaseRenderContext();
-		applicationData.renderThread.startThread(applicationData.resourceManager, engine, [&engine]{ engine.acquireRenderContext(); });
-
-		std::unique_ptr<BaseTestCase> testCase = caseIt->second(&engine, applicationData.resourceManager, applicationData.threadPool);
-		TestChecklist checklist = testCase->start(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0));
-		bool isSuccessful = ValidateChecklist(checklist);
-
-		applicationData.shutdownThreads(); // this call waits for the threads to be joined
-
-		applicationData.writeProfilingData(); // this call waits for the data to be written to the files
-
+		std::unique_ptr<BaseTestCase> testCase = caseIt->second();
+		TestChecklist checklist = testCase->start(arguments);
+		const bool isSuccessful = ValidateChecklist(checklist);
+		if (isSuccessful)
+		{
+			LogInfo("Test case %s has been passed", arguments.getArgumentValue("case"));
+		}
+		else
+		{
+			LogError("Test case %s has been failed", arguments.getArgumentValue("case"));
+		}
 		return isSuccessful ? 0 : 1;
 	}
 	else
