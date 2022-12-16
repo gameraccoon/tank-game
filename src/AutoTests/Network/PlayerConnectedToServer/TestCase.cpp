@@ -3,6 +3,7 @@
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
+#include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
@@ -15,23 +16,99 @@
 
 namespace PlayerConnectedToServerTestCaseInternal
 {
-	class TestSystem : public RaccoonEcs::System {
+	class ServerCheckSystem final : public RaccoonEcs::System
+	{
 	public:
-		TestSystem(WorldHolder &worldHolder, BasicTestCheck &testCheck)
-				: mWorldHolder(worldHolder), mTestCheck(testCheck) {
-		}
+		ServerCheckSystem(WorldHolder &worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
+				: mWorldHolder(worldHolder)
+				, mConnectionCheck(connectionCheck)
+				, mKeepConnectedCheck(keepConnectedCheck)
+		{}
 
-		void update() override {
+		void update() final {
 			World &world = mWorldHolder.getWorld();
 			const NetworkIdMappingComponent *networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 			if (!networkIdMapping->getNetworkIdToEntity().empty()) {
-				mTestCheck.mIsPassed = true;
+				mConnectionCheck.checkAsPassed();
+				++mConnectedFramesCount;
+				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed()) {
+					mKeepConnectedCheck.checkAsPassed();
+				}
+			}
+			else if (mConnectionCheck.hasPassed()) {
+				mKeepConnectedCheck.checkAsFailed();
 			}
 		}
 
 	private:
 		WorldHolder &mWorldHolder;
-		BasicTestCheck &mTestCheck;
+		SimpleTestCheck &mConnectionCheck;
+		SimpleTestCheck &mKeepConnectedCheck;
+		size_t mConnectedFramesCount = 0;
+	};
+
+	class ClientCheckSystem final : public RaccoonEcs::System
+	{
+	public:
+		ClientCheckSystem(WorldHolder& worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
+			: mWorldHolder(worldHolder)
+			, mConnectionCheck(connectionCheck)
+			, mKeepConnectedCheck(keepConnectedCheck)
+		{}
+
+		void update() final {
+			World& world = mWorldHolder.getWorld();
+			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+			if (clientGameData->getControlledPlayer().isValid())
+			{
+				mConnectionCheck.checkAsPassed();
+				++mConnectedFramesCount;
+				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed()) {
+					mKeepConnectedCheck.checkAsPassed();
+				}
+			}
+			else if (mConnectionCheck.hasPassed())
+			{
+				mKeepConnectedCheck.checkAsFailed();
+			}
+		}
+	private:
+		WorldHolder& mWorldHolder;
+		SimpleTestCheck& mConnectionCheck;
+		SimpleTestCheck& mKeepConnectedCheck;
+		size_t mConnectedFramesCount = 0;
+	};
+
+	class TimeoutCheck final : public TestCheck
+	{
+	public:
+		explicit TimeoutCheck(size_t timeoutFrames)
+			: mTimeoutFrames(timeoutFrames)
+		{}
+
+		void update()
+		{
+			++mFramesCount;
+		}
+
+		[[nodiscard]] bool hasPassed() const final
+		{
+			return mFramesCount < mTimeoutFrames;
+		}
+
+		[[nodiscard]] bool isChecked() const final
+		{
+			return true;
+		}
+
+		[[nodiscard]] std::string getErrorMessage() const final
+		{
+			return "Test didn't complete in " + std::to_string(mTimeoutFrames) + " frames";
+		}
+
+	private:
+		const size_t mTimeoutFrames = 0;
+		size_t mFramesCount = 0;
 	};
 }
 
@@ -60,11 +137,18 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	clientGame.preStart(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1));
 	clientGame.initResources();
 
-	auto testCheck = std::make_unique<BasicTestCheck>("Player got connected to the server");
-	serverGame.injectSystem<TestSystem>(*testCheck);
+	TestChecklist checklist;
+	checklist.emplaceCheck<TimeoutCheck>(1000);
+	SimpleTestCheck& serverConnectionCheck = checklist.addSimpleCheck("Server didn't record player connection");
+	SimpleTestCheck& serverKeepConnectedCheck = checklist.addSimpleCheck("Player didn't keep connection for 50 frames on server");
+	SimpleTestCheck& clientConnectionCheck = checklist.addSimpleCheck("Client didn't get controlled player");
+	SimpleTestCheck& clientKeepConnectionCheck = checklist.addSimpleCheck("Client didn't keep controlled player for 50 frames");
+	serverGame.injectSystem<ServerCheckSystem>(serverConnectionCheck, serverKeepConnectedCheck);
+	clientGame.injectSystem<ClientCheckSystem>(clientConnectionCheck, clientKeepConnectionCheck);
 
 	size_t framesCount = 0;
-	while (!testCheck->mIsPassed && framesCount < 1000) {
+	while (!checklist.areAllChecked() && framesCount < 1000)
+	{
 		clientGame.dynamicTimePreFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
 		clientGame.fixedTimeUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC);
 		clientGame.dynamicTimePostFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
@@ -82,5 +166,5 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 
 	applicationData.writeProfilingData(); // this call waits for the data to be written to the files
 
-	return {"PlayerConnectedToServer", std::move(testCheck)};
+	return checklist;
 }

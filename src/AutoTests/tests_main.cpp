@@ -3,13 +3,14 @@
 #include <iostream>
 
 #include "Base/Random/Random.h"
+#include "Base/Types/String/StringNumberConversion.h"
 
 #include <raccoon-ecs/error_handling.h>
 
 #include "Utils/Application/ArgumentsParser.h"
 
 #include "AutoTests/BaseTestCase.h"
-#include "AutoTests/TestChecklist.h"
+#include "AutoTests/TestChecks.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
 
 using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>()>>;
@@ -29,17 +30,33 @@ static CasesMap GetCases()
 
 bool ValidateChecklist(const TestChecklist& checklist)
 {
-	bool result = true;
-	for(const auto& checkPair : checklist.checks)
+	size_t failedChecksCount = 0;
+	for(const auto& check : checklist.checks)
 	{
-		if (!checkPair.second->isPassed())
+		if (!check->hasPassed())
 		{
-			LogInfo("Test check failed: %s. %s", checkPair.first, checkPair.second->describe());
-			result = false;
-			continue;
+			if (check->isChecked())
+			{
+				LogInfo("Test check failed: %s", check->getErrorMessage());
+			}
+			else
+			{
+				LogInfo("Test check was not validated, assume failed: %s", check->getErrorMessage());
+			}
+			++failedChecksCount;
 		}
 	}
-	return result;
+
+	if (failedChecksCount > 0)
+	{
+		LogInfo("Failed %u checks out of %u", failedChecksCount, checklist.checks.size());
+		return false;
+	}
+	else
+	{
+		LogInfo("Passed %d checks out of %d", checklist.checks.size(), checklist.checks.size());
+		return true;
+	}
 }
 
 int main(int argc, char** argv)
@@ -50,7 +67,15 @@ int main(int argc, char** argv)
 	if (arguments.hasArgument("randseed"))
 	{
 		std::string seedStr = arguments.getArgumentValue("randseed");
-		seed = static_cast<unsigned int>(std::atoi(seedStr.c_str()));
+		if (std::optional<int> seedOpt = String::ParseInt(seedStr.c_str()); seedOpt.has_value())
+		{
+			seed = static_cast<unsigned int>(seedOpt.value());
+		}
+		else
+		{
+			LogError("Invalid random seed value: %s", seedStr.c_str());
+			return 1;
+		}
 	}
 
 	Random::gGlobalGenerator = std::mt19937(seed);
@@ -86,14 +111,6 @@ int main(int argc, char** argv)
 		std::unique_ptr<BaseTestCase> testCase = caseIt->second();
 		TestChecklist checklist = testCase->start(arguments);
 		const bool isSuccessful = ValidateChecklist(checklist);
-		if (isSuccessful)
-		{
-			LogInfo("Test case %s has been passed", arguments.getArgumentValue("case"));
-		}
-		else
-		{
-			LogError("Test case %s has been failed", arguments.getArgumentValue("case"));
-		}
 		return isSuccessful ? 0 : 1;
 	}
 	else
