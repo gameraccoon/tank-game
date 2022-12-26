@@ -2,13 +2,11 @@
 
 #include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
 
-#include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
 
@@ -31,10 +29,5 @@ void SaveCommandsToHistorySystem::update()
 
 	const GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<const GameplayCommandsComponent>();
 
-	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
-
-	GameplayCommandUtils::AppendFrameToHistory(commandHistory, currentUpdateIndex);
-	const size_t idx = currentUpdateIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);
-
-	commandHistory->getRecordsRef()[idx] = gameplayCommands->getData();
+	mGameStateRewinder.overrideCommandsOneUpdate(currentUpdateIndex, gameplayCommands->getData());
 }

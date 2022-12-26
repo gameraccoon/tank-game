@@ -2,23 +2,17 @@
 
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 
-#include "Base/Types/Serialization.h"
-
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/NetworkEntityIdGeneratorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/World.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "Utils/Network/CompressedInput.h"
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
-#include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
 #include "Utils/Network/Messages/ConnectMessage.h"
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
@@ -60,8 +54,7 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 
 		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
 
-		GameplayCommandUtils::AddCommandToHistory(
-			gameStateRewinder,
+		gameStateRewinder.appendCommandToHistory(
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
 			Network::CreatePlayerEntityCommand::createServerSide(
 				Vector2D(50, 50),
@@ -123,7 +116,7 @@ void ServerNetworkSystem::update()
 
 	if (mLastClientInterationTime + std::chrono::seconds(60) < std::chrono::system_clock::now())
 	{
-		LogInfo("No connections or messages from client for 60 seconds. Shuting down the server");
+		LogInfo("No connections or messages from client for 60 seconds. Shutting down the server");
 		mShouldQuitGame = true;
 	}
 }

@@ -3,7 +3,6 @@
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
@@ -52,20 +51,19 @@ void ServerCommandsSendSystem::update()
 	const TimeData timeValue = time->getValue();
 	const u32 firstFrameUpdateIdx = timeValue.lastFixedUpdateIndex - timeValue.countFixedTimeUpdatesThisFrame + 1;
 
-	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
-	const u32 firstCommandsRecordUpdateIdx = commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1;
+	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
 
 	for (int i = 0; i < timeValue.countFixedTimeUpdatesThisFrame; ++i)
 	{
 		const u32 updateIdx = firstFrameUpdateIdx + i;
-		if (updateIdx < firstCommandsRecordUpdateIdx || updateIdx > commandHistory->getLastCommandUpdateIdx())
+		if (updateIdx < commandUpdateIdxBegin || updateIdx >= commandUpdateIdxEnd)
 		{
 			// we don't have a record in command history for that frame
 			continue;
 		}
 
-		const size_t idx = updateIdx - firstCommandsRecordUpdateIdx;
-		if (commandHistory->getRecords()[idx].list.empty())
+		const Network::GameplayCommandList& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
+		if (updateCommands.list.empty())
 		{
 			// no commands that frame
 			continue;
@@ -92,7 +90,7 @@ void ServerCommandsSendSystem::update()
 
 			connectionManager->sendMessageToClient(
 				connectionId,
-				Network::CreateGameplayCommandsMessage(world, commandHistory->getRecords()[idx].list, connectionId, clientUpdateIdx),
+				Network::CreateGameplayCommandsMessage(world, updateCommands.list, connectionId, clientUpdateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}

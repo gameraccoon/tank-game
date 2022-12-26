@@ -12,13 +12,12 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
-#include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
 
 namespace Network
 {
 	HAL::ConnectionManager::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, World& world, ConnectionId connectionId)
 	{
-		// for players we need to only send creation command to replicate the data
+		// for players, we need to only send creation command to replicate the data
 		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 
@@ -48,13 +47,13 @@ namespace Network
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::WorldSnapshot),
-			std::move(messageData)
+			messageData
 		};
 	}
 
 	void ApplyWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
-		size_t streamIndex = message.payloadStartPos;
+		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 
 		const auto [gameplayCommandFactory] = gameStateRewinder.getNotRewindableComponents().getComponents<const GameplayCommandFactoryComponent>();
 
@@ -69,7 +68,7 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		GameplayCommandUtils::AddOverwritingSnapshotToHistory(gameStateRewinder, clientUpdateIdx, std::move(commands));
+		gameStateRewinder.addOverwritingGameplayCommandsSnapshotToHistory(clientUpdateIdx, std::move(commands));
 	}
 
 	void CleanBeforeApplyingSnapshot(World& world)

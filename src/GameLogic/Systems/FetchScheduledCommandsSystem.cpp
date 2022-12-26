@@ -2,7 +2,6 @@
 
 #include "GameLogic/Systems/FetchScheduledCommandsSystem.h"
 
-#include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/World.h"
@@ -27,14 +26,13 @@ void FetchScheduledCommandsSystem::update()
 
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 
-	GameplayCommandHistoryComponent* commandHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
-	if (commandHistory->getLastCommandUpdateIdx() >= currentUpdateIndex && commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1 <= currentUpdateIndex)
+	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
+	if (commandUpdateIdxBegin <= currentUpdateIndex && currentUpdateIndex < commandUpdateIdxEnd)
 	{
-		const size_t idx = currentUpdateIndex - (commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1);
-		for (Network::GameplayCommand::Ptr& command : commandHistory->getRecordsRef()[idx].list)
+		Network::GameplayCommandList newCommands = mGameStateRewinder.consumeCommandsForUpdate(currentUpdateIndex);
+		for (Network::GameplayCommand::Ptr& command : newCommands.list)
 		{
 			gameplayCommands->getDataRef().list.push_back(std::move(command));
 		}
-		commandHistory->getRecordsRef()[idx].list.clear();
 	}
 }

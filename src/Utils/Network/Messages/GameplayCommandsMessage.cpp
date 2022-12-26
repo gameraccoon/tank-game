@@ -6,13 +6,11 @@
 #include "Base/Types/Serialization.h"
 
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
-#include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/GameplayCommands/GameplayCommandUtils.h"
 
 namespace Network
 {
@@ -53,6 +51,6 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		GameplayCommandUtils::AddConfirmedSnapshotToHistory(stateRewinder, clientUpdateIdx, std::move(commands));
+		stateRewinder.addConfirmedGameplayCommandsSnapshotToHistory(clientUpdateIdx, std::move(commands));
 	}
 }
