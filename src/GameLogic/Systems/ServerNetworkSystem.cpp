@@ -12,6 +12,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 #include "Utils/Network/Messages/ConnectMessage.h"
 #include "Utils/Network/Messages/DisconnectMessage.h"
