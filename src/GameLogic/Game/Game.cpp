@@ -11,7 +11,9 @@
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/Multithreading/ThreadPool.h"
+#ifdef ENABLE_SCOPED_PROFILER
 #include "Utils/Profiling/ProfileDataWriter.h"
+#endif
 #include "Utils/ResourceManagement/ResourceManager.h"
 
 #include "HAL/Base/Engine.h"
@@ -34,8 +36,7 @@ void Game::preStart(const ArgumentsParser& arguments)
 	// ToDo: make an editor not to hardcode SM data
 	StateMachines::RegisterStateMachines(sm);
 
-	getWorldHolder().getWorld().getWorldComponents().addComponent<WorldCachedDataComponent>();
-	getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
+	getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>();
 }
 
 void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
@@ -45,9 +46,9 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 	mFrameBeginTime = std::chrono::steady_clock::now();
 #endif // ENABLE_SCOPED_PROFILER
 
-	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
-	time->getValueRef().lastUpdateDt = dt;
-	time->getValueRef().countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
+	TimeData& timeData = getTimeData();
+	timeData.lastUpdateDt = dt;
+	timeData.countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
 
 #ifndef DEDICATED_SERVER
 	if (HAL::Engine* engine = getEngine())
@@ -65,8 +66,7 @@ void Game::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("Game::fixedTimeUpdate");
 
-	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
-	time->getValueRef().fixedUpdate(dt);
+	getTimeData().fixedUpdate(dt);
 	mGameLogicSystemsManager.update();
 	mInputControllersData.resetLastFrameStates();
 }
@@ -75,9 +75,9 @@ void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("Game::dynamicTimePostFrameUpdate");
 
-	auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<TimeComponent>();
-	time->getValueRef().lastUpdateDt = dt;
-	time->getValueRef().countFixedTimeUpdatesThisFrame = processedFixedTimeUpdates;
+	TimeData& timeData = getTimeData();
+	timeData.lastUpdateDt = dt;
+	timeData.countFixedTimeUpdatesThisFrame = processedFixedTimeUpdates;
 
 	mPostFrameSystemsManager.update();
 

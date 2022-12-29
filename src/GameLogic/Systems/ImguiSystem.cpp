@@ -59,7 +59,7 @@ void ImguiSystem::update()
 		std::lock_guard l(mRenderDataMutex);
 
 		const auto [time] = mDebugData.worldHolder.getWorld().getWorldComponents().getComponents<const TimeComponent>();
-		mDebugData.time = time->getValue();
+		mDebugData.time = *time->getValue();
 
 		for (SDL_Event& sdlEvent : mEngine.getLastFrameEvents())
 		{

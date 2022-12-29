@@ -22,10 +22,10 @@ public:
 	[[nodiscard]] GameplayTimestamp getIncreasedByUpdateCount(s32 passedUpdates) const noexcept;
 	[[nodiscard]] GameplayTimestamp getDecreasedByUpdateCount(s32 updatesAgo) const noexcept;
 
-	friend void to_json(nlohmann::json& outJson, const GameplayTimestamp timestamp);
+	friend void to_json(nlohmann::json& outJson, GameplayTimestamp timestamp);
 	friend void from_json(const nlohmann::json& json, GameplayTimestamp& outTimestamp);
 
-	TimeValueType getRawValue() const { return mTimestamp; }
+	[[nodiscard]] TimeValueType getRawValue() const { return mTimestamp; }
 
 public:
 	static constexpr s32 TimeMultiplier = 1;

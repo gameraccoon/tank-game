@@ -30,9 +30,11 @@ namespace PlayerInputMessageInternal
 
 	static std::unique_ptr<TestGame> CreateGameInstance()
 	{
-		std::unique_ptr<TestGame> world = std::make_unique<TestGame>();
-		ComponentsRegistration::RegisterComponents(world->componentFactory);
-		return world;
+		std::unique_ptr<TestGame> testGame = std::make_unique<TestGame>();
+		ComponentsRegistration::RegisterComponents(testGame->componentFactory);
+		TimeComponent* time = testGame->world.getWorldComponents().addComponent<TimeComponent>();
+		time->setValue(&testGame->stateRewinder.getTimeData());
+		return testGame;
 	}
 }
 
@@ -65,8 +67,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 		{
 			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getInputsRef()[connectionId];
-			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
-			time->getValueRef().lastFixedUpdateIndex = 6;
+			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
 		}
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
@@ -133,8 +134,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
 			inputHistory.lastInputUpdateIdx = 2;
-			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
-			time->getValueRef().lastFixedUpdateIndex = 6;
+			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
 		}
 
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
@@ -197,8 +197,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
 			inputHistory.lastInputUpdateIdx = 42;
-			TimeComponent* time = serverGame->world.getWorldComponents().addComponent<TimeComponent>();
-			time->getValueRef().lastFixedUpdateIndex = 48;
+			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 48;
 		}
 
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);

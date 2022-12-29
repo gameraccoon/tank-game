@@ -17,6 +17,7 @@
 
 class ArgumentsParser;
 class ThreadPool;
+struct TimeData;
 
 class Game : public HAL::GameBase
 {
@@ -38,6 +39,8 @@ public:
 	}
 
 protected:
+	virtual TimeData& getTimeData() = 0;
+
 	ComponentFactory& getComponentFactory() { return mComponentFactory; }
 	RaccoonEcs::EntityGenerator& getEntityGenerator() { return mEntityGenerator; }
 	WorldHolder& getWorldHolder() { return mWorldHolder; }
@@ -48,9 +51,6 @@ protected:
 	ThreadPool& getThreadPool() { return mThreadPool; }
 	GameData& getGameData() { return mGameData; }
 	Json::ComponentSerializationHolder& getComponentSerializers() { return mComponentSerializers; }
-
-private:
-	void workingThreadSaveProfileData();
 
 private:
 	ComponentFactory mComponentFactory;

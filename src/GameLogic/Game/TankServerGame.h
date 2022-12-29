@@ -17,7 +17,7 @@
 
 class ArgumentsParser;
 
-class TankServerGame : public Game
+class TankServerGame final : public Game
 {
 public:
 	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool);
@@ -28,8 +28,11 @@ public:
 	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
-	bool shouldQuitGame() const override { return mShouldQuitGame; }
-	void quitGame() override { mShouldQuitGame = true; }
+	bool shouldQuitGame() const final { return mShouldQuitGame; }
+	void quitGame() final { mShouldQuitGame = true; }
+
+protected:
+	TimeData& getTimeData() final;
 
 private:
 	void initSystems(bool shouldRender);

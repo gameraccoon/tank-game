@@ -3,6 +3,7 @@
 #include "GameData/EcsDefinitions.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/World.h"
+#include "GameData/Time/TimeData.h"
 
 namespace RaccoonEcs
 {
@@ -22,8 +23,8 @@ class GameStateRewinder
 public:
 	GameStateRewinder(ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef);
 
-	World& getWorld() { return *mFrameHistory[mCurrentFrameIdx]; }
-	const World& getWorld() const { return *mFrameHistory[mCurrentFrameIdx]; }
+	World& getWorld() { return *mFrameHistory[mCurrentRecordIdx]; }
+	const World& getWorld() const { return *mFrameHistory[mCurrentRecordIdx]; }
 
 	ComponentSetHolder& getNotRewindableComponents() { return mNotRewindableComponents; }
 	const ComponentSetHolder& getNotRewindableComponents() const { return mNotRewindableComponents; }
@@ -47,6 +48,9 @@ public:
 
 	void resetGameplayCommandDesyncedIndexes();
 
+	TimeData& getTimeData() { return mTimeData; }
+	const TimeData& getTimeData() const { return mTimeData; }
+
 private:
 	struct GameplayCommandHistory {
 		std::vector<Network::GameplayCommandList> mRecords;
@@ -61,7 +65,8 @@ private:
 
 private:
 	ComponentSetHolder mNotRewindableComponents;
-	size_t mCurrentFrameIdx = 0;
+	size_t mCurrentRecordIdx = 0;
+	TimeData mTimeData;
 
 	std::vector<std::unique_ptr<World>> mFrameHistory;
 

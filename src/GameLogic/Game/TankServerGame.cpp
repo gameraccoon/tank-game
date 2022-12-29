@@ -57,15 +57,18 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
 
+	TimeComponent* timeComponent = getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
+	timeComponent->setValue(&mGameStateRewinder.getTimeData());
+
 	// if we do debug rendering of server state
 	if (shouldRender)
 	{
-		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().getOrAddComponent<RenderAccessorComponent>();
+		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
 		renderAccessorComponent->setAccessor(renderAccessor);
 		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setDrawShift(Vector2D(300.0f, 0.0f));
 	}
 	{
-		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().getOrAddComponent<ConnectionManagerComponent>();
+		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().addComponent<ConnectionManagerComponent>();
 		connectionManager->setManagerPtr(&mConnectionManager);
 	}
 
@@ -96,7 +99,7 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	mGameStateRewinder.addNewFrameToTheHistory();
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	applyInputForCurrentUpdate(time->getValue().lastFixedUpdateIndex + 1);
+	applyInputForCurrentUpdate(time->getValue()->lastFixedUpdateIndex + 1);
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -108,6 +111,11 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
 
 	mConnectionManager.flushMesssagesForAllClientConnections(14436);
+}
+
+TimeData& TankServerGame::getTimeData()
+{
+	return mGameStateRewinder.getTimeData();
 }
 
 void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
@@ -140,7 +148,7 @@ void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 	SCOPED_PROFILER("TankServerGame::correctUpdates");
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	const TimeData& timeValue = time->getValue();
+	const TimeData& timeValue = *time->getValue();
 	const float fixedUpdateDt = timeValue.lastFixedUpdateDt;
 
 	AssertFatal(firstIncorrectUpdateIdx <= timeValue.lastFixedUpdateIndex, "We can't correct updates from the future");
@@ -163,13 +171,13 @@ void TankServerGame::processInputCorrections()
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
 
 	// first real update has index 1
-	if (time->getValue().lastFixedUpdateIndex < 1)
+	if (time->getValue()->lastFixedUpdateIndex < 1)
 	{
 		return;
 	}
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-	const u32 lastProcessedUpdateIdx = time->getValue().lastFixedUpdateIndex;
+	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 	// first update of the input that diverged from with prediction for at least one client
 	u32 firstUpdateToCorrect = lastProcessedUpdateIdx + 1;
 	// index of first frame when we don't have input from some client yet

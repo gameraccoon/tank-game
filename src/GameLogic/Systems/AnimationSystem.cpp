@@ -27,7 +27,7 @@ void AnimationSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	float dt = time->getValue().lastFixedUpdateDt;
+	float dt = time->getValue()->lastFixedUpdateDt;
 
 	const auto [stateMachines] = gameData.getGameComponents().getComponents<const StateMachineComponent>();
 

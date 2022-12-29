@@ -65,7 +65,7 @@ namespace Network
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		auto [clientMovesHistory] = gameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 
-		const u32 lastUpdateIdx = time->getValue().lastFixedUpdateIndex;
+		const u32 lastUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
 		std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
 		const u32 lastRecordUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;

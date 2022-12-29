@@ -63,7 +63,7 @@ void ServerMovesSendSystem::update()
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	AssertFatal(time, "TimeComponent should be created before the game run");
-	const TimeData& timeValue = time->getValue();
+	const TimeData& timeValue = *time->getValue();
 
 	for (const ConnectionId connectionId : connections)
 	{

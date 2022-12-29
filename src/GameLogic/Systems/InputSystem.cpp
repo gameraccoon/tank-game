@@ -93,7 +93,7 @@ void InputSystem::processGameplayInput()
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
+	const GameplayTimestamp currentTimestamp = time->getValue()->lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
 
 	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
 

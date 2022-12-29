@@ -56,7 +56,7 @@ void DebugDrawSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const TimeData& timeValue = time->getValue();
+	const TimeData& timeValue = *time->getValue();
 
 	EntityManager& entityManager = world.getEntityManager();
 

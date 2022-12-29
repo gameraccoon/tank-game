@@ -38,7 +38,7 @@ void CharacterStateSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const float dt = time->getValue().lastFixedUpdateDt;
+	const float dt = time->getValue()->lastFixedUpdateDt;
 
 	auto [stateMachine] = gameData.getGameComponents().getComponents<StateMachineComponent>();
 

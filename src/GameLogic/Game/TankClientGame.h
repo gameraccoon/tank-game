@@ -16,7 +16,7 @@
 class ArgumentsParser;
 class GameplayTimestamp;
 
-class TankClientGame : public Game
+class TankClientGame final : public Game
 {
 public:
 	using Game::Game;
@@ -27,14 +27,17 @@ public:
 	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
-	bool shouldQuitGame() const override { return mShouldQuitGame; }
+	bool shouldQuitGame() const final { return mShouldQuitGame; }
 	void quitGame() override { mShouldQuitGameNextTick = true; }
+
+protected:
+	TimeData& getTimeData() final;
 
 private:
 	void initSystems();
 	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, bool overrideState);
 	void removeOldUpdates();
-	void processMoveCorrections();
+	void processCorrections();
 	void clearFrameState(World& world);
 
 private:

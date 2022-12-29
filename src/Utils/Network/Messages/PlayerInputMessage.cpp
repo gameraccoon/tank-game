@@ -102,7 +102,7 @@ namespace Network
 		}
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		const s32 currentIndexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - clientFrameIndex + 1;
+		const s32 currentIndexShift = static_cast<s32>(time->getValue()->lastFixedUpdateIndex) - clientFrameIndex + 1;
 		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
 		{
 			inputHistory.indexShift = currentIndexShift;

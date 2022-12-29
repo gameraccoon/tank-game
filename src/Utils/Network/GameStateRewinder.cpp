@@ -17,54 +17,54 @@ GameStateRewinder::GameStateRewinder(ComponentFactory& componentFactory, Raccoon
 void GameStateRewinder::addNewFrameToTheHistory()
 {
 	SCOPED_PROFILER("GameStateRewinder::addNewFrameToTheHistory");
-	LogInfo("addNewFrameToTheHistory() frame: %u", mCurrentFrameIdx + 1);
+	LogInfo("addNewFrameToTheHistory() frame: %u", mCurrentRecordIdx + 1);
 	AssertFatal(!mFrameHistory.empty(), "Frame history should always contain at least one frame");
-	AssertFatal(mCurrentFrameIdx < mFrameHistory.size(), "mCurrentFrameIdx is out of bounds");
-	if (mCurrentFrameIdx == mFrameHistory.size() - 1)
+	AssertFatal(mCurrentRecordIdx < mFrameHistory.size(), "mCurrentRecordIdx is out of bounds");
+	if (mCurrentRecordIdx == mFrameHistory.size() - 1)
 	{
-		mFrameHistory.emplace_back(std::make_unique<World>(*mFrameHistory[mCurrentFrameIdx]));
+		mFrameHistory.emplace_back(std::make_unique<World>(*mFrameHistory[mCurrentRecordIdx]));
 	}
 	else
 	{
-		mFrameHistory[mCurrentFrameIdx + 1]->overrideBy(*mFrameHistory[mCurrentFrameIdx]);
+		mFrameHistory[mCurrentRecordIdx + 1]->overrideBy(*mFrameHistory[mCurrentRecordIdx]);
 	}
-	++mCurrentFrameIdx;
+	++mCurrentRecordIdx;
 
-	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentFrameIdx]);
+	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
 }
 
 void GameStateRewinder::trimOldFrames(size_t oldFramesLeft)
 {
 	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
 	LogInfo("trimOldFrames(%u)", oldFramesLeft);
-	AssertFatal(oldFramesLeft <= mCurrentFrameIdx, "Can't keep more historical frames than we have, have: %u asked to keep: %u", mCurrentFrameIdx, oldFramesLeft);
-	const size_t shiftLeft = mCurrentFrameIdx - oldFramesLeft;
+	AssertFatal(oldFramesLeft <= mCurrentRecordIdx, "Can't keep more historical frames than we have, have: %u asked to keep: %u", mCurrentRecordIdx, oldFramesLeft);
+	const size_t shiftLeft = mCurrentRecordIdx - oldFramesLeft;
 	if (shiftLeft > 0)
 	{
 		std::rotate(mFrameHistory.begin(), mFrameHistory.begin() + static_cast<int>(shiftLeft), mFrameHistory.end());
-		mCurrentFrameIdx -= shiftLeft;
+		mCurrentRecordIdx -= shiftLeft;
 	}
 }
 
 size_t GameStateRewinder::getStoredFramesCount() const
 {
-	return mCurrentFrameIdx;
+	return mCurrentRecordIdx;
 }
 
 void GameStateRewinder::unwindBackInHistory(size_t framesBackCount)
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
 	LogInfo("unwindBackInHistory(%u)", framesBackCount);
-	if (framesBackCount >= mCurrentFrameIdx)
+	if (framesBackCount >= mCurrentRecordIdx)
 	{
-		ReportFatalError("framesBackCount is too big for the current size of the history. framesBackCount is %u and history size is %u", framesBackCount, mCurrentFrameIdx);
-		mCurrentFrameIdx = 0;
+		ReportFatalError("framesBackCount is too big for the current size of the history. framesBackCount is %u and history size is %u", framesBackCount, mCurrentRecordIdx);
+		mCurrentRecordIdx = 0;
 		return;
 	}
 
-	mCurrentFrameIdx -= framesBackCount;
+	mCurrentRecordIdx -= framesBackCount;
 
-	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentFrameIdx]);
+	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
 }
 
 void GameStateRewinder::appendCommandToHistory(u32 updateIndex, Network::GameplayCommand::Ptr&& newCommand)

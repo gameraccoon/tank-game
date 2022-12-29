@@ -20,6 +20,8 @@
 #include "Utils/Network/Messages/WorldSnapshotMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
+#include "HAL/Network/ConnectionManager.h"
+
 
 ServerNetworkSystem::ServerNetworkSystem(
 		WorldHolder& worldHolder,
@@ -49,7 +51,7 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 	if (clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		const TimeData& timeValue = time->getValue();
+		const TimeData& timeValue = *time->getValue();
 
 		NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = world.getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
 

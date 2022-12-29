@@ -29,8 +29,8 @@ void SaveMovementToHistorySystem::update()
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 
-	const u32 inputUpdateIndex = time->getValue().lastFixedUpdateIndex;
-	const GameplayTimestamp& inputUpdateTimestamp = time->getValue().lastFixedUpdateTimestamp;
+	const u32 inputUpdateIndex = time->getValue()->lastFixedUpdateIndex;
+	const GameplayTimestamp& inputUpdateTimestamp = time->getValue()->lastFixedUpdateTimestamp;
 
 	EntityManager& entityManager = world.getEntityManager();
 	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();

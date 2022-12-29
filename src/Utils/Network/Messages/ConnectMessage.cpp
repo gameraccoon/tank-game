@@ -28,7 +28,7 @@ namespace Network
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		AssertFatal(time, "TimeComponent should be created before the game run");
-		const TimeData& timeValue = time->getValue();
+		const TimeData& timeValue = *time->getValue();
 
 		Serialization::AppendNumber<u32>(connectMessageData, timeValue.lastFixedUpdateIndex);
 
@@ -40,7 +40,7 @@ namespace Network
 
 	u32 ApplyConnectMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
-		size_t streamIndex = message.payloadStartPos;
+		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		const u32 clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
 		if (clientNetworkProtocolVersion != Network::NetworkProtocolVersion)
@@ -56,7 +56,7 @@ namespace Network
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		AssertFatal(time, "TimeComponent should be created before the game run");
 		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
-		inputHistory.indexShift = static_cast<s32>(time->getValue().lastFixedUpdateIndex) - clientFrameIndex + 1;
+		inputHistory.indexShift = static_cast<s32>(time->getValue()->lastFixedUpdateIndex) - clientFrameIndex + 1;
 
 		return clientNetworkProtocolVersion;
 	}

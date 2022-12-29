@@ -22,7 +22,7 @@ void FetchScheduledCommandsSystem::update()
 	World& world = mWorldHolder.getWorld();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const u32 currentUpdateIndex = time->getValue().lastFixedUpdateIndex;
+	const u32 currentUpdateIndex = time->getValue()->lastFixedUpdateIndex;
 
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 
