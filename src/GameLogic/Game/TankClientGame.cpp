@@ -12,7 +12,6 @@
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
-#include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
@@ -82,8 +81,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 		connectionManager->setManagerPtr(&mConnectionManager);
 	}
 
-	ClientMovesHistoryComponent* clientMovesHistory = mGameStateRewinder.getNotRewindableComponents().addComponent<ClientMovesHistoryComponent>();
-	clientMovesHistory->getDataRef().updates.emplace_back(); // emplace empty moves before the first frame, to be able to resimulate it
+	mGameStateRewinder.getMovementHistory().updates.emplace_back(); // emplace empty moves before the first frame, to be able to resimulate it
 
 	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().addComponent<GameplayCommandFactoryComponent>();
 	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
@@ -188,14 +186,13 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 	AssertFatal(lastUpdateIdxWithAuthoritativeMoves <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
 
-	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
-	MovementHistory& movesHistory = clientMovesHistory->getDataRef();
-	std::vector<MovementUpdateData>& updates = movesHistory.updates;
+	MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
+	std::vector<MovementUpdateData>& updates = movementHistory.updates;
 
 	// unwind the history back
 	mGameStateRewinder.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate);
 	updates.erase(updates.begin() + static_cast<int>(updates.size() - framesToResimulate), updates.end());
-	movesHistory.lastUpdateIdx -= framesToResimulate;
+	movementHistory.lastUpdateIdx -= framesToResimulate;
 	mGameStateRewinder.getTimeData().lastFixedUpdateIndex -= framesToResimulate;
 	mGameStateRewinder.getTimeData().lastFixedUpdateTimestamp = mGameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(framesToResimulate));
 
@@ -259,17 +256,16 @@ void TankClientGame::processCorrections()
 
 	World& world = getWorldHolder().getWorld();
 
-	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
-
 	// local scope because after the corrections the values can change
 	{
 		const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
+		MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
 
 		const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 		const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
-		const u32 lastConfirmedMovesUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
-		AssertFatal(lastConfirmedMovesUpdateIdx != clientMovesHistory->getData().updateIdxProducedDesyncedMoves, "We can't have the same frame to be confirmed and desynced at the same time");
-		const u32 desyncedMoveUpdateIdx = (clientMovesHistory->getData().updateIdxProducedDesyncedMoves > lastConfirmedMovesUpdateIdx) ? clientMovesHistory->getData().updateIdxProducedDesyncedMoves : std::numeric_limits<u32>::max();
+		const u32 lastConfirmedMovesUpdateIdx = movementHistory.lastConfirmedUpdateIdx;
+		AssertFatal(lastConfirmedMovesUpdateIdx != movementHistory.updateIdxProducedDesyncedMoves, "We can't have the same frame to be confirmed and desynced at the same time");
+		const u32 desyncedMoveUpdateIdx = (movementHistory.updateIdxProducedDesyncedMoves > lastConfirmedMovesUpdateIdx) ? movementHistory.updateIdxProducedDesyncedMoves : std::numeric_limits<u32>::max();
 		const u32 desyncedCommandUpdateIdx = mGameStateRewinder.getUpdateIdxProducedDesyncedCommands();
 		const u32 firstDesyncedUpdate = std::min(desyncedMoveUpdateIdx, desyncedCommandUpdateIdx);
 
@@ -282,8 +278,8 @@ void TankClientGame::processCorrections()
 			correctUpdates(firstUpdateToCorrect, shouldOverride);
 
 			// mark the desynced update as confirmed since now we applied moves from server to it
-			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = firstDesyncedUpdate;
-			clientMovesHistory->getDataRef().updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
+			movementHistory.lastConfirmedUpdateIdx = firstDesyncedUpdate;
+			movementHistory.updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
 			mGameStateRewinder.resetGameplayCommandDesyncedIndexes();
 		}
 	}
@@ -299,16 +295,15 @@ void TankClientGame::removeOldUpdates()
 
 	World& world = getWorldHolder().getWorld();
 
-	auto [clientMovesHistory] = mGameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 
-	const MovementHistory& movementHistory = clientMovesHistory->getData();
-	std::vector<MovementUpdateData>& movementUpdates = clientMovesHistory->getDataRef().updates;
+	MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
+	std::vector<MovementUpdateData>& movementUpdates = movementHistory.updates;
 
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 	const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
-	const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
+	const u32 lastConfirmedUpdateIdx = movementHistory.lastConfirmedUpdateIdx;
 	// Fixme: replace 0 with real value of confirmed gameplay commands for an update
 	const u32 lastUpdateSafeToRemove = std::min(0u, lastConfirmedUpdateIdx);
 
@@ -331,7 +326,7 @@ void TankClientGame::removeOldUpdates()
 		movementUpdates.erase(movementUpdates.begin(), movementUpdates.begin() + static_cast<int>(firstIndexToKeep));
 	}
 
-	mGameStateRewinder.clearOldCommands(clientMovesHistory, firstUpdateToKeep);
+	mGameStateRewinder.clearOldCommands(firstUpdateToKeep);
 	mGameStateRewinder.trimOldFrames(updatesCountAfterTrim);
 }
 

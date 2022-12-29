@@ -2,8 +2,9 @@
 
 #include "GameData/EcsDefinitions.h"
 #include "GameData/Network/GameplayCommand.h"
-#include "GameData/World.h"
+#include "GameData/Network/MovementHistory.h"
 #include "GameData/Time/TimeData.h"
+#include "GameData/World.h"
 
 namespace RaccoonEcs
 {
@@ -11,12 +12,6 @@ namespace RaccoonEcs
 }
 
 class WorldHolder;
-class ClientMovesHistoryComponent;
-
-namespace Network
-{
-	struct GameplayCommandList;
-}
 
 class GameStateRewinder
 {
@@ -37,7 +32,7 @@ public:
 
 	void appendCommandToHistory(u32 updateIndex, Network::GameplayCommand::Ptr&& newCommand);
 	void overrideCommandsOneUpdate(u32 updateIndex, const Network::GameplayCommandList& updateCommends);
-	void clearOldCommands(ClientMovesHistoryComponent* clientMovesHistory, size_t firstUpdateToKeep);
+	void clearOldCommands(size_t firstUpdateToKeep);
 	const Network::GameplayCommandList& getCommandsForUpdate(u32 updateIdx) const;
 	[[nodiscard]] Network::GameplayCommandList consumeCommandsForUpdate(u32 updateIndex);
 	std::pair<u32, u32> getCommandsRecordUpdateIdxRange() const;
@@ -45,11 +40,13 @@ public:
 	void addOverwritingGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands);
 	u32 getUpdateIdxProducedDesyncedCommands() const;
 	u32 getUpdateIdxWithRewritingCommands() const;
-
 	void resetGameplayCommandDesyncedIndexes();
 
 	TimeData& getTimeData() { return mTimeData; }
 	const TimeData& getTimeData() const { return mTimeData; }
+
+	MovementHistory& getMovementHistory() { return mMovementHistory; }
+	const MovementHistory& getMovementHistory() const { return mMovementHistory; }
 
 private:
 	struct GameplayCommandHistory {
@@ -73,4 +70,5 @@ private:
 	WorldHolder& mWorldHolderRef;
 
 	GameplayCommandHistory mGameplayCommandHistory;
+	MovementHistory mMovementHistory;
 };

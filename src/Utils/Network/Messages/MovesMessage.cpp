@@ -5,10 +5,8 @@
 #include "Base/Types/Serialization.h"
 #include "Base/Types/BasicTypes.h"
 
-#include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -56,21 +54,22 @@ namespace Network
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::EntityMove),
-			std::move(movesMessageData)
+			movesMessageData
 		};
 	}
 
 	void ApplyMovesMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		auto [clientMovesHistory] = gameStateRewinder.getNotRewindableComponents().getComponents<ClientMovesHistoryComponent>();
 
 		const u32 lastUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
-		std::vector<MovementUpdateData>& updates = clientMovesHistory->getDataRef().updates;
-		const u32 lastRecordUpdateIdx = clientMovesHistory->getData().lastUpdateIdx;
-		const u32 lastConfirmedUpdateIdx = clientMovesHistory->getData().lastConfirmedUpdateIdx;
-		const u32 updateIdxProducedDesyncedMoves = clientMovesHistory->getData().updateIdxProducedDesyncedMoves;
+		MovementHistory& movementHistory = gameStateRewinder.getMovementHistory();
+
+		std::vector<MovementUpdateData>& updates = movementHistory.updates;
+		const u32 lastRecordUpdateIdx = movementHistory.lastUpdateIdx;
+		const u32 lastConfirmedUpdateIdx = movementHistory.lastConfirmedUpdateIdx;
+		const u32 updateIdxProducedDesyncedMoves = movementHistory.updateIdxProducedDesyncedMoves;
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
@@ -88,7 +87,7 @@ namespace Network
 
 		if (updateIdx > lastUpdateIdx)
 		{
-			// during debugging we can have situations when server thread tempararely went ahead with simulating the game
+			// during debugging, we can have situations when server thread temporarily went ahead with simulating the game
 			// skip this data until client thread catches up or server thread corrects its update index shift
 			// if it visually lags because of this return then some of these doesn't work correctly:
 			// - fixed dt loop with ability to catch up after a lag (and ability to recover after staying on a breakpoint)
@@ -138,7 +137,7 @@ namespace Network
 			const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(serverEntityId);
 			Assert(entityIt != networkIdMapping->getNetworkIdToEntity().end(), "Server entity is not found on the client");
 			Entity entity = (entityIt != networkIdMapping->getNetworkIdToEntity().end()) ? entityIt->second : Entity(0);
-			Vector2D location;
+			Vector2D location{};
 			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex);
 			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex);
 			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex));
@@ -181,11 +180,11 @@ namespace Network
 
 		if (areMovesDesynced)
 		{
-			clientMovesHistory->getDataRef().updateIdxProducedDesyncedMoves = updateIdx;
+			movementHistory.updateIdxProducedDesyncedMoves = updateIdx;
 		}
 		else
 		{
-			clientMovesHistory->getDataRef().lastConfirmedUpdateIdx = updateIdx;
+			movementHistory.lastConfirmedUpdateIdx = updateIdx;
 		}
 	}
 }

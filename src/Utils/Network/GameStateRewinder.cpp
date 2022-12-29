@@ -1,6 +1,5 @@
 #include "Base/precomp.h"
 
-#include "GameData/Components/ClientMovesHistoryComponent.generated.h"
 #include "GameData/Network/GameplayCommand.h"
 
 #include "Utils/Network/GameStateRewinder.h"
@@ -86,11 +85,10 @@ void GameStateRewinder::overrideCommandsOneUpdate(u32 updateIndex, const Network
 	mGameplayCommandHistory.mRecords[idx] = updateCommends;
 }
 
-void GameStateRewinder::clearOldCommands(ClientMovesHistoryComponent* clientMovesHistory, size_t firstUpdateToKeep)
+void GameStateRewinder::clearOldCommands(size_t firstUpdateToKeep)
 {
-	const MovementHistory& movementHistory = clientMovesHistory->getData();
-	std::vector<MovementUpdateData>& movementUpdates = clientMovesHistory->getDataRef().updates;
-	const u32 firstStoredUpdateIdx = movementHistory.lastUpdateIdx - movementUpdates.size() + 1;
+	std::vector<MovementUpdateData>& movementUpdates = mMovementHistory.updates;
+	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - movementUpdates.size() + 1;
 	if (firstUpdateToKeep < firstStoredUpdateIdx + 1)
 	{
 		const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
