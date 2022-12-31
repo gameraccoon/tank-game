@@ -11,6 +11,7 @@ GameStateRewinder::GameStateRewinder(ComponentFactory& componentFactory, Raccoon
 {
 	mFrameHistory.emplace_back(HS_NEW World(componentFactory, entityGenerator));
 	mWorldHolderRef.setWorld(*mFrameHistory.front());
+	mMovementHistory.updates.emplace_back();
 }
 
 void GameStateRewinder::addNewFrameToTheHistory()
@@ -50,7 +51,7 @@ size_t GameStateRewinder::getStoredFramesCount() const
 	return mCurrentRecordIdx;
 }
 
-void GameStateRewinder::unwindBackInHistory(size_t framesBackCount)
+void GameStateRewinder::unwindBackInHistory(u32 framesBackCount, u32 framesToResimulate)
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
 	LogInfo("unwindBackInHistory(%u)", framesBackCount);
@@ -64,6 +65,11 @@ void GameStateRewinder::unwindBackInHistory(size_t framesBackCount)
 	mCurrentRecordIdx -= framesBackCount;
 
 	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
+
+	mMovementHistory.updates.erase(mMovementHistory.updates.begin() + static_cast<int>(mMovementHistory.updates.size() - framesToResimulate), mMovementHistory.updates.end());
+	mMovementHistory.lastUpdateIdx -= framesToResimulate;
+	mTimeData.lastFixedUpdateIndex -= framesToResimulate;
+	mTimeData.lastFixedUpdateTimestamp = mTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(framesToResimulate));
 }
 
 void GameStateRewinder::appendCommandToHistory(u32 updateIndex, Network::GameplayCommand::Ptr&& newCommand)
@@ -138,8 +144,10 @@ u32 GameStateRewinder::getUpdateIdxWithRewritingCommands() const
 	return mGameplayCommandHistory.mUpdateIdxWithRewritingCommands;
 }
 
-void GameStateRewinder::resetGameplayCommandDesyncedIndexes()
+void GameStateRewinder::resetDesyncedIndexes(u32 lastConfirmedUpdateIdx)
 {
+	mMovementHistory.lastConfirmedUpdateIdx = lastConfirmedUpdateIdx;
+	mMovementHistory.updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
 	mGameplayCommandHistory.mUpdateIdxProducedDesyncedCommands = std::numeric_limits<u32>::max();
 	mGameplayCommandHistory.mUpdateIdxWithRewritingCommands = std::numeric_limits<u32>::max();
 }
@@ -166,6 +174,103 @@ void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
 std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getAllInputHistories()
 {
 	return mClientsInputHistory;
+}
+
+void GameStateRewinder::clearOldMoves(const u32 firstUpdateToKeep)
+{
+	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - mMovementHistory.updates.size() + 1;
+	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
+	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
+	mMovementHistory.updates.erase(mMovementHistory.updates.begin(), mMovementHistory.updates.begin() + static_cast<int>(firstIndexToKeep));
+}
+
+void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 lastReceivedByServerUpdateIdx, MovementUpdateData&& authoritativeMovementData)
+{
+	std::vector<MovementUpdateData>& updates = mMovementHistory.updates;
+	const u32 lastRecordUpdateIdx = mMovementHistory.lastUpdateIdx;
+	const u32 lastConfirmedUpdateIdx = mMovementHistory.lastConfirmedUpdateIdx;
+	const u32 updateIdxProducedDesyncedMoves = mMovementHistory.updateIdxProducedDesyncedMoves;
+
+	AssertFatal(mTimeData.lastFixedUpdateIndex == lastRecordUpdateIdx, "We should always have input record for the last frame");
+
+	const u32 firstRecordUpdateIdx = static_cast<u32>(lastRecordUpdateIdx + 1 - updates.size());
+
+	if (updateIdx < firstRecordUpdateIdx)
+	{
+		// we got an update for some old state that we don't have records for, skip it
+		return;
+	}
+
+	if (updateIdx <= lastConfirmedUpdateIdx)
+	{
+		// we have snapshots later than this that are already confirmed, no need to do anything
+		return;
+	}
+
+	if (updateIdxProducedDesyncedMoves != std::numeric_limits<u32>::max() && updateIdx <= updateIdxProducedDesyncedMoves)
+	{
+		// we have snapshots later than this that are confirmed to be desynchronized, no need to do anything
+		return;
+	}
+
+	const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
+	AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
+
+	const InputHistoryComponent* inputHistory = getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
+	AssertFatal(updateIdx >= inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size(), "Trying to correct a frame with missing input");
+
+	std::vector<EntityMoveHash> oldMovesData = std::move(updates[updatedRecordIdx].updateHash);
+
+	bool areMovesDesynced = false;
+	if (oldMovesData != authoritativeMovementData.updateHash)
+	{
+		areMovesDesynced = true;
+
+		// if the server hasn't received input for all the updates it processed
+		if (lastReceivedByServerUpdateIdx < updateIdx)
+		{
+			const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
+			// check if the server was able to correctly predict our input for that frame
+			// and if it was able, then mark record as desynced, since then our prediction was definitely incorrect
+			if (inputHistory->getLastInputUpdateIdx() >= updateIdx && (inputHistory->getLastInputUpdateIdx() + 1 - inputs.size() <= lastReceivedByServerUpdateIdx))
+			{
+				const size_t indexShift = inputHistory->getLastInputUpdateIdx() + 1 - inputs.size();
+				for (u32 i = updateIdx; i > lastReceivedByServerUpdateIdx; --i)
+				{
+					if (inputs[i - 1 - indexShift] != inputs[i - indexShift])
+					{
+						// server couldn't predict our input correctly, we can't trust its movement prediction either
+						// mark as accepted to keep our local version until we get moves with confirmed input
+						areMovesDesynced = false;
+						break;
+					}
+				}
+			}
+			else
+			{
+				ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedByServerUpdateIdx, inputs.size(), inputHistory->getLastInputUpdateIdx());
+			}
+		}
+	}
+
+	if (areMovesDesynced)
+	{
+		mMovementHistory.updateIdxProducedDesyncedMoves = updateIdx;
+		mMovementHistory.updates[updatedRecordIdx] = std::move(authoritativeMovementData);
+	}
+	else
+	{
+		mMovementHistory.lastConfirmedUpdateIdx = updateIdx;
+	}
+}
+
+void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, MovementUpdateData&& newUpdateData)
+{
+	AssertFatal(updateIndex == mMovementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", updateIndex, mMovementHistory.lastUpdateIdx);
+	const size_t nextUpdateIndex = mMovementHistory.updates.size() + updateIndex - mMovementHistory.lastUpdateIdx - 1;
+	Assert(nextUpdateIndex == mMovementHistory.updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, mMovementHistory.updates.size());
+	mMovementHistory.updates.push_back(std::move(newUpdateData));
+	mMovementHistory.lastUpdateIdx = updateIndex;
 }
 
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)

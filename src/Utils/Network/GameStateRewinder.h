@@ -29,7 +29,7 @@ public:
 	void trimOldFrames(size_t oldFramesLeft);
 	size_t getStoredFramesCount() const;
 
-	void unwindBackInHistory(size_t framesBackCount);
+	void unwindBackInHistory(u32 framesBackCount, u32 framesToResimulate);
 
 	void appendCommandToHistory(u32 updateIndex, Network::GameplayCommand::Ptr&& newCommand);
 	void overrideCommandsOneUpdate(u32 updateIndex, const Network::GameplayCommandList& updateCommends);
@@ -41,14 +41,17 @@ public:
 	void addOverwritingGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands);
 	u32 getUpdateIdxProducedDesyncedCommands() const;
 	u32 getUpdateIdxWithRewritingCommands() const;
-	void resetGameplayCommandDesyncedIndexes();
+
+	void resetDesyncedIndexes(u32 lastConfirmedUpdateIdx);
 
 	TimeData& getTimeData() { return mTimeData; }
 	const TimeData& getTimeData() const { return mTimeData; }
 
 	// meaningful only on client
-	MovementHistory& getMovementHistory() { return mMovementHistory; }
 	const MovementHistory& getMovementHistory() const { return mMovementHistory; }
+	void addFrameToMovementHistory(u32 updateIndex, MovementUpdateData&& newUpdateData);
+	void applyAuthoritativeMoves(u32 updateIdx, u32 lastReceivedByServerUpdateIdx, MovementUpdateData&& authoritativeMovementData);
+	void clearOldMoves(u32 firstUpdateToKeep);
 
 	// meaningful only on server
 	Input::InputHistory& getInputHistoryForClient(ConnectionId connectionId);

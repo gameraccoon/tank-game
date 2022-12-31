@@ -156,7 +156,7 @@ void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 
 	LogInfo("Correct server updates from %u to %u", firstIncorrectUpdateIdx, timeValue.lastFixedUpdateIndex);
 
-	mGameStateRewinder.unwindBackInHistory(framesToResimulate);
+	mGameStateRewinder.unwindBackInHistory(framesToResimulate, framesToResimulate);
 
 	for (u32 i = 0; i < framesToResimulate; ++i)
 	{

@@ -38,7 +38,6 @@ private:
 	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, bool overrideState);
 	void removeOldUpdates();
 	void processCorrections();
-	void clearFrameState(World& world);
 
 private:
 	GameStateRewinder mGameStateRewinder{getComponentFactory(), getEntityGenerator(), getWorldHolder()};

@@ -81,8 +81,6 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 		connectionManager->setManagerPtr(&mConnectionManager);
 	}
 
-	mGameStateRewinder.getMovementHistory().updates.emplace_back(); // emplace empty moves before the first frame, to be able to resimulate it
-
 	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().addComponent<GameplayCommandFactoryComponent>();
 	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
 
@@ -186,15 +184,11 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 	AssertFatal(lastUpdateIdxWithAuthoritativeMoves <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 framesToResimulate = lastUpdateTime.lastFixedUpdateIndex - lastUpdateIdxWithAuthoritativeMoves;
 
-	MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
-	std::vector<MovementUpdateData>& updates = movementHistory.updates;
+	const MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
+	const std::vector<MovementUpdateData>& updates = movementHistory.updates;
 
 	// unwind the history back
-	mGameStateRewinder.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate);
-	updates.erase(updates.begin() + static_cast<int>(updates.size() - framesToResimulate), updates.end());
-	movementHistory.lastUpdateIdx -= framesToResimulate;
-	mGameStateRewinder.getTimeData().lastFixedUpdateIndex -= framesToResimulate;
-	mGameStateRewinder.getTimeData().lastFixedUpdateTimestamp = mGameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(framesToResimulate));
+	mGameStateRewinder.unwindBackInHistory(overrideState ? framesToResimulate - 1 : framesToResimulate, framesToResimulate);
 
 	// apply moves to the diverged frame
 	std::unordered_map<Entity, EntityMoveData> entityMoves;
@@ -205,7 +199,7 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 
 	if (overrideState)
 	{
-		clearFrameState(world);
+		Network::CleanBeforeApplyingSnapshot(world);
 	}
 
 	world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
@@ -259,7 +253,7 @@ void TankClientGame::processCorrections()
 	// local scope because after the corrections the values can change
 	{
 		const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
-		MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
+		const MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
 
 		const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 		const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
@@ -278,9 +272,7 @@ void TankClientGame::processCorrections()
 			correctUpdates(firstUpdateToCorrect, shouldOverride);
 
 			// mark the desynced update as confirmed since now we applied moves from server to it
-			movementHistory.lastConfirmedUpdateIdx = firstDesyncedUpdate;
-			movementHistory.updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
-			mGameStateRewinder.resetGameplayCommandDesyncedIndexes();
+			mGameStateRewinder.resetDesyncedIndexes(firstDesyncedUpdate);
 		}
 	}
 
@@ -297,8 +289,7 @@ void TankClientGame::removeOldUpdates()
 
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 
-	MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
-	std::vector<MovementUpdateData>& movementUpdates = movementHistory.updates;
+	const MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
 
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 	const u32 firstUpdateIdx = lastUpdateIdx - mGameStateRewinder.getStoredFramesCount() + 1;
@@ -318,21 +309,9 @@ void TankClientGame::removeOldUpdates()
 	}
 	const u32 firstUpdateToKeep = lastUpdateIdx - updatesCountAfterTrim + 1;
 
-	// we keep one more frame for movement and command records because we use them to recalculate the next frame after
-	{
-		const u32 firstStoredUpdateIdx = movementHistory.lastUpdateIdx - movementUpdates.size() + 1;
-		AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
-		const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
-		movementUpdates.erase(movementUpdates.begin(), movementUpdates.begin() + static_cast<int>(firstIndexToKeep));
-	}
-
+	mGameStateRewinder.clearOldMoves(firstUpdateToKeep);
 	mGameStateRewinder.clearOldCommands(firstUpdateToKeep);
 	mGameStateRewinder.trimOldFrames(updatesCountAfterTrim);
-}
-
-void TankClientGame::clearFrameState(World& world)
-{
-	Network::CleanBeforeApplyingSnapshot(world);
 }
 
 #endif // !DEDICATED_SERVER

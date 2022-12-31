@@ -5,7 +5,6 @@
 #include "Base/Types/Serialization.h"
 #include "Base/Types/BasicTypes.h"
 
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -60,16 +59,7 @@ namespace Network
 
 	void ApplyMovesMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
-		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-
-		const u32 lastUpdateIdx = time->getValue()->lastFixedUpdateIndex;
-
-		MovementHistory& movementHistory = gameStateRewinder.getMovementHistory();
-
-		std::vector<MovementUpdateData>& updates = movementHistory.updates;
-		const u32 lastRecordUpdateIdx = movementHistory.lastUpdateIdx;
-		const u32 lastConfirmedUpdateIdx = movementHistory.lastConfirmedUpdateIdx;
-		const u32 updateIdxProducedDesyncedMoves = movementHistory.updateIdxProducedDesyncedMoves;
+		const u32 lastUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex;
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
@@ -95,41 +85,10 @@ namespace Network
 			return;
 		}
 
-		AssertFatal(lastUpdateIdx == lastRecordUpdateIdx, "We should always have input record for the last frame");
-
-		const u32 firstRecordUpdateIdx = static_cast<u32>(lastRecordUpdateIdx + 1 - updates.size());
-
-		if (updateIdx < firstRecordUpdateIdx)
-		{
-			// we got an update for some old state that we don't have records for, skip it
-			return;
-		}
-
-		if (updateIdx <= lastConfirmedUpdateIdx)
-		{
-			// we have snapshots later than this that are already confirmed, no need to do anything
-			return;
-		}
-
-		if (updateIdxProducedDesyncedMoves != std::numeric_limits<u32>::max() && updateIdx <= updateIdxProducedDesyncedMoves)
-		{
-			// we have snapshots later than this that are confirmed to be desynchronized, no need to do anything
-			return;
-		}
-
-		InputHistoryComponent* inputHistory = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
-
-		const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
-
-		AssertFatal(updateIdx >= inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size(), "Trying to correct a frame with missing input");
-
-		AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
-		MovementUpdateData& currentUpdateData = updates[updatedRecordIdx];
-
-		std::vector<EntityMoveHash> oldMovesData = std::move(currentUpdateData.updateHash);
-
 		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
 
+		MovementUpdateData currentUpdateData;
+		currentUpdateData.moves.reserve((message.data.size() - streamIndex) / (8 + 4 + 4 + 4));
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
 		{
@@ -147,44 +106,6 @@ namespace Network
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		bool areMovesDesynced = false;
-		if (oldMovesData != currentUpdateData.updateHash)
-		{
-			areMovesDesynced = true;
-
-			if (hasMissingInput)
-			{
-				const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
-				// check if the server was able to correctly predict our input for that frame
-				// and if it was able, then mark record as desynced, since then our prediction was definitely incorrect
-				if (inputHistory->getLastInputUpdateIdx() >= updateIdx && (inputHistory->getLastInputUpdateIdx() + 1 - inputs.size() <= lastReceivedInputUpdateIdx))
-				{
-					const size_t indexShift = inputHistory->getLastInputUpdateIdx() + 1 - inputs.size();
-					for (u32 i = updateIdx; i > lastReceivedInputUpdateIdx; --i)
-					{
-						if (inputs[i - 1 - indexShift] != inputs[i - indexShift])
-						{
-							// server couldn't predict our input correctly, we can't trust its movement prediction either
-							// mark as accepted to keep our local version until we get moves with confirmed input
-							areMovesDesynced = false;
-							break;
-						}
-					}
-				}
-				else
-				{
-					ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedInputUpdateIdx, inputs.size(), inputHistory->getLastInputUpdateIdx());
-				}
-			}
-		}
-
-		if (areMovesDesynced)
-		{
-			movementHistory.updateIdxProducedDesyncedMoves = updateIdx;
-		}
-		else
-		{
-			movementHistory.lastConfirmedUpdateIdx = updateIdx;
-		}
+		gameStateRewinder.applyAuthoritativeMoves(updateIdx, lastReceivedInputUpdateIdx, std::move(currentUpdateData));
 	}
 }

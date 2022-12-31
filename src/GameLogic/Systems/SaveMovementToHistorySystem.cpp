@@ -31,16 +31,7 @@ void SaveMovementToHistorySystem::update()
 	const GameplayTimestamp& inputUpdateTimestamp = time->getValue()->lastFixedUpdateTimestamp;
 
 	EntityManager& entityManager = world.getEntityManager();
-
-	MovementHistory& movementHistory = mGameStateRewinder.getMovementHistory();
-
-	std::vector<MovementUpdateData>& updates = movementHistory.updates;
-	AssertFatal(inputUpdateIndex == movementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", inputUpdateIndex, movementHistory.lastUpdateIdx);
-	const size_t nextUpdateIndex = updates.size() + inputUpdateIndex - movementHistory.lastUpdateIdx - 1;
-	Assert(nextUpdateIndex == updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, updates.size());
-	updates.resize(nextUpdateIndex + 1);
-	MovementUpdateData& newUpdateData = updates[nextUpdateIndex];
-
+	MovementUpdateData newUpdateData;
 	entityManager.forEachComponentSetWithEntity<const MovementComponent, const TransformComponent>(
 		[&newUpdateData, inputUpdateTimestamp](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
 	{
@@ -54,5 +45,5 @@ void SaveMovementToHistorySystem::update()
 
 	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
 
-	movementHistory.lastUpdateIdx = inputUpdateIndex;
+	mGameStateRewinder.addFrameToMovementHistory(inputUpdateIndex, std::move(newUpdateData));
 }
