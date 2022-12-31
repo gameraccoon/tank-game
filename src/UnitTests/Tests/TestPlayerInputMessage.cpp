@@ -5,14 +5,13 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/World.h"
 
-#include "Utils/Network/Messages/PlayerInputMessage.h"
 #include "Utils/Network/GameStateRewinder.h"
+#include "Utils/Network/Messages/PlayerInputMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
 
@@ -64,15 +63,11 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 	{
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
-		{
-			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-			serverConnections->getInputsRef()[connectionId];
-			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
-		}
+		serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
+		serverGame->stateRewinder.onClientConnected(connectionId, 0u);
+		const Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(5));
 		EXPECT_EQ(inputHistory.inputs[0].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
@@ -122,10 +117,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
 		{
-			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-			serverConnections->getInputsRef()[connectionId];
+			serverGame->stateRewinder.onClientConnected(connectionId, 0u);
 
-			Input::InputHistory& inputHistory = serverConnections->getInputsRef().at(connectionId);
+			Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 			inputHistory.inputs.resize(3);
 			inputHistory.inputs[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
 			inputHistory.inputs[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
@@ -139,8 +133,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
+		const Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(5));
 		EXPECT_EQ(inputHistory.inputs[0].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
@@ -184,10 +177,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 		auto serverGame = CreateGameInstance();
 		ConnectionId connectionId = 1;
 		{
-			ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-			serverConnections->getInputsRef()[connectionId];
+			serverGame->stateRewinder.onClientConnected(connectionId, 0u);
 
-			Input::InputHistory& inputHistory = serverConnections->getInputsRef().at(connectionId);
+			Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 
 			inputHistory.inputs.resize(3);
 			inputHistory.inputs[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
@@ -202,8 +194,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		ServerConnectionsComponent* serverConnections = serverGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		const Input::InputHistory& inputHistory = serverConnections->getInputs().at(connectionId);
+		const Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(7));
 		EXPECT_EQ(inputHistory.inputs[0].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);

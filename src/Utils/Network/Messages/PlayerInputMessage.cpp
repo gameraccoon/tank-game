@@ -6,7 +6,6 @@
 #include "Base/Types/BasicTypes.h"
 
 #include "GameData/Components/InputHistoryComponent.generated.h"
-#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
@@ -17,21 +16,21 @@ namespace Network
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
-		HAL::ConnectionManager::Message resultMesssage(static_cast<u32>(NetworkMessageId::PlayerInput));
+		HAL::ConnectionManager::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
 		const InputHistoryComponent* inputHistory = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
 
 		const size_t inputsSize = inputHistory->getInputs().size();
 		const size_t inputsToSend = std::min(inputsSize, Input::MAX_INPUT_HISTORY_SEND_SIZE);
 
-		resultMesssage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
+		resultMessage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
-		Serialization::AppendNumber<u32>(resultMesssage.data, inputHistory->getLastInputUpdateIdx());
+		Serialization::AppendNumber<u32>(resultMessage.data, inputHistory->getLastInputUpdateIdx());
 		static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE < 256, "u8 is too small to fit input history size");
-		Serialization::AppendNumberNarrowCast<u8>(resultMesssage.data, inputsToSend);
+		Serialization::AppendNumberNarrowCast<u8>(resultMessage.data, inputsToSend);
 
-		Utils::AppendInputHistory(resultMesssage.data, inputHistory->getInputs(), inputsToSend);
+		Utils::AppendInputHistory(resultMessage.data, inputHistory->getInputs(), inputsToSend);
 
-		return resultMesssage;
+		return resultMessage;
 	}
 
 	static bool hasNewInput(u32 oldFrameIndex, u32 newFrameIndex)
@@ -61,8 +60,6 @@ namespace Network
 
 	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
 	{
-		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;
 
@@ -70,7 +67,7 @@ namespace Network
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
 		const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
-		Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
+		Input::InputHistory& inputHistory = gameStateRewinder.getInputHistoryForClient(connectionId);
 		const u32 lastStoredFrameIndex = inputHistory.lastInputUpdateIdx;
 		if (hasNewInput(lastStoredFrameIndex, clientFrameIndex))
 		{
@@ -102,7 +99,7 @@ namespace Network
 		}
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		const s32 currentIndexShift = static_cast<s32>(time->getValue()->lastFixedUpdateIndex) - clientFrameIndex + 1;
+		const s32 currentIndexShift = static_cast<s32>(time->getValue()->lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1;
 		if (inputHistory.indexShift == std::numeric_limits<s32>::max())
 		{
 			inputHistory.indexShift = currentIndexShift;

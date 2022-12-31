@@ -67,14 +67,13 @@ void ServerMovesSendSystem::update()
 
 	for (const ConnectionId connectionId : connections)
 	{
-		const auto inputIt = serverConnections->getInputs().find(connectionId);
-		if (inputIt == serverConnections->getInputs().end())
+		const Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
+
+		if (inputHistory.inputs.empty())
 		{
 			// we haven't yet got any player input, so no need to send state for this frame to this player
 			continue;
 		}
-
-		const Input::InputHistory& inputHistory = inputIt->second;
 
 		const s32 indexShift = inputHistory.indexShift;
 

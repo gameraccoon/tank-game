@@ -12,16 +12,6 @@
 				"\"GameData/Network/ConnectionId.h\""
 			],
 			"flags": ["get_by_ref"]
-		},
-		{
-			"name": "inputs",
-			"type": "std::unordered_map<ConnectionId, Input::InputHistory>",
-			"includes": [
-				"<unordered_map>",
-				"\"GameData/Input/InputHistory.h\"",
-				"\"GameData/Network/ConnectionId.h\""
-			],
-			"flags": ["get_by_ref"]
 		}
 	]
 }

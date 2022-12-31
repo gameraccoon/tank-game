@@ -176,7 +176,6 @@ void TankServerGame::processInputCorrections()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 	// first update of the input that diverged from with prediction for at least one client
 	u32 firstUpdateToCorrect = lastProcessedUpdateIdx + 1;
@@ -185,7 +184,7 @@ void TankServerGame::processInputCorrections()
 
 	constexpr u32 MAX_STORED_UPDATES_COUNT = 60;
 
-	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
+	for (auto& [_, inputHistory] : mGameStateRewinder.getAllInputHistories())
 	{
 		if (inputHistory.inputs.empty())
 		{
@@ -221,7 +220,7 @@ void TankServerGame::processInputCorrections()
 		correctUpdates(firstUpdateToCorrect);
 	}
 
-	for (auto& [_, inputHistory] : serverConnections->getInputsRef())
+	for (auto& [_, inputHistory] : mGameStateRewinder.getAllInputHistories())
 	{
 		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
 		const u32 firstIdxFrame = static_cast<u32>(inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
@@ -229,7 +228,7 @@ void TankServerGame::processInputCorrections()
 
 		if (!inputHistory.inputs.empty() && firstIdxToKeep > 0)
 		{
-			inputHistory.inputs.erase(inputHistory.inputs.begin(), inputHistory.inputs.begin() + std::min(firstIdxToKeep, inputHistory.inputs.size() - 1));
+			inputHistory.inputs.erase(inputHistory.inputs.begin(), inputHistory.inputs.begin() + static_cast<int>(std::min(firstIdxToKeep, inputHistory.inputs.size() - 1)));
 		}
 	}
 
@@ -251,7 +250,7 @@ void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 			{
 				gameplayInput = entityManager.addComponent<GameplayInputComponent>(optionalEntity.getEntity());
 			}
-			const Input::InputHistory& inputHistory = serverConnections->getInputsRef()[connectionId];
+			const Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
 			if (!inputHistory.inputs.empty())
 			{
 				const u32 absoluteLastUpdateIdx = inputHistory.lastInputUpdateIdx + inputHistory.indexShift;

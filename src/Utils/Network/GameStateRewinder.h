@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameData/EcsDefinitions.h"
+#include "GameData/Input/InputHistory.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/Network/MovementHistory.h"
 #include "GameData/Time/TimeData.h"
@@ -45,8 +46,16 @@ public:
 	TimeData& getTimeData() { return mTimeData; }
 	const TimeData& getTimeData() const { return mTimeData; }
 
+	// meaningful only on client
 	MovementHistory& getMovementHistory() { return mMovementHistory; }
 	const MovementHistory& getMovementHistory() const { return mMovementHistory; }
+
+	// meaningful only on server
+	Input::InputHistory& getInputHistoryForClient(ConnectionId connectionId);
+	void onClientConnected(ConnectionId connectionId, u32 clientFrameIndex);
+	void onClientDisconnected(ConnectionId connectionId);
+
+	std::unordered_map<ConnectionId, Input::InputHistory>& getAllInputHistories();
 
 private:
 	struct GameplayCommandHistory {
@@ -71,4 +80,6 @@ private:
 
 	GameplayCommandHistory mGameplayCommandHistory;
 	MovementHistory mMovementHistory;
+
+	std::unordered_map<ConnectionId, Input::InputHistory> mClientsInputHistory;
 };

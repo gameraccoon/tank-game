@@ -24,7 +24,7 @@ namespace Network
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::Disconnect),
-			std::move(connectMessageData)
+			connectMessageData
 		};
 	}
 

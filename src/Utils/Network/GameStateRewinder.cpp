@@ -144,6 +144,30 @@ void GameStateRewinder::resetGameplayCommandDesyncedIndexes()
 	mGameplayCommandHistory.mUpdateIdxWithRewritingCommands = std::numeric_limits<u32>::max();
 }
 
+Input::InputHistory& GameStateRewinder::getInputHistoryForClient(ConnectionId connectionId)
+{
+	auto it = mClientsInputHistory.find(connectionId);
+	AssertFatal(it != mClientsInputHistory.end(), "No input history for connection %u", connectionId);
+	return it->second;
+}
+
+void GameStateRewinder::onClientConnected(ConnectionId connectionId, u32 clientFrameIndex)
+{
+	auto [it, wasEmplaced] = mClientsInputHistory.emplace(connectionId, Input::InputHistory());
+	AssertFatal(wasEmplaced, "Tried to add input history for connection %u, but it already exists", connectionId);
+	it->second.indexShift = static_cast<s32>(mTimeData.lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1;
+}
+
+void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
+{
+	mClientsInputHistory.erase(connectionId);
+}
+
+std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getAllInputHistories()
+{
+	return mClientsInputHistory;
+}
+
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)
 {
 	if (mRecords.empty())

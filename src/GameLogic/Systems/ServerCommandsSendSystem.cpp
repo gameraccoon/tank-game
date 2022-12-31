@@ -71,10 +71,7 @@ void ServerCommandsSendSystem::update()
 
 		for (const ConnectionId connectionId : connections)
 		{
-			const auto inputIt = serverConnections->getInputs().find(connectionId);
-			AssertFatal(inputIt != serverConnections->getInputs().end(), "We're processing connection that doesn't have an input record");
-
-			const Input::InputHistory& inputHistory = inputIt->second;
+			Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
 
 			const s32 indexShift = inputHistory.indexShift;
 

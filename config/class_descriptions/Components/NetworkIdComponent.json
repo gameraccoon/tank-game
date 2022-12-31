@@ -1,6 +1,6 @@
 {
 	"component": "networkId",
-	"description": "Component that stores network identificator of an entity",
+	"description": "Component that stores network identifier of an entity",
 	"flags": ["transient"],
 	"attributes": [
 		{

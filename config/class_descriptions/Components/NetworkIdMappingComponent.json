@@ -1,6 +1,6 @@
 {
 	"component": "networkIdMapping",
-	"description": "Component that stores network network identificators and their mappings to entities",
+	"description": "Component that stores network network identifiers and their mappings to entities",
 	"flags": ["transient"],
 	"attributes": [
 		{

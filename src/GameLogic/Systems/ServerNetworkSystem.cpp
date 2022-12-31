@@ -20,8 +20,6 @@
 #include "Utils/Network/Messages/WorldSnapshotMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-#include "HAL/Network/ConnectionManager.h"
-
 
 ServerNetworkSystem::ServerNetworkSystem(
 		WorldHolder& worldHolder,
