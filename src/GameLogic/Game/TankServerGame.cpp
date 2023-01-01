@@ -184,7 +184,7 @@ void TankServerGame::processInputCorrections()
 
 	constexpr u32 MAX_STORED_UPDATES_COUNT = 60;
 
-	for (auto& [_, inputHistory] : mGameStateRewinder.getAllInputHistories())
+	for (auto& [_, inputHistory] : mGameStateRewinder.getInputHistoriesForAllClients())
 	{
 		if (inputHistory.inputs.empty())
 		{
@@ -220,7 +220,7 @@ void TankServerGame::processInputCorrections()
 		correctUpdates(firstUpdateToCorrect);
 	}
 
-	for (auto& [_, inputHistory] : mGameStateRewinder.getAllInputHistories())
+	for (auto& [_, inputHistory] : mGameStateRewinder.getInputHistoriesForAllClients())
 	{
 		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
 		const u32 firstIdxFrame = static_cast<u32>(inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());

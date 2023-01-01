@@ -57,8 +57,8 @@ public:
 	Input::InputHistory& getInputHistoryForClient(ConnectionId connectionId);
 	void onClientConnected(ConnectionId connectionId, u32 clientFrameIndex);
 	void onClientDisconnected(ConnectionId connectionId);
+	std::unordered_map<ConnectionId, Input::InputHistory>& getInputHistoriesForAllClients();
 
-	std::unordered_map<ConnectionId, Input::InputHistory>& getAllInputHistories();
 
 private:
 	struct GameplayCommandHistory {
@@ -77,12 +77,13 @@ private:
 	size_t mCurrentRecordIdx = 0;
 	TimeData mTimeData;
 
-	std::vector<std::unique_ptr<World>> mFrameHistory;
-
 	WorldHolder& mWorldHolderRef;
 
+	std::vector<std::unique_ptr<World>> mFrameHistory;
 	GameplayCommandHistory mGameplayCommandHistory;
-	MovementHistory mMovementHistory;
 
+	// client-specific fields
+	MovementHistory mMovementHistory;
+	// server-specific fields
 	std::unordered_map<ConnectionId, Input::InputHistory> mClientsInputHistory;
 };

@@ -152,36 +152,13 @@ void GameStateRewinder::resetDesyncedIndexes(u32 lastConfirmedUpdateIdx)
 	mGameplayCommandHistory.mUpdateIdxWithRewritingCommands = std::numeric_limits<u32>::max();
 }
 
-Input::InputHistory& GameStateRewinder::getInputHistoryForClient(ConnectionId connectionId)
+void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, MovementUpdateData&& newUpdateData)
 {
-	auto it = mClientsInputHistory.find(connectionId);
-	AssertFatal(it != mClientsInputHistory.end(), "No input history for connection %u", connectionId);
-	return it->second;
-}
-
-void GameStateRewinder::onClientConnected(ConnectionId connectionId, u32 clientFrameIndex)
-{
-	auto [it, wasEmplaced] = mClientsInputHistory.emplace(connectionId, Input::InputHistory());
-	AssertFatal(wasEmplaced, "Tried to add input history for connection %u, but it already exists", connectionId);
-	it->second.indexShift = static_cast<s32>(mTimeData.lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1;
-}
-
-void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
-{
-	mClientsInputHistory.erase(connectionId);
-}
-
-std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getAllInputHistories()
-{
-	return mClientsInputHistory;
-}
-
-void GameStateRewinder::clearOldMoves(const u32 firstUpdateToKeep)
-{
-	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - mMovementHistory.updates.size() + 1;
-	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
-	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
-	mMovementHistory.updates.erase(mMovementHistory.updates.begin(), mMovementHistory.updates.begin() + static_cast<int>(firstIndexToKeep));
+	AssertFatal(updateIndex == mMovementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", updateIndex, mMovementHistory.lastUpdateIdx);
+	const size_t nextUpdateIndex = mMovementHistory.updates.size() + updateIndex - mMovementHistory.lastUpdateIdx - 1;
+	Assert(nextUpdateIndex == mMovementHistory.updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, mMovementHistory.updates.size());
+	mMovementHistory.updates.push_back(std::move(newUpdateData));
+	mMovementHistory.lastUpdateIdx = updateIndex;
 }
 
 void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 lastReceivedByServerUpdateIdx, MovementUpdateData&& authoritativeMovementData)
@@ -264,13 +241,36 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 	}
 }
 
-void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, MovementUpdateData&& newUpdateData)
+void GameStateRewinder::clearOldMoves(const u32 firstUpdateToKeep)
 {
-	AssertFatal(updateIndex == mMovementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", updateIndex, mMovementHistory.lastUpdateIdx);
-	const size_t nextUpdateIndex = mMovementHistory.updates.size() + updateIndex - mMovementHistory.lastUpdateIdx - 1;
-	Assert(nextUpdateIndex == mMovementHistory.updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, mMovementHistory.updates.size());
-	mMovementHistory.updates.push_back(std::move(newUpdateData));
-	mMovementHistory.lastUpdateIdx = updateIndex;
+	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - mMovementHistory.updates.size() + 1;
+	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
+	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
+	mMovementHistory.updates.erase(mMovementHistory.updates.begin(), mMovementHistory.updates.begin() + static_cast<int>(firstIndexToKeep));
+}
+
+Input::InputHistory& GameStateRewinder::getInputHistoryForClient(ConnectionId connectionId)
+{
+	auto it = mClientsInputHistory.find(connectionId);
+	AssertFatal(it != mClientsInputHistory.end(), "No input history for connection %u", connectionId);
+	return it->second;
+}
+
+void GameStateRewinder::onClientConnected(ConnectionId connectionId, u32 clientFrameIndex)
+{
+	auto [it, wasEmplaced] = mClientsInputHistory.emplace(connectionId, Input::InputHistory());
+	AssertFatal(wasEmplaced, "Tried to add input history for connection %u, but it already exists", connectionId);
+	it->second.indexShift = static_cast<s32>(mTimeData.lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1;
+}
+
+void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
+{
+	mClientsInputHistory.erase(connectionId);
+}
+
+std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getInputHistoriesForAllClients()
+{
+	return mClientsInputHistory;
 }
 
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)
@@ -324,6 +324,6 @@ void GameStateRewinder::GameplayCommandHistory::addOverwritingSnapshotToHistory(
 	}
 
 	mRecords[idx].list = std::move(newCommands);
-	mUpdateIdxProducedDesyncedCommands =std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
+	mUpdateIdxProducedDesyncedCommands = std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
 	mUpdateIdxWithRewritingCommands = std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
 }
