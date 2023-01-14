@@ -8,6 +8,7 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/GameplayCommandsMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
