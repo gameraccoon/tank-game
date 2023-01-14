@@ -12,7 +12,6 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/CollisionComponent.generated.h"
 #include "GameData/Components/DebugDrawComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -163,28 +162,27 @@ void DebugDrawSystem::update()
 		const Vector2D crossCenterOffset{60, 280};
 		const Vector2D crossPieceSize{23, 23};
 		const float crossPieceOffset = 25;
-		const InputHistoryComponent* inputHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
-		if (!inputHistory->getInputs().empty())
+		if (!mGameStateRewinder.getInputHistory().inputs.empty())
 		{
-			const GameplayInput::FrameState& lastInput = inputHistory->getInputs().back();
-			float horisontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
-			float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+			const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputHistory().inputs.back();
+			const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+			const float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
 
-			if (horisontalMove < 0.0f)
+			if (horizontalMove < 0.0f)
 			{
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 				quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
 				quadData.size = crossPieceSize;
 				quadData.spriteHandle = mArrowLeftTextureHandle;
-				quadData.alpha = std::clamp(-horisontalMove, 0.0f, 1.0f);
+				quadData.alpha = std::clamp(-horizontalMove, 0.0f, 1.0f);
 			}
-			else if (horisontalMove > 0.0f)
+			else if (horizontalMove > 0.0f)
 			{
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 				quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
 				quadData.size = crossPieceSize;
 				quadData.spriteHandle = mArrowRightTextureHandle;
-				quadData.alpha = std::clamp(horisontalMove, 0.0f, 1.0f);
+				quadData.alpha = std::clamp(horizontalMove, 0.0f, 1.0f);
 			}
 
 			if (verticalMove > 0.0f)

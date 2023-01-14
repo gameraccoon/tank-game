@@ -8,7 +8,6 @@
 #include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
 
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Input/InputHistory.h"
 
 namespace Utils

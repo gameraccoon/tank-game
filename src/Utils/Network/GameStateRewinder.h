@@ -59,6 +59,11 @@ public:
 	void onClientDisconnected(ConnectionId connectionId);
 	std::unordered_map<ConnectionId, Input::InputHistory>& getInputHistoriesForAllClients();
 
+	// meaningful only on client
+	const Input::InputHistory& getInputHistory() const { return mInputHistory; }
+	const GameplayInput::FrameState& getInputsFromFrame(u32 updateIdx) const;
+	void addFrameToInputHistory(u32 updateIdx, const GameplayInput::FrameState& newInput);
+	void clearOldInputs(u32 firstUpdateToKeep);
 
 private:
 	struct GameplayCommandHistory {
@@ -73,6 +78,9 @@ private:
 	};
 
 private:
+	size_t getInputCurrentRecordIdx() const;
+
+private:
 	ComponentSetHolder mNotRewindableComponents;
 	size_t mCurrentRecordIdx = 0;
 	TimeData mTimeData;
@@ -84,6 +92,7 @@ private:
 
 	// client-specific fields
 	MovementHistory mMovementHistory;
+	Input::InputHistory mInputHistory;
 	// server-specific fields
 	std::unordered_map<ConnectionId, Input::InputHistory> mClientsInputHistory;
 };

@@ -3,7 +3,6 @@
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
 
 #include "GameData/Components/GameplayInputComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/World.h"
@@ -32,10 +31,8 @@ void PopulateInputHistorySystem::update()
 	const GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<const GameplayInputComponent>();
 	const GameplayInput::FrameState& gameplayInputState = gameplayInput->getCurrentFrameState();
 
-	InputHistoryComponent* inputHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
 	for (u32 i = 0; i < updatesThisFrame; ++i)
 	{
-		inputHistory->getInputsRef().push_back(gameplayInputState);
+		mGameStateRewinder.addFrameToInputHistory(lastUpdateIndex + i + 1, gameplayInputState);
 	}
-	inputHistory->setLastInputUpdateIdx(lastUpdateIndex + updatesThisFrame);
 }

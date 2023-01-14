@@ -5,7 +5,6 @@
 #include "Base/Types/Serialization.h"
 #include "Base/Types/BasicTypes.h"
 
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
@@ -17,18 +16,17 @@ namespace Network
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
 		HAL::ConnectionManager::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
-		const InputHistoryComponent* inputHistory = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
 
-		const size_t inputsSize = inputHistory->getInputs().size();
+		const size_t inputsSize = gameStateRewinder.getInputHistory().inputs.size();
 		const size_t inputsToSend = std::min(inputsSize, Input::MAX_INPUT_HISTORY_SEND_SIZE);
 
 		resultMessage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
-		Serialization::AppendNumber<u32>(resultMessage.data, inputHistory->getLastInputUpdateIdx());
+		Serialization::AppendNumber<u32>(resultMessage.data, gameStateRewinder.getInputHistory().lastInputUpdateIdx);
 		static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE < 256, "u8 is too small to fit input history size");
 		Serialization::AppendNumberNarrowCast<u8>(resultMessage.data, inputsToSend);
 
-		Utils::AppendInputHistory(resultMessage.data, inputHistory->getInputs(), inputsToSend);
+		Utils::AppendInputHistory(resultMessage.data, gameStateRewinder.getInputHistory().inputs, inputsToSend);
 
 		return resultMessage;
 	}

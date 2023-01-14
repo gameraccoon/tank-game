@@ -16,7 +16,6 @@
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -219,17 +218,13 @@ void TankClientGame::correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, boo
 	});
 
 	// resimulate later frames
-	InputHistoryComponent* inputHistory = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
-	const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
-	AssertFatal(inputs.size() >= framesToResimulate, "Size of input history can't be less than size of move history");
-	size_t inputHistoryIndexShift = inputs.size() - framesToResimulate;
 	for (u32 i = 0; i < framesToResimulate; ++i)
 	{
 		const u32 previousFrameIndex = lastUpdateIdxWithAuthoritativeMoves + i;
 		ComponentSetHolder& thisFrameWorldComponents = getWorldHolder().getWorld().getWorldComponents();
 
 		GameplayInputComponent* gameplayInput = thisFrameWorldComponents.getOrAddComponent<GameplayInputComponent>();
-		gameplayInput->setCurrentFrameState(inputs[i + inputHistoryIndexShift]);
+		gameplayInput->setCurrentFrameState(mGameStateRewinder.getInputsFromFrame(previousFrameIndex + 1));
 
 		const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
 		GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
@@ -311,6 +306,7 @@ void TankClientGame::removeOldUpdates()
 
 	mGameStateRewinder.clearOldMoves(firstUpdateToKeep);
 	mGameStateRewinder.clearOldCommands(firstUpdateToKeep);
+	mGameStateRewinder.clearOldInputs(firstUpdateToKeep);
 	mGameStateRewinder.trimOldFrames(updatesCountAfterTrim);
 }
 

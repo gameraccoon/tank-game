@@ -193,8 +193,7 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 	const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
 	AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
 
-	const InputHistoryComponent* inputHistory = getNotRewindableComponents().getOrAddComponent<const InputHistoryComponent>();
-	AssertFatal(updateIdx >= inputHistory->getLastInputUpdateIdx() + 1 - inputHistory->getInputs().size(), "Trying to correct a frame with missing input");
+	AssertFatal(updateIdx >= mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size(), "Trying to correct a frame with missing input");
 
 	std::vector<EntityMoveHash> oldMovesData = std::move(updates[updatedRecordIdx].updateHash);
 
@@ -206,12 +205,12 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 		// if the server hasn't received input for all the updates it processed
 		if (lastReceivedByServerUpdateIdx < updateIdx)
 		{
-			const std::vector<GameplayInput::FrameState>& inputs = inputHistory->getInputs();
+			const std::vector<GameplayInput::FrameState>& inputs = mInputHistory.inputs;
 			// check if the server was able to correctly predict our input for that frame
 			// and if it was able, then mark record as desynced, since then our prediction was definitely incorrect
-			if (inputHistory->getLastInputUpdateIdx() >= updateIdx && (inputHistory->getLastInputUpdateIdx() + 1 - inputs.size() <= lastReceivedByServerUpdateIdx))
+			if (mInputHistory.lastInputUpdateIdx >= updateIdx && (mInputHistory.lastInputUpdateIdx + 1 - inputs.size() <= lastReceivedByServerUpdateIdx))
 			{
-				const size_t indexShift = inputHistory->getLastInputUpdateIdx() + 1 - inputs.size();
+				const size_t indexShift = mInputHistory.lastInputUpdateIdx + 1 - inputs.size();
 				for (u32 i = updateIdx; i > lastReceivedByServerUpdateIdx; --i)
 				{
 					if (inputs[i - 1 - indexShift] != inputs[i - indexShift])
@@ -225,7 +224,7 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 			}
 			else
 			{
-				ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedByServerUpdateIdx, inputs.size(), inputHistory->getLastInputUpdateIdx());
+				ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedByServerUpdateIdx, inputs.size(), mInputHistory.lastInputUpdateIdx);
 			}
 		}
 	}
@@ -271,6 +270,35 @@ void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
 std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getInputHistoriesForAllClients()
 {
 	return mClientsInputHistory;
+}
+
+void GameStateRewinder::addFrameToInputHistory(u32 updateIdx, const GameplayInput::FrameState& newInput)
+{
+	AssertFatal(updateIdx == mInputHistory.lastInputUpdateIdx + 1, "We have a gap in input history, previous frame was %u, new frame is %u", mInputHistory.lastInputUpdateIdx, updateIdx);
+	mInputHistory.inputs.push_back(newInput);
+	mInputHistory.lastInputUpdateIdx = updateIdx;
+}
+
+const GameplayInput::FrameState& GameStateRewinder::getInputsFromFrame(u32 updateIdx) const
+{
+	AssertFatal(updateIdx <= mInputHistory.lastInputUpdateIdx, "Trying to get input for frame %u, but last input frame is %u", updateIdx, mInputHistory.lastInputUpdateIdx);
+	const size_t firstRecordIndex = mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size();
+	AssertFatal(updateIdx >= firstRecordIndex, "Trying to get input for frame %u, but first input frame is %u", updateIdx, firstRecordIndex);
+	return mInputHistory.inputs[updateIdx - firstRecordIndex];
+}
+
+size_t GameStateRewinder::getInputCurrentRecordIdx() const
+{
+	// input history has one record less than frame history, since we don't store input for the first frame
+	return mCurrentRecordIdx - 1;
+}
+
+void GameStateRewinder::clearOldInputs(u32 firstUpdateToKeep)
+{
+	const u32 firstStoredUpdateIdx = mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size();
+	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx, "We can't have less input records than stored frames");
+	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx;
+	mInputHistory.inputs.erase(mInputHistory.inputs.begin(), mInputHistory.inputs.begin() + static_cast<int>(firstIndexToKeep));
 }
 
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)

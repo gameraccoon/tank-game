@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
@@ -37,36 +36,39 @@ namespace PlayerInputMessageInternal
 	}
 }
 
-TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
+TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 {
 	using namespace PlayerInputMessageInternal;
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
-		inputHistory->getInputsRef().resize(5);
-		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
-		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
-		inputHistory->getInputsRef()[1].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
-		inputHistory->getInputsRef()[1].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
-		inputHistory->getInputsRef()[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
-		inputHistory->getInputsRef()[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
-		inputHistory->getInputsRef()[3].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
-		inputHistory->getInputsRef()[3].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
-		inputHistory->getInputsRef()[4].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
-		inputHistory->getInputsRef()[4].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
-		inputHistory->setLastInputUpdateIdx(4);
+		GameplayInput::FrameState frameState;
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(1u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
+		clientGame->stateRewinder.addFrameToInputHistory(2u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(3u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
+		clientGame->stateRewinder.addFrameToInputHistory(4u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
+		clientGame->stateRewinder.addFrameToInputHistory(5u, frameState);
 	}
 
 	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance();
-		ConnectionId connectionId = 1;
+		const ConnectionId connectionId = 1;
+		serverGame->stateRewinder.onClientConnected(connectionId, 0u);
 		serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
-		serverGame->stateRewinder.onClientConnected(connectionId, 0u);
 		const Input::InputHistory& inputHistory = serverGame->stateRewinder.getInputHistoryForClient(connectionId);
 
 		ASSERT_EQ(inputHistory.inputs.size(), static_cast<size_t>(5));
@@ -77,38 +79,41 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput)
 		EXPECT_EQ(inputHistory.inputs[1].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[1].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
 		EXPECT_EQ(inputHistory.inputs[2].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(2));
+		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[2].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		EXPECT_EQ(inputHistory.inputs[3].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
 		EXPECT_EQ(inputHistory.inputs[3].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[3].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		EXPECT_EQ(inputHistory.inputs[4].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
+		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[4].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
-		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(4));
-		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
+		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(5));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(1));
 	}
 }
 
-TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
+TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 {
 	using namespace PlayerInputMessageInternal;
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
-		inputHistory->getInputsRef().resize(5);
-		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
-		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
-		inputHistory->getInputsRef()[1].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
-		inputHistory->getInputsRef()[1].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
-		inputHistory->getInputsRef()[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
-		inputHistory->getInputsRef()[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
-		inputHistory->getInputsRef()[3].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
-		inputHistory->getInputsRef()[3].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
-		inputHistory->getInputsRef()[4].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
-		inputHistory->getInputsRef()[4].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
-		inputHistory->setLastInputUpdateIdx(4);
+		GameplayInput::FrameState frameState;
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(1u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
+		clientGame->stateRewinder.addFrameToInputHistory(2u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(3u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
+		clientGame->stateRewinder.addFrameToInputHistory(4u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
+		clientGame->stateRewinder.addFrameToInputHistory(5u, frameState);
 	}
 
 	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
@@ -125,9 +130,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 			inputHistory.inputs[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
 			inputHistory.inputs[1].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
 			inputHistory.inputs[1].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
-			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
+			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(1));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
-			inputHistory.lastInputUpdateIdx = 2;
+			inputHistory.lastInputUpdateIdx = 3;
 			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6;
 		}
 
@@ -143,38 +148,56 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput)
 		EXPECT_EQ(inputHistory.inputs[1].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[1].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
 		EXPECT_EQ(inputHistory.inputs[2].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(2));
+		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[2].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		EXPECT_EQ(inputHistory.inputs[3].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
 		EXPECT_EQ(inputHistory.inputs[3].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[3].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		EXPECT_EQ(inputHistory.inputs[4].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
+		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[4].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
-		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(4));
-		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
+		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(5));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(1));
 	}
 }
 
-TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
+TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMissedInputsPredicted)
 {
 	using namespace PlayerInputMessageInternal;
 	auto clientGame = CreateGameInstance();
 
 	{
-		InputHistoryComponent* inputHistory = clientGame->stateRewinder.getNotRewindableComponents().getOrAddComponent<InputHistoryComponent>();
-		inputHistory->getInputsRef().resize(2);
-		inputHistory->getInputsRef()[0].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(3));
-		inputHistory->getInputsRef()[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
-		inputHistory->getInputsRef()[1].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
-		inputHistory->getInputsRef()[1].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
-		inputHistory->setLastInputUpdateIdx(46);
+		GameplayInput::FrameState frameState;
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(1u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
+		clientGame->stateRewinder.addFrameToInputHistory(2u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(3u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(3));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(4u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(4));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
+		clientGame->stateRewinder.addFrameToInputHistory(5u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustDeactivated, GameplayTimestamp(5));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.75f);
+		clientGame->stateRewinder.addFrameToInputHistory(6u, frameState);
+		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(6));
+		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
+		clientGame->stateRewinder.addFrameToInputHistory(7u, frameState);
 	}
 
+	// keep only two inputs from above
+	clientGame->stateRewinder.clearOldInputs(6u);
 	HAL::ConnectionManager::Message message = Network::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance();
+		serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 8;
 		ConnectionId connectionId = 1;
 		{
 			serverGame->stateRewinder.onClientConnected(connectionId, 0u);
@@ -186,10 +209,9 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 			inputHistory.inputs[0].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
 			inputHistory.inputs[1].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
 			inputHistory.inputs[1].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
-			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
+			inputHistory.inputs[2].updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(1));
 			inputHistory.inputs[2].updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
-			inputHistory.lastInputUpdateIdx = 42;
-			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 48;
+			inputHistory.lastInputUpdateIdx = 3;
 		}
 
 		Network::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
@@ -204,21 +226,21 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap)
 		EXPECT_EQ(inputHistory.inputs[1].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[1].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
 		EXPECT_EQ(inputHistory.inputs[2].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(2));
+		EXPECT_EQ(inputHistory.inputs[2].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[2].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		EXPECT_EQ(inputHistory.inputs[3].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-		EXPECT_EQ(inputHistory.inputs[3].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(2));
+		EXPECT_EQ(inputHistory.inputs[3].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[3].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		EXPECT_EQ(inputHistory.inputs[4].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(2));
+		EXPECT_EQ(inputHistory.inputs[4].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[4].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		EXPECT_EQ(inputHistory.inputs[5].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
-		EXPECT_EQ(inputHistory.inputs[5].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
+		EXPECT_EQ(inputHistory.inputs[5].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(5));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[5].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		EXPECT_EQ(inputHistory.inputs[6].getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-		EXPECT_EQ(inputHistory.inputs[6].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(4));
+		EXPECT_EQ(inputHistory.inputs[6].getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(5));
 		EXPECT_FLOAT_EQ(inputHistory.inputs[6].getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
-		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(46));
-		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(3));
+		EXPECT_EQ(inputHistory.lastInputUpdateIdx, static_cast<u32>(7));
+		EXPECT_EQ(inputHistory.indexShift, static_cast<s32>(9));
 	}
 }

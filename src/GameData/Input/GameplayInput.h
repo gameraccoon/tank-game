@@ -50,7 +50,7 @@ namespace GameplayInput
 		FrameState(RawAxes&& rawAxesData, RawKeys&& rawKeysData)
 			: mAxes(std::forward<RawAxes>(rawAxesData))
 			, mKeys(std::forward<RawKeys>(rawKeysData))
-		{ }
+		{}
 
 		bool operator==(const FrameState&) const noexcept = default;
 		bool operator!=(const FrameState&) const noexcept = default;
