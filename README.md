@@ -2,7 +2,7 @@ A simple cooperative multiplayer game written on C++ using custom ECS implementa
 
 **Currently in early stages of development**
 
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/gameraccoon/tank-game/blob/develop/License.txt)  
+[![MIT License](https://img.shields.io/github/license/gameraccoon/tank-game)](https://github.com/gameraccoon/tank-game/blob/main/License.txt)  
 [![Windows - build](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml) [![Ubuntu - build and run unit-tests](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml)
 
 ## Intent
