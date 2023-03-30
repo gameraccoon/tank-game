@@ -94,7 +94,6 @@ namespace Network
 		{
 			const u64 serverEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex);
 			const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(serverEntityId);
-			Assert(entityIt != networkIdMapping->getNetworkIdToEntity().end(), "Server entity is not found on the client");
 			Entity entity = (entityIt != networkIdMapping->getNetworkIdToEntity().end()) ? entityIt->second : Entity(0);
 			Vector2D location{};
 			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex);
