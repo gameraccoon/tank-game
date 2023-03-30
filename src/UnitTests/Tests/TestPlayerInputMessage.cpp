@@ -23,7 +23,7 @@ namespace PlayerInputMessageInternal
 		World world{componentFactory, entityGenerator};
 		GameData gameData{componentFactory};
 		WorldHolder worldHolder{nullptr, gameData};
-		GameStateRewinder stateRewinder{componentFactory, entityGenerator, worldHolder};
+		GameStateRewinder stateRewinder{GameStateRewinder::HistoryType::Client, componentFactory, entityGenerator, worldHolder};
 	};
 
 	static std::unique_ptr<TestGame> CreateGameInstance()

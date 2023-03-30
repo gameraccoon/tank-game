@@ -5,13 +5,18 @@
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-GameStateRewinder::GameStateRewinder(ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef)
-	: mNotRewindableComponents(componentFactory)
+GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef)
+	: mHistoryType(historyType)
+	, mNotRewindableComponents(componentFactory)
 	, mWorldHolderRef(worldHolderRef)
 {
 	mFrameHistory.emplace_back(HS_NEW World(componentFactory, entityGenerator));
 	mWorldHolderRef.setWorld(*mFrameHistory.front());
-	mMovementHistory.updates.emplace_back();
+
+	if (mHistoryType == HistoryType::Client)
+	{
+		mMovementHistory.updates.emplace_back();
+	}
 }
 
 void GameStateRewinder::addNewFrameToTheHistory()
@@ -37,6 +42,16 @@ void GameStateRewinder::trimOldFrames(size_t oldFramesLeft)
 {
 	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
 	LogInfo("trimOldFrames(%u)", oldFramesLeft);
+
+	const u32 firstUpdateToKeep = mTimeData.lastFixedUpdateIndex - oldFramesLeft + 1;
+
+	if (mHistoryType == HistoryType::Client)
+	{
+		clearOldMoves(firstUpdateToKeep);
+	}
+	clearOldCommands(firstUpdateToKeep);
+	clearOldInputs(firstUpdateToKeep);
+
 	AssertFatal(oldFramesLeft <= mCurrentRecordIdx, "Can't keep more historical frames than we have, have: %u asked to keep: %u", mCurrentRecordIdx, oldFramesLeft);
 	const size_t shiftLeft = mCurrentRecordIdx - oldFramesLeft;
 	if (shiftLeft > 0)
@@ -55,7 +70,7 @@ void GameStateRewinder::unwindBackInHistory(u32 framesBackCount, u32 framesToRes
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
 	LogInfo("unwindBackInHistory(%u)", framesBackCount);
-	if (framesBackCount >= mCurrentRecordIdx)
+	if (framesBackCount > mCurrentRecordIdx)
 	{
 		ReportFatalError("framesBackCount is too big for the current size of the history. framesBackCount is %u and history size is %u", framesBackCount, mCurrentRecordIdx);
 		mCurrentRecordIdx = 0;
@@ -66,8 +81,12 @@ void GameStateRewinder::unwindBackInHistory(u32 framesBackCount, u32 framesToRes
 
 	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
 
-	mMovementHistory.updates.erase(mMovementHistory.updates.begin() + static_cast<int>(mMovementHistory.updates.size() - framesToResimulate), mMovementHistory.updates.end());
-	mMovementHistory.lastUpdateIdx -= framesToResimulate;
+	if (mHistoryType == HistoryType::Client)
+	{
+		mMovementHistory.updates.erase(mMovementHistory.updates.begin() + static_cast<int>(mMovementHistory.updates.size() - framesToResimulate), mMovementHistory.updates.end());
+		mMovementHistory.lastUpdateIdx -= framesToResimulate;
+	}
+
 	mTimeData.lastFixedUpdateIndex -= framesToResimulate;
 	mTimeData.lastFixedUpdateTimestamp = mTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(framesToResimulate));
 }
@@ -93,12 +112,11 @@ void GameStateRewinder::overrideCommandsOneUpdate(u32 updateIndex, const Network
 
 void GameStateRewinder::clearOldCommands(size_t firstUpdateToKeep)
 {
-	std::vector<MovementUpdateData>& movementUpdates = mMovementHistory.updates;
-	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - movementUpdates.size() + 1;
+	std::vector<Network::GameplayCommandList>& cmdHistoryRecords = mGameplayCommandHistory.mRecords;
+	const u32 firstStoredUpdateIdx = mGameplayCommandHistory.mLastCommandUpdateIdx - cmdHistoryRecords.size() + 1;
 	if (firstUpdateToKeep < firstStoredUpdateIdx + 1)
 	{
 		const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
-		std::vector<Network::GameplayCommandList>& cmdHistoryRecords = mGameplayCommandHistory.mRecords;
 		cmdHistoryRecords.erase(cmdHistoryRecords.begin(), cmdHistoryRecords.begin() + static_cast<int>(firstIndexToKeep));
 	}
 }
@@ -116,7 +134,7 @@ std::pair<u32, u32> GameStateRewinder::getCommandsRecordUpdateIdxRange() const
 	return {updateIdxBegin, updateIdxEnd};
 }
 
-void GameStateRewinder::addConfirmedGameplayCommandsSnapshotToHistory(u32 creationFrameIndex,std::vector<Network::GameplayCommand::Ptr>&& newCommands)
+void GameStateRewinder::addConfirmedGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
 {
 	mGameplayCommandHistory.addConfirmedSnapshotToHistory(creationFrameIndex, std::move(newCommands));
 }
@@ -154,6 +172,8 @@ void GameStateRewinder::resetDesyncedIndexes(u32 lastConfirmedUpdateIdx)
 
 void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, MovementUpdateData&& newUpdateData)
 {
+	assertClientOnly();
+
 	AssertFatal(updateIndex == mMovementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", updateIndex, mMovementHistory.lastUpdateIdx);
 	const size_t nextUpdateIndex = mMovementHistory.updates.size() + updateIndex - mMovementHistory.lastUpdateIdx - 1;
 	Assert(nextUpdateIndex == mMovementHistory.updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, mMovementHistory.updates.size());
@@ -163,6 +183,8 @@ void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, Movemen
 
 void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 lastReceivedByServerUpdateIdx, MovementUpdateData&& authoritativeMovementData)
 {
+	assertClientOnly();
+
 	std::vector<MovementUpdateData>& updates = mMovementHistory.updates;
 	const u32 lastRecordUpdateIdx = mMovementHistory.lastUpdateIdx;
 	const u32 lastConfirmedUpdateIdx = mMovementHistory.lastConfirmedUpdateIdx;
@@ -242,9 +264,12 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 
 void GameStateRewinder::clearOldMoves(const u32 firstUpdateToKeep)
 {
+	assertClientOnly();
+
 	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - mMovementHistory.updates.size() + 1;
 	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
 	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
+	Assert(firstIndexToKeep < mMovementHistory.updates.size(), "Trying to remove more movement history frames than we have: %u, %u", firstIndexToKeep - 1, mMovementHistory.updates.size());
 	mMovementHistory.updates.erase(mMovementHistory.updates.begin(), mMovementHistory.updates.begin() + static_cast<int>(firstIndexToKeep));
 }
 
@@ -293,13 +318,34 @@ size_t GameStateRewinder::getInputCurrentRecordIdx() const
 	return mCurrentRecordIdx - 1;
 }
 
+void GameStateRewinder::assertServerOnly() const
+{
+	AssertFatal(mHistoryType == HistoryType::Server, "This method should only be called on the server");
+}
+
+void GameStateRewinder::assertClientOnly() const
+{
+	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
+}
+
 void GameStateRewinder::clearOldInputs(u32 firstUpdateToKeep)
 {
+	if (mInputHistory.inputs.empty() && mInputHistory.lastInputUpdateIdx == 0)
+	{
+		return;
+	}
+
 	const u32 firstStoredUpdateIdx = mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size();
 	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx, "We can't have less input records than stored frames");
 	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx;
-	mInputHistory.inputs.erase(mInputHistory.inputs.begin(), mInputHistory.inputs.begin() + static_cast<int>(firstIndexToKeep));
+	Assert(firstIndexToKeep < mInputHistory.inputs.size(), "Trying to remove more input history frames than we have: %u, %u", firstIndexToKeep - 1, mInputHistory.inputs.size());
+	if (firstIndexToKeep < mInputHistory.inputs.size())
+	{
+		mInputHistory.inputs.erase(mInputHistory.inputs.begin(), mInputHistory.inputs.begin() + static_cast<int>(firstIndexToKeep));
+	}
 }
+
+
 
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)
 {

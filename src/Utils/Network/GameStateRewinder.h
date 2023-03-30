@@ -17,7 +17,13 @@ class WorldHolder;
 class GameStateRewinder
 {
 public:
-	GameStateRewinder(ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef);
+	enum class HistoryType {
+		Client,
+		Server
+	};
+
+public:
+	GameStateRewinder(HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef);
 
 	World& getWorld() { return *mFrameHistory[mCurrentRecordIdx]; }
 	const World& getWorld() const { return *mFrameHistory[mCurrentRecordIdx]; }
@@ -79,10 +85,15 @@ private:
 
 private:
 	size_t getInputCurrentRecordIdx() const;
+	void assertServerOnly() const;
+	void assertClientOnly() const;
 
 private:
+	const HistoryType mHistoryType;
+
 	ComponentSetHolder mNotRewindableComponents;
 	size_t mCurrentRecordIdx = 0;
+
 	TimeData mTimeData;
 
 	WorldHolder& mWorldHolderRef;

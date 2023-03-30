@@ -302,11 +302,7 @@ void TankClientGame::removeOldUpdates()
 		const size_t lastSafeToRemoveUpdateRecordIdx = lastUpdateSafeToRemove - firstUpdateIdx;
 		updatesCountAfterTrim = std::min(updatesCountAfterTrim, updatesCountBeforeTrim - lastSafeToRemoveUpdateRecordIdx - 1);
 	}
-	const u32 firstUpdateToKeep = lastUpdateIdx - updatesCountAfterTrim + 1;
 
-	mGameStateRewinder.clearOldMoves(firstUpdateToKeep);
-	mGameStateRewinder.clearOldCommands(firstUpdateToKeep);
-	mGameStateRewinder.clearOldInputs(firstUpdateToKeep);
 	mGameStateRewinder.trimOldFrames(updatesCountAfterTrim);
 }
 
