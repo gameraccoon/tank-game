@@ -127,6 +127,14 @@ const Network::GameplayCommandList& GameStateRewinder::getCommandsForUpdate(u32 
 	return mGameplayCommandHistory.mRecords[idx];
 }
 
+Network::GameplayCommandList GameStateRewinder::consumeCommandsForUpdate(u32 updateIndex)
+{
+	const size_t idx = updateIndex - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
+	Network::GameplayCommandList result = std::move(mGameplayCommandHistory.mRecords[idx]);
+	mGameplayCommandHistory.mRecords[idx].list.clear();
+	return result;
+}
+
 std::pair<u32, u32> GameStateRewinder::getCommandsRecordUpdateIdxRange() const
 {
 	const u32 updateIdxBegin = mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1;
@@ -142,14 +150,6 @@ void GameStateRewinder::addConfirmedGameplayCommandsSnapshotToHistory(u32 creati
 void GameStateRewinder::addOverwritingGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
 {
 	mGameplayCommandHistory.addOverwritingSnapshotToHistory(creationFrameIndex, std::move(newCommands));
-}
-
-Network::GameplayCommandList GameStateRewinder::consumeCommandsForUpdate(u32 updateIndex)
-{
-	const size_t idx = updateIndex - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
-	Network::GameplayCommandList result = std::move(mGameplayCommandHistory.mRecords[idx]);
-	mGameplayCommandHistory.mRecords[idx].list.clear();
-	return result;
 }
 
 u32 GameStateRewinder::getUpdateIdxProducedDesyncedCommands() const
@@ -297,13 +297,6 @@ std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getInp
 	return mClientsInputHistory;
 }
 
-void GameStateRewinder::addFrameToInputHistory(u32 updateIdx, const GameplayInput::FrameState& newInput)
-{
-	AssertFatal(updateIdx == mInputHistory.lastInputUpdateIdx + 1, "We have a gap in input history, previous frame was %u, new frame is %u", mInputHistory.lastInputUpdateIdx, updateIdx);
-	mInputHistory.inputs.push_back(newInput);
-	mInputHistory.lastInputUpdateIdx = updateIdx;
-}
-
 const GameplayInput::FrameState& GameStateRewinder::getInputsFromFrame(u32 updateIdx) const
 {
 	AssertFatal(updateIdx <= mInputHistory.lastInputUpdateIdx, "Trying to get input for frame %u, but last input frame is %u", updateIdx, mInputHistory.lastInputUpdateIdx);
@@ -312,22 +305,12 @@ const GameplayInput::FrameState& GameStateRewinder::getInputsFromFrame(u32 updat
 	return mInputHistory.inputs[updateIdx - firstRecordIndex];
 }
 
-size_t GameStateRewinder::getInputCurrentRecordIdx() const
+void GameStateRewinder::addFrameToInputHistory(u32 updateIdx, const GameplayInput::FrameState& newInput)
 {
-	// input history has one record less than frame history, since we don't store input for the first frame
-	return mCurrentRecordIdx - 1;
+	AssertFatal(updateIdx == mInputHistory.lastInputUpdateIdx + 1, "We have a gap in input history, previous frame was %u, new frame is %u", mInputHistory.lastInputUpdateIdx, updateIdx);
+	mInputHistory.inputs.push_back(newInput);
+	mInputHistory.lastInputUpdateIdx = updateIdx;
 }
-
-void GameStateRewinder::assertServerOnly() const
-{
-	AssertFatal(mHistoryType == HistoryType::Server, "This method should only be called on the server");
-}
-
-void GameStateRewinder::assertClientOnly() const
-{
-	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
-}
-
 void GameStateRewinder::clearOldInputs(u32 firstUpdateToKeep)
 {
 	if (mInputHistory.inputs.empty() && mInputHistory.lastInputUpdateIdx == 0)
@@ -345,7 +328,21 @@ void GameStateRewinder::clearOldInputs(u32 firstUpdateToKeep)
 	}
 }
 
+size_t GameStateRewinder::getInputCurrentRecordIdx() const
+{
+	// input history has one record less than frame history, since we don't store input for the first frame
+	return mCurrentRecordIdx - 1;
+}
 
+void GameStateRewinder::assertServerOnly() const
+{
+	AssertFatal(mHistoryType == HistoryType::Server, "This method should only be called on the server");
+}
+
+void GameStateRewinder::assertClientOnly() const
+{
+	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
+}
 
 void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)
 {
