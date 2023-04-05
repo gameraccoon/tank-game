@@ -33,6 +33,6 @@ void PopulateInputHistorySystem::update()
 
 	for (u32 i = 0; i < updatesThisFrame; ++i)
 	{
-		mGameStateRewinder.addFrameToInputHistory(lastUpdateIndex + i + 1, gameplayInputState);
+		mGameStateRewinder.setInputForUpdate(lastUpdateIndex + i + 1, gameplayInputState);
 	}
 }

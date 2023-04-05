@@ -48,9 +48,7 @@ namespace Network
 		const u32 clientFrameIndex = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
 		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		serverConnections->getControlledPlayersRef().emplace(connectionId, OptionalEntity{});
-
-		gameStateRewinder.onClientConnected(connectionId, clientFrameIndex);
+		serverConnections->getClientDataRef().emplace(connectionId, OneClientData{OptionalEntity {}, static_cast<s32>(gameStateRewinder.getTimeData().lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1, 0});
 
 		return clientNetworkProtocolVersion;
 	}

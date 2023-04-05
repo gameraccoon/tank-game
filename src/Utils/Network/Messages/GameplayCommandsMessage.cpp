@@ -51,6 +51,6 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		stateRewinder.addConfirmedGameplayCommandsSnapshotToHistory(clientUpdateIdx, std::move(commands));
+		stateRewinder.applyAuthoritativeCommands(clientUpdateIdx, std::move(commands));
 	}
 }

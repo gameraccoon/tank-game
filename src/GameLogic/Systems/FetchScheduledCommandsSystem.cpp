@@ -29,10 +29,10 @@ void FetchScheduledCommandsSystem::update()
 	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
 	if (commandUpdateIdxBegin <= currentUpdateIndex && currentUpdateIndex < commandUpdateIdxEnd)
 	{
-		Network::GameplayCommandList newCommands = mGameStateRewinder.consumeCommandsForUpdate(currentUpdateIndex);
-		for (Network::GameplayCommand::Ptr& command : newCommands.list)
+		const Network::GameplayCommandList& newCommands = mGameStateRewinder.getCommandsForUpdate(currentUpdateIndex);
+		for (const Network::GameplayCommand::Ptr& command : newCommands.list)
 		{
-			gameplayCommands->getDataRef().list.push_back(std::move(command));
+			gameplayCommands->getDataRef().list.push_back(command->clone());
 		}
 	}
 }

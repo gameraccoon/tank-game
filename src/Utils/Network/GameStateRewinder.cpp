@@ -1,198 +1,262 @@
 #include "Base/precomp.h"
 
-#include "GameData/Network/GameplayCommand.h"
-
 #include "Utils/Network/GameStateRewinder.h"
-#include "Utils/SharedManagers/WorldHolder.h"
 
-GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator, WorldHolder& worldHolderRef)
+GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
 	: mHistoryType(historyType)
 	, mNotRewindableComponents(componentFactory)
-	, mWorldHolderRef(worldHolderRef)
 {
-	mFrameHistory.emplace_back(HS_NEW World(componentFactory, entityGenerator));
-	mWorldHolderRef.setWorld(*mFrameHistory.front());
+	mUpdateHistory.emplace_back();
+	mUpdateHistory.back().gameState = std::make_unique<World>(componentFactory, entityGenerator);
+}
 
-	if (mHistoryType == HistoryType::Client)
+void GameStateRewinder::trimOldFrames(u32 firstUpdateToKeep)
+{
+	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
+	LogInfo("trimOldFrames(%u)", firstUpdateToKeep);
+
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+
+	AssertFatal(firstUpdateToKeep <= mLastStoredUpdateIdx, "Can't trim frames that are not stored yet. firstUpdateToKeep is %u and last stored update is %u", firstUpdateToKeep, mLastStoredUpdateIdx);
+	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx, "We have already trimmed frames that are older than the firstUpdateToKeep. firstUpdateToKeep is %u and first stored update is %u", firstUpdateToKeep,
+		firstStoredUpdateIdx);
+
+	// move old records to the end of the history, to recycle them
+	const size_t shiftLeft = firstUpdateToKeep - firstStoredUpdateIdx;
+	if (shiftLeft > 0)
 	{
-		mMovementHistory.updates.emplace_back();
+		std::rotate(mUpdateHistory.begin(), mUpdateHistory.begin() + static_cast<int>(shiftLeft), mUpdateHistory.end());
+		mLastStoredUpdateIdx += shiftLeft;
+	}
+
+	// mark new records as empty
+	for (size_t i = 0; i < shiftLeft; ++i)
+	{
+		mUpdateHistory[mUpdateHistory.size() - 1 - i].clear();
 	}
 }
 
-void GameStateRewinder::addNewFrameToTheHistory()
+u32 GameStateRewinder::getFirstStoredUpdateIdx() const
 {
-	SCOPED_PROFILER("GameStateRewinder::addNewFrameToTheHistory");
-	LogInfo("addNewFrameToTheHistory() frame: %u", mCurrentRecordIdx + 1);
-	AssertFatal(!mFrameHistory.empty(), "Frame history should always contain at least one frame");
-	AssertFatal(mCurrentRecordIdx < mFrameHistory.size(), "mCurrentRecordIdx is out of bounds");
-	if (mCurrentRecordIdx == mFrameHistory.size() - 1)
+	return mLastStoredUpdateIdx + 1 - mUpdateHistory.size();
+}
+
+void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
+{
+	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
+	LogInfo("unwindBackInHistory(%u)", firstUpdateToResimulate);
+	const size_t firstIndexToResimulate = firstUpdateToResimulate - getFirstStoredUpdateIdx();
+	const size_t updatesToResimulate = mCurrentTimeData.lastFixedUpdateIndex - firstIndexToResimulate + 1;
+
+	mCurrentTimeData.lastFixedUpdateIndex -= updatesToResimulate;
+	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
+}
+
+World& GameStateRewinder::getWorld(u32 updateIdx) const
+{
+	return *getUpdateRecordByUpdateIdx(updateIdx).gameState;
+}
+
+void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
+{
+	SCOPED_PROFILER("GameStateRewinder::advanceSimulationToNextUpdate");
+
+	Assert(newUpdateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", newUpdateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(newUpdateIdx);
+	OneUpdateData& newFrameData = getUpdateRecordByUpdateIdx(newUpdateIdx);
+
+	const OneUpdateData& previousFrameData = getUpdateRecordByUpdateIdx(newUpdateIdx - 1);
+
+	// copy previous frame data to the new frame
+	if (newFrameData.gameState)
 	{
-		mFrameHistory.emplace_back(std::make_unique<World>(*mFrameHistory[mCurrentRecordIdx]));
+		newFrameData.gameState->overrideBy(*previousFrameData.gameState);
 	}
 	else
 	{
-		mFrameHistory[mCurrentRecordIdx + 1]->overrideBy(*mFrameHistory[mCurrentRecordIdx]);
+		newFrameData.gameState = std::make_unique<World>(*previousFrameData.gameState);
 	}
-	++mCurrentRecordIdx;
-
-	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
 }
 
-void GameStateRewinder::trimOldFrames(size_t oldFramesLeft)
+u32 GameStateRewinder::getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) const
 {
-	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
-	LogInfo("trimOldFrames(%u)", oldFramesLeft);
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+	for (u32 updateIdx = mLastStoredUpdateIdx;; --updateIdx)
+	{
+		const OneUpdateData& updateData = getUpdateRecordByUpdateIdx(updateIdx);
+		const OneUpdateData::SyncState moveState = updateData.dataState.getState(OneUpdateData::StateType::Movement);
+		const OneUpdateData::SyncState commandsState = updateData.dataState.getState(OneUpdateData::StateType::Commands);
 
-	const u32 firstUpdateToKeep = mTimeData.lastFixedUpdateIndex - oldFramesLeft + 1;
+		if (onlyFullyConfirmed)
+		{
+			if (moveState == OneUpdateData::SyncState::FinalAuthoritative && commandsState == OneUpdateData::SyncState::FinalAuthoritative)
+			{
+				return updateIdx;
+			}
+		}
+		else
+		{
+			if ((moveState == OneUpdateData::SyncState::NotFinalAuthoritative || moveState == OneUpdateData::SyncState::FinalAuthoritative) &&
+				(commandsState == OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == OneUpdateData::SyncState::FinalAuthoritative))
+			{
+				return updateIdx;
+			}
+		}
+
+		if (updateIdx == firstStoredUpdateIdx)
+		{
+			break;
+		}
+	}
+
+	return firstStoredUpdateIdx - 1;
+}
+
+u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
+{
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+	u32 lastRealUpdate = mLastStoredUpdateIdx;
+	for (;; --lastRealUpdate)
+	{
+		const OneUpdateData& updateData = getUpdateRecordByUpdateIdx(lastRealUpdate);
+		if (!updateData.isEmpty())
+		{
+			break;
+		}
+
+		if (lastRealUpdate == firstStoredUpdateIdx)
+		{
+			break;
+		}
+	}
 
 	if (mHistoryType == HistoryType::Client)
 	{
-		clearOldMoves(firstUpdateToKeep);
+		for (u32 updateIdx = firstStoredUpdateIdx; updateIdx <= lastRealUpdate; ++updateIdx)
+		{
+			const OneUpdateData& updateData = getUpdateRecordByUpdateIdx(updateIdx);
+			if (updateData.dataState.isDesynced(OneUpdateData::DesyncType::Movement) || updateData.dataState.isDesynced(OneUpdateData::DesyncType::Commands))
+			{
+				return updateIdx;
+			}
+		}
 	}
-	clearOldCommands(firstUpdateToKeep);
-	clearOldInputs(firstUpdateToKeep);
-
-	AssertFatal(oldFramesLeft <= mCurrentRecordIdx, "Can't keep more historical frames than we have, have: %u asked to keep: %u", mCurrentRecordIdx, oldFramesLeft);
-	const size_t shiftLeft = mCurrentRecordIdx - oldFramesLeft;
-	if (shiftLeft > 0)
+	// server
+	else
 	{
-		std::rotate(mFrameHistory.begin(), mFrameHistory.begin() + static_cast<int>(shiftLeft), mFrameHistory.end());
-		mCurrentRecordIdx -= shiftLeft;
+		for (u32 updateIdx = firstStoredUpdateIdx; updateIdx <= lastRealUpdate; ++updateIdx)
+		{
+			const OneUpdateData& updateData = getUpdateRecordByUpdateIdx(updateIdx);
+			if (updateData.dataState.isDesynced(OneUpdateData::DesyncType::Input))
+			{
+				return updateIdx;
+			}
+		}
 	}
+
+	return std::numeric_limits<u32>::max();
 }
 
-size_t GameStateRewinder::getStoredFramesCount() const
+void GameStateRewinder::appendCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)
 {
-	return mCurrentRecordIdx;
-}
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
 
-void GameStateRewinder::unwindBackInHistory(u32 framesBackCount, u32 framesToResimulate)
-{
-	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
-	LogInfo("unwindBackInHistory(%u)", framesBackCount);
-	if (framesBackCount > mCurrentRecordIdx)
+	const OneUpdateData::SyncState commandsState = frameData.dataState.getState(OneUpdateData::StateType::Commands);
+	if (commandsState == OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == OneUpdateData::SyncState::FinalAuthoritative)
 	{
-		ReportFatalError("framesBackCount is too big for the current size of the history. framesBackCount is %u and history size is %u", framesBackCount, mCurrentRecordIdx);
-		mCurrentRecordIdx = 0;
+		ReportError("Trying to append command to update %u that already has authoritative commands", updateIdx);
 		return;
 	}
 
-	mCurrentRecordIdx -= framesBackCount;
+	frameData.gameplayCommands.list.push_back(std::move(newCommand));
 
-	mWorldHolderRef.setWorld(*mFrameHistory[mCurrentRecordIdx]);
+	frameData.dataState.setState(OneUpdateData::StateType::Commands, OneUpdateData::SyncState::Predicted);
+}
 
-	if (mHistoryType == HistoryType::Client)
+void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Network::GameplayCommand::Ptr>&& commands)
+{
+	assertClientOnly();
+
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+
+	frameData.gameplayCommands.list = std::move(commands);
+	frameData.dataState.setState(OneUpdateData::StateType::Commands, OneUpdateData::SyncState::NotFinalAuthoritative);
+}
+
+void GameStateRewinder::overrideCommandsOneUpdate(u32 updateIdx, const Network::GameplayCommandList& updateCommands)
+{
+	Assert(updateIdx <= mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+
+	frameData.gameplayCommands = updateCommands;
+	frameData.dataState.setState(OneUpdateData::StateType::Commands, OneUpdateData::SyncState::NotFinalAuthoritative);
+}
+
+bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
+{
+	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mLastStoredUpdateIdx)
 	{
-		mMovementHistory.updates.erase(mMovementHistory.updates.begin() + static_cast<int>(mMovementHistory.updates.size() - framesToResimulate), mMovementHistory.updates.end());
-		mMovementHistory.lastUpdateIdx -= framesToResimulate;
+		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+		const OneUpdateData::SyncState state  = frameData.dataState.getState(OneUpdateData::StateType::Commands);
+		return state == OneUpdateData::SyncState::NotFinalAuthoritative || state == OneUpdateData::SyncState::FinalAuthoritative;
 	}
 
-	mTimeData.lastFixedUpdateIndex -= framesToResimulate;
-	mTimeData.lastFixedUpdateTimestamp = mTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(framesToResimulate));
-}
-
-void GameStateRewinder::appendCommandToHistory(u32 updateIndex, Network::GameplayCommand::Ptr&& newCommand)
-{
-	mGameplayCommandHistory.appendFrameToHistory(updateIndex);
-
-	const size_t idx = updateIndex - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
-	std::vector<Network::GameplayCommand::Ptr>& frameCommandList = mGameplayCommandHistory.mRecords[idx].list;
-
-	frameCommandList.push_back(std::move(newCommand));
-}
-
-void GameStateRewinder::overrideCommandsOneUpdate(u32 updateIndex, const Network::GameplayCommandList& updateCommends)
-{
-	mGameplayCommandHistory.appendFrameToHistory(updateIndex);
-
-	const size_t idx = updateIndex - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
-
-	mGameplayCommandHistory.mRecords[idx] = updateCommends;
-}
-
-void GameStateRewinder::clearOldCommands(size_t firstUpdateToKeep)
-{
-	std::vector<Network::GameplayCommandList>& cmdHistoryRecords = mGameplayCommandHistory.mRecords;
-	const u32 firstStoredUpdateIdx = mGameplayCommandHistory.mLastCommandUpdateIdx - cmdHistoryRecords.size() + 1;
-	if (firstUpdateToKeep < firstStoredUpdateIdx + 1)
-	{
-		const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
-		cmdHistoryRecords.erase(cmdHistoryRecords.begin(), cmdHistoryRecords.begin() + static_cast<int>(firstIndexToKeep));
-	}
+	return false;
 }
 
 const Network::GameplayCommandList& GameStateRewinder::getCommandsForUpdate(u32 updateIdx) const
 {
-	const size_t idx = updateIdx - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
-	return mGameplayCommandHistory.mRecords[idx];
-}
-
-Network::GameplayCommandList GameStateRewinder::consumeCommandsForUpdate(u32 updateIndex)
-{
-	const size_t idx = updateIndex - (mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1);
-	Network::GameplayCommandList result = std::move(mGameplayCommandHistory.mRecords[idx]);
-	mGameplayCommandHistory.mRecords[idx].list.clear();
-	return result;
+	const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	return frameData.gameplayCommands;
 }
 
 std::pair<u32, u32> GameStateRewinder::getCommandsRecordUpdateIdxRange() const
 {
-	const u32 updateIdxBegin = mGameplayCommandHistory.mLastCommandUpdateIdx - mGameplayCommandHistory.mRecords.size() + 1;
-	const u32 updateIdxEnd = mGameplayCommandHistory.mLastCommandUpdateIdx + 1;
+	u32 updateIdxBegin = getFirstStoredUpdateIdx();
+	u32 updateIdxEnd = mLastStoredUpdateIdx;
+	for (u32 updateIdx = updateIdxBegin; updateIdx < updateIdxEnd; ++updateIdx)
+	{
+		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+		if (frameData.dataState.getState(OneUpdateData::StateType::Commands) == OneUpdateData::SyncState::NoData)
+		{
+			updateIdxEnd = updateIdx;
+			break;
+		}
+	}
 	return {updateIdxBegin, updateIdxEnd};
 }
 
-void GameStateRewinder::addConfirmedGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
-{
-	mGameplayCommandHistory.addConfirmedSnapshotToHistory(creationFrameIndex, std::move(newCommands));
-}
-
-void GameStateRewinder::addOverwritingGameplayCommandsSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
-{
-	mGameplayCommandHistory.addOverwritingSnapshotToHistory(creationFrameIndex, std::move(newCommands));
-}
-
-u32 GameStateRewinder::getUpdateIdxProducedDesyncedCommands() const
-{
-	return mGameplayCommandHistory.mUpdateIdxProducedDesyncedCommands;
-}
-
-u32 GameStateRewinder::getUpdateIdxWithRewritingCommands() const
-{
-	return mGameplayCommandHistory.mUpdateIdxWithRewritingCommands;
-}
-
-void GameStateRewinder::resetDesyncedIndexes(u32 lastConfirmedUpdateIdx)
-{
-	mMovementHistory.lastConfirmedUpdateIdx = lastConfirmedUpdateIdx;
-	mMovementHistory.updateIdxProducedDesyncedMoves = std::numeric_limits<u32>::max();
-	mGameplayCommandHistory.mUpdateIdxProducedDesyncedCommands = std::numeric_limits<u32>::max();
-	mGameplayCommandHistory.mUpdateIdxWithRewritingCommands = std::numeric_limits<u32>::max();
-}
-
-void GameStateRewinder::addFrameToMovementHistory(const u32 updateIndex, MovementUpdateData&& newUpdateData)
+void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
 {
 	assertClientOnly();
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
 
-	AssertFatal(updateIndex == mMovementHistory.lastUpdateIdx + 1, "We skipped some frames in the movement history. %u %u", updateIndex, mMovementHistory.lastUpdateIdx);
-	const size_t nextUpdateIndex = mMovementHistory.updates.size() + updateIndex - mMovementHistory.lastUpdateIdx - 1;
-	Assert(nextUpdateIndex == mMovementHistory.updates.size(), "Possibly miscalculated size of the vector. %u %u", nextUpdateIndex, mMovementHistory.updates.size());
-	mMovementHistory.updates.push_back(std::move(newUpdateData));
-	mMovementHistory.lastUpdateIdx = updateIndex;
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+
+	const OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(OneUpdateData::StateType::Movement);
+	if (previousMovementDataState == OneUpdateData::SyncState::NoData)
+	{
+		frameData.dataState.setState(OneUpdateData::StateType::Movement, OneUpdateData::SyncState::Predicted);
+		frameData.clientMovement = std::move(newUpdateData);
+	}
+	else
+	{
+		ReportError("Trying to write predicted data on top of existing data. update idx is %u old state is %u", updateIdx, static_cast<size_t>(previousMovementDataState));
+	}
 }
 
-void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 lastReceivedByServerUpdateIdx, MovementUpdateData&& authoritativeMovementData)
+void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData)
 {
 	assertClientOnly();
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
 
-	std::vector<MovementUpdateData>& updates = mMovementHistory.updates;
-	const u32 lastRecordUpdateIdx = mMovementHistory.lastUpdateIdx;
-	const u32 lastConfirmedUpdateIdx = mMovementHistory.lastConfirmedUpdateIdx;
-	const u32 updateIdxProducedDesyncedMoves = mMovementHistory.updateIdxProducedDesyncedMoves;
-
-	AssertFatal(mTimeData.lastFixedUpdateIndex == lastRecordUpdateIdx, "We should always have input record for the last frame");
-
-	const u32 firstRecordUpdateIdx = static_cast<u32>(lastRecordUpdateIdx + 1 - updates.size());
+	const u32 firstRecordUpdateIdx = getFirstStoredUpdateIdx();
 
 	if (updateIdx < firstRecordUpdateIdx)
 	{
@@ -200,138 +264,225 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const u32 l
 		return;
 	}
 
-	if (updateIdx <= lastConfirmedUpdateIdx)
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+
+	const OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(OneUpdateData::StateType::Movement);
+
+	if (previousMovementDataState == OneUpdateData::SyncState::Predicted || previousMovementDataState == OneUpdateData::SyncState::NoData)
 	{
-		// we have snapshots later than this that are already confirmed, no need to do anything
-		return;
-	}
-
-	if (updateIdxProducedDesyncedMoves != std::numeric_limits<u32>::max() && updateIdx <= updateIdxProducedDesyncedMoves)
-	{
-		// we have snapshots later than this that are confirmed to be desynchronized, no need to do anything
-		return;
-	}
-
-	const size_t updatedRecordIdx = updateIdx - firstRecordUpdateIdx;
-	AssertFatal(updatedRecordIdx < updates.size(), "Index for movements history is out of bounds");
-
-	AssertFatal(updateIdx >= mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size(), "Trying to correct a frame with missing input");
-
-	std::vector<EntityMoveHash> oldMovesData = std::move(updates[updatedRecordIdx].updateHash);
-
-	bool areMovesDesynced = false;
-	if (oldMovesData != authoritativeMovementData.updateHash)
-	{
-		areMovesDesynced = true;
-
-		// if the server hasn't received input for all the updates it processed
-		if (lastReceivedByServerUpdateIdx < updateIdx)
+		// we have predicted data for this update, check if it matches
+		if (frameData.clientMovement.updateHash != authoritativeMovementData.updateHash)
 		{
-			const std::vector<GameplayInput::FrameState>& inputs = mInputHistory.inputs;
-			// check if the server was able to correctly predict our input for that frame
-			// and if it was able, then mark record as desynced, since then our prediction was definitely incorrect
-			if (mInputHistory.lastInputUpdateIdx >= updateIdx && (mInputHistory.lastInputUpdateIdx + 1 - inputs.size() <= lastReceivedByServerUpdateIdx))
-			{
-				const size_t indexShift = mInputHistory.lastInputUpdateIdx + 1 - inputs.size();
-				for (u32 i = updateIdx; i > lastReceivedByServerUpdateIdx; --i)
-				{
-					if (inputs[i - 1 - indexShift] != inputs[i - indexShift])
-					{
-						// server couldn't predict our input correctly, we can't trust its movement prediction either
-						// mark as accepted to keep our local version until we get moves with confirmed input
-						areMovesDesynced = false;
-						break;
-					}
-				}
-			}
-			else
-			{
-				ReportFatalError("We lost some input records that we need to confirm correctness of input on the server (%u, %u, %u, %u)", updateIdx, lastReceivedByServerUpdateIdx, inputs.size(), mInputHistory.lastInputUpdateIdx);
-			}
+			frameData.clientMovement = std::move(authoritativeMovementData);
+			frameData.dataState.setDesynced(OneUpdateData::DesyncType::Movement, true);
 		}
-	}
 
-	if (areMovesDesynced)
-	{
-		mMovementHistory.updateIdxProducedDesyncedMoves = updateIdx;
-		mMovementHistory.updates[updatedRecordIdx] = std::move(authoritativeMovementData);
-	}
-	else
-	{
-		mMovementHistory.lastConfirmedUpdateIdx = updateIdx;
+		const OneUpdateData::SyncState newMovementDataState = isFinal ? OneUpdateData::SyncState::FinalAuthoritative : OneUpdateData::SyncState::NotFinalAuthoritative;
+		frameData.dataState.setState(OneUpdateData::StateType::Movement, newMovementDataState);
 	}
 }
 
-void GameStateRewinder::clearOldMoves(const u32 firstUpdateToKeep)
+const MovementUpdateData& GameStateRewinder::getMovesForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
-
-	const u32 firstStoredUpdateIdx = mMovementHistory.lastUpdateIdx - mMovementHistory.updates.size() + 1;
-	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx + 1, "We can't have less movement records than stored frames");
-	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx - 1;
-	Assert(firstIndexToKeep < mMovementHistory.updates.size(), "Trying to remove more movement history frames than we have: %u, %u", firstIndexToKeep - 1, mMovementHistory.updates.size());
-	mMovementHistory.updates.erase(mMovementHistory.updates.begin(), mMovementHistory.updates.begin() + static_cast<int>(firstIndexToKeep));
+	return getUpdateRecordByUpdateIdx(updateIdx).clientMovement;
 }
 
-Input::InputHistory& GameStateRewinder::getInputHistoryForClient(ConnectionId connectionId)
+const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId connectionId, u32 updateIdx) const
 {
-	auto it = mClientsInputHistory.find(connectionId);
-	AssertFatal(it != mClientsInputHistory.end(), "No input history for connection %u", connectionId);
+	assertServerOnly();
+	static const GameplayInput::FrameState emptyInput;
+	const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+
+	if (!frameData.dataState.serverInputConfirmedPlayers.contains(connectionId) && !frameData.dataState.serverInputPredictedPlayers.contains(connectionId))
+	{
+		ReportError("We shouldn't call getPlayerInput to get input that wasn't predicted or confirmed, use getOrPredictPlayerInput instead");
+		return emptyInput;
+	}
+
+	const auto it = frameData.serverInput.find(connectionId);
+	Assert(it != frameData.serverInput.end(), "Trying to get input for player %u for update %u but there is no input for this player", connectionId, updateIdx);
+	if (it == frameData.serverInput.end())
+	{
+		return emptyInput;
+	}
+
 	return it->second;
 }
 
-void GameStateRewinder::onClientConnected(ConnectionId connectionId, u32 clientFrameIndex)
+const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx)
 {
-	auto [it, wasEmplaced] = mClientsInputHistory.emplace(connectionId, Input::InputHistory());
-	AssertFatal(wasEmplaced, "Tried to add input history for connection %u, but it already exists", connectionId);
-	it->second.indexShift = static_cast<s32>(mTimeData.lastFixedUpdateIndex) - static_cast<s32>(clientFrameIndex) + 1;
-}
-
-void GameStateRewinder::onClientDisconnected(ConnectionId connectionId)
-{
-	mClientsInputHistory.erase(connectionId);
-}
-
-std::unordered_map<ConnectionId, Input::InputHistory>& GameStateRewinder::getInputHistoriesForAllClients()
-{
-	return mClientsInputHistory;
-}
-
-const GameplayInput::FrameState& GameStateRewinder::getInputsFromFrame(u32 updateIdx) const
-{
-	AssertFatal(updateIdx <= mInputHistory.lastInputUpdateIdx, "Trying to get input for frame %u, but last input frame is %u", updateIdx, mInputHistory.lastInputUpdateIdx);
-	const size_t firstRecordIndex = mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size();
-	AssertFatal(updateIdx >= firstRecordIndex, "Trying to get input for frame %u, but first input frame is %u", updateIdx, firstRecordIndex);
-	return mInputHistory.inputs[updateIdx - firstRecordIndex];
-}
-
-void GameStateRewinder::addFrameToInputHistory(u32 updateIdx, const GameplayInput::FrameState& newInput)
-{
-	AssertFatal(updateIdx == mInputHistory.lastInputUpdateIdx + 1, "We have a gap in input history, previous frame was %u, new frame is %u", mInputHistory.lastInputUpdateIdx, updateIdx);
-	mInputHistory.inputs.push_back(newInput);
-	mInputHistory.lastInputUpdateIdx = updateIdx;
-}
-void GameStateRewinder::clearOldInputs(u32 firstUpdateToKeep)
-{
-	if (mInputHistory.inputs.empty() && mInputHistory.lastInputUpdateIdx == 0)
+	assertServerOnly();
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	GameplayInput::FrameState& updateInput = frameData.serverInput[connectionId];
+	if (frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
 	{
-		return;
+		// we have confirmed or already predicted input for this player, so we don't need to predict anything
+		return updateInput;
 	}
 
-	const u32 firstStoredUpdateIdx = mInputHistory.lastInputUpdateIdx + 1 - mInputHistory.inputs.size();
-	AssertFatal(firstUpdateToKeep >= firstStoredUpdateIdx, "We can't have less input records than stored frames");
-	const size_t firstIndexToKeep = firstUpdateToKeep - firstStoredUpdateIdx;
-	Assert(firstIndexToKeep < mInputHistory.inputs.size(), "Trying to remove more input history frames than we have: %u, %u", firstIndexToKeep - 1, mInputHistory.inputs.size());
-	if (firstIndexToKeep < mInputHistory.inputs.size())
+	// we don't have any input data for this update, so we need to predict it
+	const u32 lastKnownInputUpdateIdx = getLastKnownInputUpdateIdxForPlayer(connectionId);
+	if (lastKnownInputUpdateIdx == 0)
 	{
-		mInputHistory.inputs.erase(mInputHistory.inputs.begin(), mInputHistory.inputs.begin() + static_cast<int>(firstIndexToKeep));
+		// we don't have any input data for this player at all, so we can't predict anything
+		static const GameplayInput::FrameState emptyInput;
+		return emptyInput;
+	}
+
+	const u32 numUpdatesToPredict = updateIdx - lastKnownInputUpdateIdx;
+
+	const GameplayInput::FrameState* predictedInput = nullptr;
+	if (numUpdatesToPredict < 10)
+	{
+		predictedInput = &getPlayerInput(connectionId, lastKnownInputUpdateIdx);
+	}
+	else
+	{
+		// we can't predict that far, so assume player is not moving
+		static const GameplayInput::FrameState emptyInput;
+		predictedInput = &emptyInput;
+	}
+
+	updateInput = *predictedInput;
+	frameData.dataState.serverInputPredictedPlayers.insert(connectionId);
+
+	return updateInput;
+}
+
+void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx, const GameplayInput::FrameState& newInput)
+{
+	assertServerOnly();
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	if (frameData.dataState.serverInputPredictedPlayers.contains(connectionId))
+	{
+		if (frameData.serverInput[connectionId] != newInput)
+		{
+			frameData.dataState.setDesynced(OneUpdateData::DesyncType::Input, true);
+		}
+	}
+	frameData.serverInput[connectionId] = newInput;
+	frameData.dataState.serverInputConfirmedPlayers.insert(connectionId);
+}
+
+u32 GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const
+{
+	assertServerOnly();
+	// iterate backwards through the frame history and find the first frame that has input data for this player
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+	for (u32 updateIdx = mLastStoredUpdateIdx;; --updateIdx)
+	{
+		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+		if (frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
+		{
+			return updateIdx;
+		}
+
+		// check in the end of the loop to avoid underflow
+		if (updateIdx == firstStoredUpdateIdx)
+		{
+			break;
+		}
+	}
+
+	return firstStoredUpdateIdx;
+}
+
+u32 GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const
+{
+	assertServerOnly();
+	// iterate backwards through the frame history and find the first frame that has input data for all the players
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+	for (u32 updateIdx = mLastStoredUpdateIdx; updateIdx >= firstStoredUpdateIdx; --updateIdx)
+	{
+		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+		bool found = true;
+		for (const ConnectionId connectionId : connections)
+		{
+			if (!frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
+			{
+				found = false;
+				break;
+			}
+		}
+
+		if (found)
+		{
+			return updateIdx;
+		}
+	}
+
+	return 0;
+}
+
+std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t size) const
+{
+	assertClientOnly();
+	std::vector<GameplayInput::FrameState> result;
+	const size_t inputSize = std::min(size, mUpdateHistory.size());
+	result.reserve(inputSize);
+
+	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>(mLastStoredUpdateIdx > size ? mLastStoredUpdateIdx + 1 - size : 1u));
+
+	for (u32 updateIdx = firstInputUpdate; updateIdx <= mCurrentTimeData.lastFixedUpdateIndex; ++updateIdx)
+	{
+		result.push_back(getInputForUpdate(updateIdx));
+	}
+
+	return result;
+}
+
+const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 updateIdx) const
+{
+	assertClientOnly();
+	const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	return frameData.clientInput;
+}
+
+void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput)
+{
+	assertClientOnly();
+
+	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
+	createUpdateRecordIfDoesNotExist(updateIdx);
+	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	frameData.clientInput = newInput;
+}
+
+void GameStateRewinder::createUpdateRecordIfDoesNotExist(u32 updateIdx)
+{
+	const size_t firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+	AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx, "Can't create frames before cut of the history, new frame %u, the oldest frame %u", updateIdx, firstFrameHistoryUpdateIdx);
+	if (updateIdx >= firstFrameHistoryUpdateIdx)
+	{
+		const size_t newRecordIdx = updateIdx - firstFrameHistoryUpdateIdx;
+		if (newRecordIdx >= mUpdateHistory.size())
+		{
+			mUpdateHistory.resize(newRecordIdx + 1);
+			mLastStoredUpdateIdx = updateIdx;
+		}
 	}
 }
 
-size_t GameStateRewinder::getInputCurrentRecordIdx() const
+GameStateRewinder::OneUpdateData& GameStateRewinder::getUpdateRecordByUpdateIdx(u32 updateIdx)
 {
-	// input history has one record less than frame history, since we don't store input for the first frame
-	return mCurrentRecordIdx - 1;
+	const u32 firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+	const u32 lastFrameHistoryUpdateIdx = mLastStoredUpdateIdx;
+	AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx && updateIdx <= lastFrameHistoryUpdateIdx, "Trying to get frame %u, but the history is from %u to %u", updateIdx, firstFrameHistoryUpdateIdx, lastFrameHistoryUpdateIdx);
+	return mUpdateHistory[updateIdx - firstFrameHistoryUpdateIdx];
+}
+
+const GameStateRewinder::OneUpdateData& GameStateRewinder::getUpdateRecordByUpdateIdx(u32 updateIdx) const
+{
+	const u32 firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+	const u32 lastFrameHistoryUpdateIdx = mLastStoredUpdateIdx;
+	AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx && updateIdx <= lastFrameHistoryUpdateIdx, "Trying to get frame %u, but the history is from %u to %u", updateIdx, firstFrameHistoryUpdateIdx, lastFrameHistoryUpdateIdx);
+	return mUpdateHistory[updateIdx - firstFrameHistoryUpdateIdx];
 }
 
 void GameStateRewinder::assertServerOnly() const
@@ -342,59 +493,4 @@ void GameStateRewinder::assertServerOnly() const
 void GameStateRewinder::assertClientOnly() const
 {
 	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
-}
-
-void GameStateRewinder::GameplayCommandHistory::appendFrameToHistory(u32 frameIndex)
-{
-	if (mRecords.empty())
-	{
-		mRecords.emplace_back();
-		mLastCommandUpdateIdx = frameIndex;
-	}
-	else if (frameIndex > mLastCommandUpdateIdx)
-	{
-		mRecords.resize(mRecords.size() + frameIndex - mLastCommandUpdateIdx);
-		mLastCommandUpdateIdx = frameIndex;
-	}
-	else if (frameIndex < mLastCommandUpdateIdx)
-	{
-		const u32 previousFirstElement = mLastCommandUpdateIdx + 1 - mRecords.size();
-		if (frameIndex < previousFirstElement)
-		{
-			const size_t newElementsCount = previousFirstElement - frameIndex;
-			mRecords.insert(mRecords.begin(), newElementsCount, {});
-		}
-	}
-}
-
-void GameStateRewinder::GameplayCommandHistory::addConfirmedSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
-{
-	appendFrameToHistory(creationFrameIndex);
-
-	const size_t idx = creationFrameIndex - (mLastCommandUpdateIdx - mRecords.size() + 1);
-	std::vector<Network::GameplayCommand::Ptr>& frameCommands = mRecords[idx].list;
-
-	if (frameCommands != newCommands)
-	{
-		mRecords[idx].list = std::move(newCommands);
-		mUpdateIdxProducedDesyncedCommands = std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
-	}
-}
-
-void GameStateRewinder::GameplayCommandHistory::addOverwritingSnapshotToHistory(u32 creationFrameIndex, std::vector<Network::GameplayCommand::Ptr>&& newCommands)
-{
-	appendFrameToHistory(creationFrameIndex);
-
-	const size_t idx = creationFrameIndex - (mLastCommandUpdateIdx - mRecords.size() + 1);
-
-	// we assume that messages are always received and processed in order
-	// so any commands we had before we got the snapshot are incorrect
-	for (Network::GameplayCommandList& commandList : mRecords)
-	{
-		commandList.list.clear();
-	}
-
-	mRecords[idx].list = std::move(newCommands);
-	mUpdateIdxProducedDesyncedCommands = std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
-	mUpdateIdxWithRewritingCommands = std::min(creationFrameIndex, mUpdateIdxProducedDesyncedCommands);
 }

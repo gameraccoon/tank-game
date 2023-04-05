@@ -4,11 +4,11 @@
 	"flags": ["transient"],
 	"attributes": [
 		{
-			"name": "controlledPlayers",
-			"type": "std::unordered_map<ConnectionId, OptionalEntity>",
+			"name": "clientData",
+			"type": "std::unordered_map<ConnectionId, OneClientData>",
 			"includes": [
 				"<unordered_map>",
-				"\"GameData/EcsDefinitions.h\"",
+				"\"GameData/Network/OneClientData.h\"",
 				"\"GameData/Network/ConnectionId.h\""
 			],
 			"flags": ["get_by_ref"]

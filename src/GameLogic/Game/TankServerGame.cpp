@@ -50,6 +50,8 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port", 14436));
 
+	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+
 	const bool shouldRender = renderAccessor.has_value();
 
 	initSystems(shouldRender);
@@ -96,10 +98,10 @@ void TankServerGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
 
-	mGameStateRewinder.addNewFrameToTheHistory();
-
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
 	applyInputForCurrentUpdate(time->getValue()->lastFixedUpdateIndex + 1);
+	mGameStateRewinder.advanceSimulationToNextUpdate(time->getValue()->lastFixedUpdateIndex + 1);
+	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -151,14 +153,16 @@ void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
 	const TimeData& timeValue = *time->getValue();
 	const float fixedUpdateDt = timeValue.lastFixedUpdateDt;
 
-	AssertFatal(firstIncorrectUpdateIdx <= timeValue.lastFixedUpdateIndex, "We can't correct updates from the future");
-	const u32 framesToResimulate = timeValue.lastFixedUpdateIndex - firstIncorrectUpdateIdx + 1;
+	const u32 lastFixedUpdateIndex = timeValue.lastFixedUpdateIndex;
 
-	LogInfo("Correct server updates from %u to %u", firstIncorrectUpdateIdx, timeValue.lastFixedUpdateIndex);
+	AssertFatal(firstIncorrectUpdateIdx > 0, "We can't correct the baseline zero update");
+	AssertFatal(firstIncorrectUpdateIdx <= lastFixedUpdateIndex, "We can't correct updates from the future");
 
-	mGameStateRewinder.unwindBackInHistory(framesToResimulate, framesToResimulate);
+	LogInfo("Correct server updates from %u to %u", firstIncorrectUpdateIdx, lastFixedUpdateIndex);
 
-	for (u32 i = 0; i < framesToResimulate; ++i)
+	mGameStateRewinder.unwindBackInHistory(firstIncorrectUpdateIdx);
+
+	for (u32 i = firstIncorrectUpdateIdx; i <= lastFixedUpdateIndex; ++i)
 	{
 		fixedTimeUpdate(fixedUpdateDt);
 	}
@@ -177,63 +181,23 @@ void TankServerGame::processInputCorrections()
 	}
 
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
-	// first update of the input that diverged from with prediction for at least one client
-	u32 firstUpdateToCorrect = lastProcessedUpdateIdx + 1;
-	// index of first frame when we don't have input from some client yet
-	u32 firstNotConfirmedUpdateIdx = lastProcessedUpdateIdx + 1;
 
-	constexpr u32 MAX_STORED_UPDATES_COUNT = 60;
-
-	for (auto& [_, inputHistory] : mGameStateRewinder.getInputHistoriesForAllClients())
-	{
-		if (inputHistory.inputs.empty())
-		{
-			continue;
-		}
-
-		Assert(inputHistory.indexShift != std::numeric_limits<s32>::max(), "If we have input, we should have indexShift filled");
-
-		const u32 lastAbsoluteInputUpdateIdx = inputHistory.lastInputUpdateIdx + inputHistory.indexShift;
-		firstNotConfirmedUpdateIdx = std::min(firstNotConfirmedUpdateIdx, lastAbsoluteInputUpdateIdx);
-		// will wrap after ~8.5 years of gameplay
-		const u32 inputFromFutureCount = ((lastAbsoluteInputUpdateIdx > lastProcessedUpdateIdx + 1) ? lastAbsoluteInputUpdateIdx - lastProcessedUpdateIdx - 1 : 0);
-		const size_t iEnd = std::min(inputHistory.inputs.size(), inputHistory.inputs.size() - static_cast<size_t>(inputFromFutureCount));
-		for (size_t i = 1; i < iEnd; ++i)
-		{
-			if (inputHistory.inputs[i] != inputHistory.inputs[i - 1])
-			{
-				const u32 firstIncorrectUpdate = static_cast<u32>(lastAbsoluteInputUpdateIdx + 1 + i - inputHistory.inputs.size());
-				firstUpdateToCorrect = std::min(firstUpdateToCorrect, firstIncorrectUpdate);
-				break;
-			}
-		}
-	}
-
-	// don't try to correct frames that we have already trimmed
-	firstUpdateToCorrect = std::max(firstUpdateToCorrect, static_cast<u32>(lastProcessedUpdateIdx + 2 - mGameStateRewinder.getStoredFramesCount()));
-
-	// limit amount of frames to a predefined value
-	firstNotConfirmedUpdateIdx = std::max(firstNotConfirmedUpdateIdx + MAX_STORED_UPDATES_COUNT, lastProcessedUpdateIdx) - MAX_STORED_UPDATES_COUNT;
+	const u32 firstUpdateToCorrect = mGameStateRewinder.getFirstDesyncedUpdateIdx();
 
 	if (firstUpdateToCorrect <= lastProcessedUpdateIdx)
 	{
 		correctUpdates(firstUpdateToCorrect);
 	}
 
-	for (auto& [_, inputHistory] : mGameStateRewinder.getInputHistoriesForAllClients())
-	{
-		AssertFatal(inputHistory.lastInputUpdateIdx + 1 >= inputHistory.inputs.size(), "We can't have input stored for frames with negative index");
-		const u32 firstIdxFrame = static_cast<u32>(inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
-		const size_t firstIdxToKeep = std::max(firstIdxFrame, firstNotConfirmedUpdateIdx - inputHistory.indexShift) - firstIdxFrame;
-
-		if (!inputHistory.inputs.empty() && firstIdxToKeep > 0)
-		{
-			inputHistory.inputs.erase(inputHistory.inputs.begin(), inputHistory.inputs.begin() + static_cast<int>(std::min(firstIdxToKeep, inputHistory.inputs.size() - 1)));
-		}
+	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+	std::vector<ConnectionId> players;
+	players.reserve(serverConnections->getClientData().size());
+	for (auto [connectionId, oneClientData] : serverConnections->getClientData()) {
+		players.push_back(connectionId);
 	}
 
-	AssertFatal(lastProcessedUpdateIdx + 1 >= firstNotConfirmedUpdateIdx, "firstNotConfirmedFrameIdx can't be greater than lastProcessedUpdateIdx");
-	mGameStateRewinder.trimOldFrames(lastProcessedUpdateIdx + 1 - firstNotConfirmedUpdateIdx);
+	const u32 firstUpdateToKeep = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);
+	mGameStateRewinder.trimOldFrames(std::min(firstUpdateToKeep, lastProcessedUpdateIdx));
 }
 
 void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
@@ -241,30 +205,18 @@ void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 	SCOPED_PROFILER("TankServerGame::applyInputForCurrentUpdate");
 	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
+	for (auto [connectionId, oneClientData] : serverConnections->getClientData())
 	{
-		if (optionalEntity.isValid())
+		if (oneClientData.playerEntity.isValid())
 		{
-			auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(optionalEntity.getEntity());
+			const Entity playerEntity = oneClientData.playerEntity.getEntity();
+			auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(playerEntity);
 			if (gameplayInput == nullptr)
 			{
-				gameplayInput = entityManager.addComponent<GameplayInputComponent>(optionalEntity.getEntity());
+				gameplayInput = entityManager.addComponent<GameplayInputComponent>(playerEntity);
 			}
-			const Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
-			if (!inputHistory.inputs.empty())
-			{
-				const u32 absoluteLastUpdateIdx = inputHistory.lastInputUpdateIdx + inputHistory.indexShift;
-				if (inputUpdateIndex > absoluteLastUpdateIdx)
-				{
-					inputUpdateIndex = absoluteLastUpdateIdx;
-				}
-
-				if (inputUpdateIndex + inputHistory.inputs.size() - inputHistory.indexShift > inputHistory.lastInputUpdateIdx)
-				{
-					const size_t index = inputUpdateIndex - inputHistory.indexShift - (inputHistory.lastInputUpdateIdx + 1 - inputHistory.inputs.size());
-					gameplayInput->setCurrentFrameState(inputHistory.inputs[index]);
-				}
-			}
+			const GameplayInput::FrameState& frameInput = mGameStateRewinder.getOrPredictPlayerInput(connectionId, inputUpdateIndex);
+			gameplayInput->setCurrentFrameState(frameInput);
 		}
 	}
 }

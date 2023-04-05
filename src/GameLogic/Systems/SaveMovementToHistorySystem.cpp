@@ -28,7 +28,14 @@ void SaveMovementToHistorySystem::update()
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 
-	const u32 inputUpdateIndex = time->getValue()->lastFixedUpdateIndex;
+	const u32 updateIndex = time->getValue()->lastFixedUpdateIndex;
+
+	if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIndex))
+	{
+		// we don't want to rewrite data that was already confirmed by the server
+		return;
+	}
+
 	const GameplayTimestamp& inputUpdateTimestamp = time->getValue()->lastFixedUpdateTimestamp;
 
 	EntityManager& entityManager = world.getEntityManager();
@@ -46,5 +53,5 @@ void SaveMovementToHistorySystem::update()
 
 	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
 
-	mGameStateRewinder.addFrameToMovementHistory(inputUpdateIndex, std::move(newUpdateData));
+	mGameStateRewinder.addPredictedMovementDataForUpdate(updateIndex + 1, std::move(newUpdateData));
 }

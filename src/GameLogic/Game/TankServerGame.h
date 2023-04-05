@@ -41,7 +41,7 @@ private:
 	void applyInputForCurrentUpdate(u32 inputUpdateIndex);
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator(), getWorldHolder()};
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGame = false;
 	u16 mServerPort = 14436;

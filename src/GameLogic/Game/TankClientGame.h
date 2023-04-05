@@ -35,12 +35,12 @@ protected:
 
 private:
 	void initSystems();
-	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves, bool overrideState);
+	void correctUpdates(u32 firstUpdateToResimulateIdx);
 	void removeOldUpdates();
 	void processCorrections();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client , getComponentFactory(), getEntityGenerator(), getWorldHolder()};
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client , getComponentFactory(), getEntityGenerator()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;

@@ -50,7 +50,7 @@ namespace Network
 		if (mNetworkSide == NetworkSide::Server)
 		{
 			ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-			serverConnections->getControlledPlayersRef()[mOwnerConnectionId] = controlledEntity;
+			serverConnections->getClientDataRef()[mOwnerConnectionId].playerEntity = controlledEntity;
 		}
 		else
 		{

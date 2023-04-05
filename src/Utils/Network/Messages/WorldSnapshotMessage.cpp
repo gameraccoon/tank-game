@@ -23,13 +23,14 @@ namespace Network
 
 		std::vector<GameplayCommand::Ptr> commands;
 		commands.reserve(10);
-		for (auto [entityConnectionId, optionalEntity] : serverConnections->getControlledPlayers())
+		for (auto [entityConnectionId, oneClientData] : serverConnections->getClientData())
 		{
-			if (optionalEntity.isValid())
+			if (oneClientData.playerEntity.isValid())
 			{
-				const auto [transform] = world.getEntityManager().getEntityComponents<const TransformComponent>(optionalEntity.getEntity());
+				const Entity playerEntity = oneClientData.playerEntity.getEntity();
+				const auto [transform] = world.getEntityManager().getEntityComponents<const TransformComponent>(playerEntity);
 
-				auto networkIdIt = networkIdMapping->getEntityToNetworkId().find(optionalEntity.getEntity());
+				auto networkIdIt = networkIdMapping->getEntityToNetworkId().find(playerEntity);
 				if (transform && networkIdIt != networkIdMapping->getEntityToNetworkId().end())
 				{
 					const Vector2D pos = transform->getLocation();
@@ -68,7 +69,7 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		gameStateRewinder.addOverwritingGameplayCommandsSnapshotToHistory(clientUpdateIdx, std::move(commands));
+		gameStateRewinder.applyAuthoritativeCommands(clientUpdateIdx, std::move(commands));
 	}
 
 	void CleanBeforeApplyingSnapshot(World& world)

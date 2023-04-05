@@ -39,12 +39,14 @@ void ServerMovesSendSystem::update()
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
+	std::vector<std::pair<ConnectionId, s32>> indexShifts;
 	std::vector<ConnectionId> connections;
-	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
+	for (auto [connectionId, clientData] : serverConnections->getClientData())
 	{
-		if (optionalEntity.isValid())
+		if (clientData.playerEntity.isValid())
 		{
-			connections.emplace_back(connectionId);
+			indexShifts.emplace_back(connectionId, clientData.indexShift);
+			connections.push_back(connectionId);
 		}
 	}
 
@@ -56,27 +58,14 @@ void ServerMovesSendSystem::update()
 	TupleVector<Entity, const MovementComponent*, const TransformComponent*> components;
 	world.getEntityManager().getComponentsWithEntities<const MovementComponent, const TransformComponent>(components);
 
-	if (components.empty())
-	{
-		return;
-	}
+	const u32 lastAllPlayersInputUpdateIdx = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(connections);
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	AssertFatal(time, "TimeComponent should be created before the game run");
 	const TimeData& timeValue = *time->getValue();
 
-	for (const ConnectionId connectionId : connections)
+	for (const auto& [connectionId, indexShift] : indexShifts)
 	{
-		const Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
-
-		if (inputHistory.inputs.empty())
-		{
-			// we haven't yet got any player input, so no need to send state for this frame to this player
-			continue;
-		}
-
-		const s32 indexShift = inputHistory.indexShift;
-
 		if (indexShift == std::numeric_limits<s32>::max())
 		{
 			// we don't yet know how to map input indexes to this player, skip this update
@@ -89,9 +78,11 @@ void ServerMovesSendSystem::update()
 			continue;
 		}
 
+		const u32 lastPlayerInputUpdateIdx = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
+
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex, timeValue.lastFixedUpdateTimestamp, indexShift, inputHistory.lastInputUpdateIdx),
+			Network::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex + 1, timeValue.lastFixedUpdateTimestamp, indexShift, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

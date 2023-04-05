@@ -36,11 +36,7 @@ void ServerCommandsSendSystem::update()
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
-	std::vector<ConnectionId> connections;
-	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
-	{
-		connections.emplace_back(connectionId);
-	}
+	const auto& connections = serverConnections->getClientData();
 
 	if (connections.empty())
 	{
@@ -70,11 +66,9 @@ void ServerCommandsSendSystem::update()
 			continue;
 		}
 
-		for (const ConnectionId connectionId : connections)
+		for (const auto [connectionId, oneClientData] : connections)
 		{
-			Input::InputHistory& inputHistory = mGameStateRewinder.getInputHistoryForClient(connectionId);
-
-			const s32 indexShift = inputHistory.indexShift;
+			const s32 indexShift = oneClientData.indexShift;
 
 			AssertFatal(indexShift != std::numeric_limits<s32>::max(), "indexShift for input should be initialized for a connected player");
 

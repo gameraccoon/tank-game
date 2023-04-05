@@ -161,45 +161,42 @@ void DebugDrawSystem::update()
 		const Vector2D crossCenterOffset{60, 280};
 		const Vector2D crossPieceSize{23, 23};
 		const float crossPieceOffset = 25;
-		if (!mGameStateRewinder.getInputHistory().inputs.empty())
+		const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputForUpdate(timeValue.lastFixedUpdateIndex);
+		const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+		const float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+
+		if (horizontalMove < 0.0f)
 		{
-			const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputHistory().inputs.back();
-			const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
-			const float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowLeftTextureHandle;
+			quadData.alpha = std::clamp(-horizontalMove, 0.0f, 1.0f);
+		}
+		else if (horizontalMove > 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowRightTextureHandle;
+			quadData.alpha = std::clamp(horizontalMove, 0.0f, 1.0f);
+		}
 
-			if (horizontalMove < 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowLeftTextureHandle;
-				quadData.alpha = std::clamp(-horizontalMove, 0.0f, 1.0f);
-			}
-			else if (horizontalMove > 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowRightTextureHandle;
-				quadData.alpha = std::clamp(horizontalMove, 0.0f, 1.0f);
-			}
-
-			if (verticalMove > 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowDownTextureHandle;
-				quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
-			}
-			else if (verticalMove < 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowUpTextureHandle;
-				quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
-			}
+		if (verticalMove > 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowDownTextureHandle;
+			quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
+		}
+		else if (verticalMove < 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowUpTextureHandle;
+			quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
 		}
 	}
 

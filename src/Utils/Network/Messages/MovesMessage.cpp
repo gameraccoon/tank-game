@@ -3,7 +3,6 @@
 #include "Utils/Network/Messages/MovesMessage.h"
 
 #include "Base/Types/Serialization.h"
-#include "Base/Types/BasicTypes.h"
 
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
@@ -16,17 +15,18 @@
 
 namespace Network
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastReceivedInputUpdateIdx)
+	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx)
 	{
 		std::vector<std::byte> movesMessageData;
 
 		const u32 clientUpdateIdx = updateIdx - indexShift;
 
-		const bool hasMissingInput = lastReceivedInputUpdateIdx + indexShift < updateIdx;
+		const bool hasMissingInput = lastKnownPlayerInputUpdateIdx < updateIdx;
+		const bool hasFinalInputs = lastKnownAllPlayersInputUpdateIdx >= updateIdx;
 
-		Serialization::AppendNumber<u8>(movesMessageData, static_cast<u8>(hasMissingInput));
+		Serialization::AppendNumber<u8>(movesMessageData, static_cast<u8>(static_cast<u8>(hasMissingInput) + (static_cast<u8>(hasFinalInputs) << 1)));
 		if (hasMissingInput) {
-			Serialization::AppendNumber<u32>(movesMessageData, lastReceivedInputUpdateIdx);
+			Serialization::AppendNumber<u32>(movesMessageData, static_cast<u32>(lastKnownPlayerInputUpdateIdx - indexShift));
 		}
 
 		Serialization::AppendNumber<u32>(movesMessageData, clientUpdateIdx);
@@ -63,7 +63,9 @@ namespace Network
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
-		const bool hasMissingInput = (Serialization::ReadNumber<u8>(message.data, streamIndex) != 0);
+		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex);
+		const bool hasMissingInput = (bitset & 1) != 0;
+		const bool hasFinalInput = (bitset & (1 << 1)) != 0;
 		if (hasMissingInput)
 		{
 			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
@@ -105,6 +107,6 @@ namespace Network
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		gameStateRewinder.applyAuthoritativeMoves(updateIdx, lastReceivedInputUpdateIdx, std::move(currentUpdateData));
+		gameStateRewinder.applyAuthoritativeMoves(updateIdx, hasFinalInput, std::move(currentUpdateData));
 	}
 }
