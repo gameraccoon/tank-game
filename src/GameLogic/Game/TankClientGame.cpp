@@ -224,7 +224,7 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 		if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIdx))
 		{
 			GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
-			gameplayCommands->setData(mGameStateRewinder.getCommandsForUpdate(updateIdx));
+			gameplayCommands->setData(mGameStateRewinder.getCommandsForUpdate(updateIdx).gameplayGeneratedCommands);
 		}
 
 		// this adds a new frame to the history

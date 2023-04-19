@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/Systems/FetchScheduledCommandsSystem.h"
+#include "GameLogic/Systems/FetchExternalCommandsSystem.h"
 
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -9,14 +9,13 @@
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-
-FetchScheduledCommandsSystem::FetchScheduledCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
+FetchExternalCommandsSystem::FetchExternalCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
-void FetchScheduledCommandsSystem::update()
+void FetchExternalCommandsSystem::update()
 {
 	SCOPED_PROFILER("FetchScheduledCommandsSystem::update");
 	World& world = mWorldHolder.getWorld();
@@ -29,8 +28,8 @@ void FetchScheduledCommandsSystem::update()
 	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
 	if (commandUpdateIdxBegin <= currentUpdateIndex && currentUpdateIndex < commandUpdateIdxEnd)
 	{
-		const Network::GameplayCommandList& newCommands = mGameStateRewinder.getCommandsForUpdate(currentUpdateIndex);
-		for (const Network::GameplayCommand::Ptr& command : newCommands.list)
+		const Network::GameplayCommandHistoryRecord& newCommands = mGameStateRewinder.getCommandsForUpdate(currentUpdateIndex);
+		for (const Network::GameplayCommand::Ptr& command : newCommands.externalCommands.list)
 		{
 			gameplayCommands->getDataRef().list.push_back(command->clone());
 		}

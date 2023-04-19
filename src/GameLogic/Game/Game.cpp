@@ -6,7 +6,6 @@
 
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"

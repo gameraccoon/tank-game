@@ -59,8 +59,8 @@ void ServerCommandsSendSystem::update()
 			continue;
 		}
 
-		const Network::GameplayCommandList& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
-		if (updateCommands.list.empty())
+		const Network::GameplayCommandHistoryRecord& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
+		if (updateCommands.gameplayGeneratedCommands.list.empty() && updateCommands.externalCommands.list.empty())
 		{
 			// no commands that frame
 			continue;
@@ -82,7 +82,7 @@ void ServerCommandsSendSystem::update()
 
 			connectionManager->sendMessageToClient(
 				connectionId,
-				Network::CreateGameplayCommandsMessage(world, updateCommands.list, connectionId, clientUpdateIdx),
+				Network::CreateGameplayCommandsMessage(world, updateCommands, connectionId, clientUpdateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}

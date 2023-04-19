@@ -18,6 +18,8 @@ namespace Network
 		};
 
 	public:
+		~CreatePlayerEntityCommand();
+
 		[[nodiscard]] static GameplayCommand::Ptr createServerSide(Vector2D pos, NetworkEntityId networkEntityId, ConnectionId ownerConnectionId);
 		[[nodiscard]] static GameplayCommand::Ptr createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner);
 

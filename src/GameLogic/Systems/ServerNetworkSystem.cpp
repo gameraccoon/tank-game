@@ -55,7 +55,7 @@ static void OnClientConnected(HAL::ConnectionManager* connectionManager, World& 
 
 		SynchronizeServerStateToNewPlayer(world, connectionId, *connectionManager);
 
-		gameStateRewinder.appendCommandToHistory(
+		gameStateRewinder.appendExternalCommandToHistory(
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
 			Network::CreatePlayerEntityCommand::createServerSide(
 				Vector2D(50, 50),

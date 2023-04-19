@@ -29,5 +29,5 @@ void SaveCommandsToHistorySystem::update()
 
 	const GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<const GameplayCommandsComponent>();
 
-	mGameStateRewinder.overrideCommandsOneUpdate(currentUpdateIndex, gameplayCommands->getData());
+	mGameStateRewinder.writeSimulatedCommands(currentUpdateIndex + 1, gameplayCommands->getData());
 }

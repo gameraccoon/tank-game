@@ -49,11 +49,11 @@ public:
 	u32 getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) const;
 	u32 getFirstDesyncedUpdateIdx() const;
 
-	void appendCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand);
+	void appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand);
 	void applyAuthoritativeCommands(u32 updateIdx, std::vector<Network::GameplayCommand::Ptr>&& commands);
-	void overrideCommandsOneUpdate(u32 updateIdx, const Network::GameplayCommandList& updateCommands);
+	void writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands);
 	bool hasConfirmedCommandsForUpdate(u32 updateIdx) const;
-	const Network::GameplayCommandList& getCommandsForUpdate(u32 updateIdx) const;
+	const Network::GameplayCommandHistoryRecord& getCommandsForUpdate(u32 updateIdx) const;
 	std::pair<u32, u32> getCommandsRecordUpdateIdxRange() const;
 
 	// meaningful only on client
@@ -116,7 +116,7 @@ private:
 		// movement produced previous update (extracted from game state, used as checksum, not used for simulation)
 		MovementUpdateData clientMovement;
 		// commands generated previous update used to produce state for this update
-		Network::GameplayCommandList gameplayCommands;
+		Network::GameplayCommandHistoryRecord gameplayCommands;
 		// inputs that were used to produce game state
 		GameplayInput::FrameState clientInput;
 		std::unordered_map<ConnectionId, GameplayInput::FrameState> serverInput;
@@ -131,7 +131,7 @@ private:
 		OneUpdateData& operator=(OneUpdateData&&) = default;
 
 		bool isEmpty() const { return dataState.states == DataState::EMPTY_STATE; }
-		void clear() { dataState.states = DataState::EMPTY_STATE; dataState.desyncedData.reset(); dataState.serverInputConfirmedPlayers.clear(); }
+		void clear();
 	};
 
 private:
@@ -143,6 +143,7 @@ private:
 
 private:
 	const HistoryType mHistoryType;
+	constexpr static u32 MAX_INPUT_TO_PREDICT = 10;
 
 	TimeData mCurrentTimeData;
 

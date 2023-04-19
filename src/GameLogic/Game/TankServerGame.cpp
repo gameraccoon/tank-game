@@ -27,7 +27,7 @@
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
-#include "GameLogic/Systems/FetchScheduledCommandsSystem.h"
+#include "GameLogic/Systems/FetchExternalCommandsSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
@@ -125,8 +125,8 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerPort, mShouldQuitGame);
+	getGameLogicSystemsManager().registerSystem<FetchExternalCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
-	getGameLogicSystemsManager().registerSystem<FetchScheduledCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());

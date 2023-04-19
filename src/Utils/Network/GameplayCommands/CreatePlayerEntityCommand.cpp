@@ -26,6 +26,10 @@ namespace Network
 		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
 	}
 
+	CreatePlayerEntityCommand::~CreatePlayerEntityCommand()
+	{
+	}
+
 	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, World& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
