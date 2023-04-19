@@ -45,8 +45,7 @@ void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
 	LogInfo("unwindBackInHistory(%u)", firstUpdateToResimulate);
-	const size_t firstIndexToResimulate = firstUpdateToResimulate - getFirstStoredUpdateIdx();
-	const size_t updatesToResimulate = mCurrentTimeData.lastFixedUpdateIndex - firstIndexToResimulate + 1;
+	const size_t updatesToResimulate = mCurrentTimeData.lastFixedUpdateIndex - firstUpdateToResimulate + 1;
 
 	mCurrentTimeData.lastFixedUpdateIndex -= updatesToResimulate;
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
