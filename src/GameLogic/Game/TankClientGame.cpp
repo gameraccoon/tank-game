@@ -114,8 +114,9 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	mGameStateRewinder.advanceSimulationToNextUpdate(time->getValue()->lastFixedUpdateIndex + 1);
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
+	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
+	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 }

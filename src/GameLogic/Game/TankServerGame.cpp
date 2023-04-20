@@ -99,9 +99,10 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	applyInputForCurrentUpdate(time->getValue()->lastFixedUpdateIndex + 1);
-	mGameStateRewinder.advanceSimulationToNextUpdate(time->getValue()->lastFixedUpdateIndex + 1);
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
+	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
+	applyInputForCurrentUpdate(thisUpdateIdx);
+	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -210,6 +211,12 @@ void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
 		if (oneClientData.playerEntity.isValid())
 		{
 			const Entity playerEntity = oneClientData.playerEntity.getEntity();
+			if (!entityManager.hasEntity(playerEntity))
+			{
+				ReportError("Player has entity assigned but it doesn't exist, connectionId=%u, entity id=%u", connectionId, playerEntity.getId());
+				continue;
+			}
+
 			auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(playerEntity);
 			if (gameplayInput == nullptr)
 			{

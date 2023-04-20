@@ -341,7 +341,7 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 
 	const u32 numUpdatesToPredict = updateIdx - lastKnownInputUpdateIdx;
 
-	const GameplayInput::FrameState* predictedInput = nullptr;
+	const GameplayInput::FrameState* predictedInput;
 	if (numUpdatesToPredict < MAX_INPUT_TO_PREDICT)
 	{
 		predictedInput = &getPlayerInput(connectionId, lastKnownInputUpdateIdx);
@@ -433,7 +433,7 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t s
 	const size_t inputSize = std::min(size, mUpdateHistory.size());
 	result.reserve(inputSize);
 
-	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>(mLastStoredUpdateIdx > size ? mLastStoredUpdateIdx + 1 - size : 1u));
+	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((mLastStoredUpdateIdx > size) ? (mLastStoredUpdateIdx + 1 - size) : 1u));
 
 	for (u32 updateIdx = firstInputUpdate; updateIdx <= mCurrentTimeData.lastFixedUpdateIndex; ++updateIdx)
 	{
