@@ -148,19 +148,19 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 				GameplayInput::FrameState frame1Inputs{};
 				frame1Inputs.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
 				frame1Inputs.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
-				serverGame->stateRewinder.addPlayerInput(connectionId, 1, frame1Inputs);
+				serverGame->stateRewinder.addPlayerInput(connectionId, 2, frame1Inputs);
 			}
 			{
 				GameplayInput::FrameState frame2Inputs{};
 				frame2Inputs.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
 				frame2Inputs.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
-				serverGame->stateRewinder.addPlayerInput(connectionId, 2, frame2Inputs);
+				serverGame->stateRewinder.addPlayerInput(connectionId, 3, frame2Inputs);
 			}
 			{
 				GameplayInput::FrameState frame3Inputs{};
 				frame3Inputs.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(1));
 				frame3Inputs.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 1.0f);
-				serverGame->stateRewinder.addPlayerInput(connectionId, 3, frame3Inputs);
+				serverGame->stateRewinder.addPlayerInput(connectionId, 4, frame3Inputs);
 			}
 			// fast-forward to frame 5, skipping inputs for frames 4 and 5
 			serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 5;
