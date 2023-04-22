@@ -13,7 +13,7 @@ GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFac
 void GameStateRewinder::trimOldFrames(u32 firstUpdateToKeep)
 {
 	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
-	LogInfo("trimOldFrames(%u)", firstUpdateToKeep);
+	LogInfo("trimOldFrames(%u) on %s", firstUpdateToKeep, mHistoryType == HistoryType::Client ? "client" : "server");
 
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 
@@ -183,6 +183,17 @@ void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Ne
 	createUpdateRecordIfDoesNotExist(updateIdx);
 	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
 
+	if (frameData.dataState.getState(OneUpdateData::StateType::Commands) == OneUpdateData::SyncState::FinalAuthoritative)
+	{
+		ReportError("Trying to apply authoritative commands to update %u that already has final authoritative commands", updateIdx);
+		return;
+	}
+
+	if (frameData.gameplayCommands.gameplayGeneratedCommands.list != commands)
+	{
+		frameData.dataState.setDesynced(OneUpdateData::DesyncType::Commands, true);
+	}
+
 	frameData.gameplayCommands.gameplayGeneratedCommands.list = std::move(commands);
 	frameData.dataState.setState(OneUpdateData::StateType::Commands, OneUpdateData::SyncState::NotFinalAuthoritative);
 }
@@ -246,14 +257,10 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
 
 	const OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(OneUpdateData::StateType::Movement);
-	if (previousMovementDataState == OneUpdateData::SyncState::NoData)
+	if (previousMovementDataState == OneUpdateData::SyncState::NoData || previousMovementDataState == OneUpdateData::SyncState::Predicted)
 	{
 		frameData.dataState.setState(OneUpdateData::StateType::Movement, OneUpdateData::SyncState::Predicted);
 		frameData.clientMovement = std::move(newUpdateData);
-	}
-	else
-	{
-		ReportError("Trying to write predicted data on top of existing data. update idx is %u old state is %u", updateIdx, static_cast<size_t>(previousMovementDataState));
 	}
 }
 

@@ -64,6 +64,8 @@ namespace Network
 				clientGameData->setControlledPlayer(controlledEntity);
 			}
 		}
+
+		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, mNetworkSide == NetworkSide::Server ? "server" : "client");
 	}
 
 	GameplayCommand::Ptr CreatePlayerEntityCommand::clone() const

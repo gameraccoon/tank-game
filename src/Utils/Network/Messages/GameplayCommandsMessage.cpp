@@ -53,6 +53,7 @@ namespace Network
 		commands.reserve(itemsCount);
 		for (size_t i = 0; i < itemsCount; ++i)
 		{
+			LogInfo("Command added on client on update %u for update %u", stateRewinder.getTimeData().lastFixedUpdateIndex + 1, clientUpdateIdx);
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 

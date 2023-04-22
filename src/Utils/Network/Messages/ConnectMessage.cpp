@@ -27,7 +27,7 @@ namespace Network
 		AssertFatal(time, "TimeComponent should be created before the game run");
 		const TimeData& timeValue = *time->getValue();
 
-		Serialization::AppendNumber<u32>(connectMessageData, timeValue.lastFixedUpdateIndex);
+		Serialization::AppendNumber<u32>(connectMessageData, timeValue.lastFixedUpdateIndex + 1);
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::Connect),
