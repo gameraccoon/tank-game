@@ -118,6 +118,10 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
+	applyPrecalculatedInput(thisUpdateIdx);
+	applyServerConfirmedMoves(thisUpdateIdx);
+	applyServerConfirmedCommands(thisUpdateIdx);
+
 	Game::fixedTimeUpdate(dt);
 }
 
@@ -190,44 +194,9 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 	// unwind the history back
 	mGameStateRewinder.unwindBackInHistory(firstUpdateToResimulateIdx);
 
-	// apply moves to the diverged frame
-	std::unordered_map<Entity, EntityMoveData> entityMoves;
-	for (const auto& move : mGameStateRewinder.getMovesForUpdate(firstUpdateToResimulateIdx).moves)
-	{
-		entityMoves.emplace(move.entity, move);
-	}
-
-	world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
-		[&entityMoves](Entity entity, MovementComponent* movement, TransformComponent* transform)
-	{
-		const auto it = entityMoves.find(entity);
-
-		if (it == entityMoves.end())
-		{
-			return;
-		}
-
-		const EntityMoveData& move = it->second;
-
-		transform->setLocation(move.location);
-		movement->setUpdateTimestamp(move.timestamp);
-	});
-
 	// resimulate the frames starting with the diverged one
 	for (u32 updateIdx = firstUpdateToResimulateIdx; updateIdx <= lastUpdateToResimulateIdx; ++updateIdx)
 	{
-		ComponentSetHolder& thisFrameWorldComponents = getWorldHolder().getWorld().getWorldComponents();
-
-		GameplayInputComponent* gameplayInput = thisFrameWorldComponents.getOrAddComponent<GameplayInputComponent>();
-		gameplayInput->setCurrentFrameState(mGameStateRewinder.getInputForUpdate(updateIdx));
-
-		// if we have confirmed commands for this frame, apply them instead of what we generated last frame
-		if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIdx))
-		{
-			GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
-			gameplayCommands->setData(mGameStateRewinder.getCommandsForUpdate(updateIdx).gameplayGeneratedCommands);
-		}
-
 		// this adds a new frame to the history
 		fixedTimeUpdate(fixedUpdateDt);
 	}
@@ -290,6 +259,55 @@ void TankClientGame::removeOldUpdates()
 	const u32 firstUpdateIdxToKeep = std::max(lastFullyConfirmedUpdateIdx, static_cast<u32>(lastUpdateIdx + 1 - maxUpdateToStore));
 
 	mGameStateRewinder.trimOldFrames(firstUpdateIdxToKeep);
+}
+
+void TankClientGame::applyServerConfirmedMoves(u32 updateIdx)
+{
+	// if we have confirmed moves for this update, apply them
+	if (mGameStateRewinder.hasConfirmedMovesForUpdate(updateIdx))
+	{
+		World& world = getWorldHolder().getWorld();
+		std::unordered_map<Entity, EntityMoveData> entityMoves;
+		for (const auto& move : mGameStateRewinder.getMovesForUpdate(updateIdx).moves)
+		{
+			entityMoves.emplace(move.entity, move);
+		}
+
+		world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
+			[&entityMoves](Entity entity, MovementComponent* movement, TransformComponent* transform) {
+				const auto it = entityMoves.find(entity);
+
+				if (it == entityMoves.end())
+				{
+					return;
+				}
+
+				const EntityMoveData& move = it->second;
+
+				transform->setLocation(move.location);
+				movement->setUpdateTimestamp(move.timestamp);
+			}
+		);
+	}
+}
+
+void TankClientGame::applyServerConfirmedCommands(u32 updateIdx)
+{
+	// if we have confirmed commands for this frame, apply them instead of what we generated last frame
+	if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIdx))
+	{
+		GameplayCommandsComponent* gameplayCommands = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
+		gameplayCommands->setData(mGameStateRewinder.getCommandsForUpdate(updateIdx).gameplayGeneratedCommands);
+	}
+}
+
+void TankClientGame::applyPrecalculatedInput(u32 updateIdx)
+{
+	// if we have input already in the history, that means we are resimulating this frame, apply the input
+	ComponentSetHolder& thisFrameWorldComponents = getWorldHolder().getWorld().getWorldComponents();
+
+	GameplayInputComponent* gameplayInput = thisFrameWorldComponents.getOrAddComponent<GameplayInputComponent>();
+	gameplayInput->setCurrentFrameState(mGameStateRewinder.getInputForUpdate(updateIdx));
 }
 
 #endif // !DEDICATED_SERVER

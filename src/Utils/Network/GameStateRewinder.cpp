@@ -47,6 +47,12 @@ void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
 	LogInfo("unwindBackInHistory(%u)", firstUpdateToResimulate);
 	const size_t updatesToResimulate = mCurrentTimeData.lastFixedUpdateIndex - firstUpdateToResimulate + 1;
 
+	for (size_t i = 0; i < updatesToResimulate; ++i)
+	{
+		OneUpdateData& updateData = getUpdateRecordByUpdateIdx(mCurrentTimeData.lastFixedUpdateIndex - i);
+		updateData.dataState.resetDesyncedData();
+	}
+
 	mCurrentTimeData.lastFixedUpdateIndex -= updatesToResimulate;
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
 }
@@ -219,7 +225,7 @@ bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
 	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mLastStoredUpdateIdx)
 	{
 		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
-		const OneUpdateData::SyncState state  = frameData.dataState.getState(OneUpdateData::StateType::Commands);
+		const OneUpdateData::SyncState state = frameData.dataState.getState(OneUpdateData::StateType::Commands);
 		return state == OneUpdateData::SyncState::NotFinalAuthoritative || state == OneUpdateData::SyncState::FinalAuthoritative;
 	}
 
@@ -302,6 +308,18 @@ const MovementUpdateData& GameStateRewinder::getMovesForUpdate(u32 updateIdx) co
 	return getUpdateRecordByUpdateIdx(updateIdx).clientMovement;
 }
 
+bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
+{
+	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mLastStoredUpdateIdx)
+	{
+		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+		const OneUpdateData::SyncState state = frameData.dataState.getState(OneUpdateData::StateType::Movement);
+		return state == OneUpdateData::SyncState::NotFinalAuthoritative || state == OneUpdateData::SyncState::FinalAuthoritative;
+	}
+
+	return false;
+}
+
 const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId connectionId, u32 updateIdx) const
 {
 	assertServerOnly();
@@ -348,7 +366,7 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 
 	const u32 numUpdatesToPredict = updateIdx - lastKnownInputUpdateIdx;
 
-	const GameplayInput::FrameState* predictedInput;
+	const GameplayInput::FrameState* predictedInput = nullptr;
 	if (numUpdatesToPredict < MAX_INPUT_TO_PREDICT)
 	{
 		predictedInput = &getPlayerInput(connectionId, lastKnownInputUpdateIdx);
@@ -511,7 +529,7 @@ void GameStateRewinder::assertClientOnly() const
 void GameStateRewinder::OneUpdateData::clear()
 {
 	dataState.states = DataState::EMPTY_STATE;
-	dataState.desyncedData.reset();
+	dataState.resetDesyncedData();
 	dataState.serverInputConfirmedPlayers.clear();
 	dataState.serverInputPredictedPlayers.clear();
 	clientMovement.moves.clear();

@@ -60,6 +60,7 @@ public:
 	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
 	void applyAuthoritativeMoves(u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData);
 	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
+	bool hasConfirmedMovesForUpdate(u32 updateIdx) const;
 
 	// meaningful only on server
 	const GameplayInput::FrameState& getPlayerInput(ConnectionId connectionId, u32 updateIdx) const;
@@ -109,11 +110,12 @@ private:
 			void setState(StateType type, SyncState newState) { states[static_cast<size_t>(type)] = newState; }
 			void setDesynced(DesyncType type, bool isDesynced) { desyncedData.set(static_cast<size_t>(type), isDesynced); }
 			[[nodiscard]] bool isDesynced(DesyncType type) const { return desyncedData.test(static_cast<size_t>(type)); }
+			void resetDesyncedData() { desyncedData.reset(); }
 		};
 
 		// flags that describe what data is stored for this update
 		DataState dataState{};
-		// movement produced previous update (extracted from game state, used as checksum, not used for simulation)
+		// movement produced on previous update (extracted from game state, used as checksum, not used for simulation)
 		MovementUpdateData clientMovement;
 		// commands generated previous update used to produce state for this update
 		Network::GameplayCommandHistoryRecord gameplayCommands;

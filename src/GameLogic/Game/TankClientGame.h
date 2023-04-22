@@ -38,6 +38,9 @@ private:
 	void correctUpdates(u32 firstUpdateToResimulateIdx);
 	void removeOldUpdates();
 	void processCorrections();
+	void applyServerConfirmedMoves(u32 updateIdx);
+	void applyServerConfirmedCommands(u32 updateIdx);
+	void applyPrecalculatedInput(u32 updateIdx);
 
 private:
 	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client , getComponentFactory(), getEntityGenerator()};
