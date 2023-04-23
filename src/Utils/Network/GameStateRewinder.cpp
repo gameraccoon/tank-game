@@ -222,6 +222,8 @@ void GameStateRewinder::writeSimulatedCommands(u32 updateIdx, const Network::Gam
 
 bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
 {
+	assertClientOnly();
+
 	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mLastStoredUpdateIdx)
 	{
 		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
@@ -236,22 +238,6 @@ const Network::GameplayCommandHistoryRecord& GameStateRewinder::getCommandsForUp
 {
 	const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
 	return frameData.gameplayCommands;
-}
-
-std::pair<u32, u32> GameStateRewinder::getCommandsRecordUpdateIdxRange() const
-{
-	u32 updateIdxBegin = getFirstStoredUpdateIdx();
-	u32 updateIdxEnd = mLastStoredUpdateIdx;
-	for (u32 updateIdx = updateIdxBegin; updateIdx < updateIdxEnd; ++updateIdx)
-	{
-		const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
-		if (frameData.dataState.getState(OneUpdateData::StateType::Commands) == OneUpdateData::SyncState::NoData)
-		{
-			updateIdxEnd = updateIdx;
-			break;
-		}
-	}
-	return {updateIdxBegin, updateIdxEnd};
 }
 
 void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)

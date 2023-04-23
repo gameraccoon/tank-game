@@ -48,16 +48,9 @@ void ServerCommandsSendSystem::update()
 	const TimeData& timeValue = *time->getValue();
 	const u32 firstFrameUpdateIdx = timeValue.lastFixedUpdateIndex - timeValue.countFixedTimeUpdatesThisFrame + 1;
 
-	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
-
 	for (int i = 0; i < timeValue.countFixedTimeUpdatesThisFrame; ++i)
 	{
 		const u32 updateIdx = firstFrameUpdateIdx + i;
-		if (updateIdx < commandUpdateIdxBegin || updateIdx >= commandUpdateIdxEnd)
-		{
-			// we don't have a record in command history for that frame
-			continue;
-		}
 
 		const Network::GameplayCommandHistoryRecord& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
 		if (updateCommands.gameplayGeneratedCommands.list.empty() && updateCommands.externalCommands.list.empty())

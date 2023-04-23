@@ -25,13 +25,9 @@ void FetchExternalCommandsSystem::update()
 
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 
-	const auto [commandUpdateIdxBegin, commandUpdateIdxEnd] = mGameStateRewinder.getCommandsRecordUpdateIdxRange();
-	if (commandUpdateIdxBegin <= currentUpdateIndex && currentUpdateIndex < commandUpdateIdxEnd)
+	const Network::GameplayCommandHistoryRecord& newCommands = mGameStateRewinder.getCommandsForUpdate(currentUpdateIndex);
+	for (const Network::GameplayCommand::Ptr& command : newCommands.externalCommands.list)
 	{
-		const Network::GameplayCommandHistoryRecord& newCommands = mGameStateRewinder.getCommandsForUpdate(currentUpdateIndex);
-		for (const Network::GameplayCommand::Ptr& command : newCommands.externalCommands.list)
-		{
-			gameplayCommands->getDataRef().list.push_back(command->clone());
-		}
+		gameplayCommands->getDataRef().list.push_back(command->clone());
 	}
 }

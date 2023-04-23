@@ -54,7 +54,6 @@ public:
 	void writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands);
 	bool hasConfirmedCommandsForUpdate(u32 updateIdx) const;
 	const Network::GameplayCommandHistoryRecord& getCommandsForUpdate(u32 updateIdx) const;
-	std::pair<u32, u32> getCommandsRecordUpdateIdxRange() const;
 
 	// meaningful only on client
 	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
