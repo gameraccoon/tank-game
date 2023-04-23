@@ -3,6 +3,7 @@
 #include <raccoon-ecs/system.h>
 
 class WorldHolder;
+class GameStateRewinder;
 
 /**
  * System that saves gameplay commands to the history
@@ -10,10 +11,14 @@ class WorldHolder;
 class SaveCommandsToHistorySystem : public RaccoonEcs::System
 {
 public:
-	SaveCommandsToHistorySystem(WorldHolder& worldHolder) noexcept;
+	SaveCommandsToHistorySystem(
+		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder
+	) noexcept;
 
 	void update() override;
 
 private:
 	WorldHolder& mWorldHolder;
+	GameStateRewinder& mGameStateRewinder;
 };

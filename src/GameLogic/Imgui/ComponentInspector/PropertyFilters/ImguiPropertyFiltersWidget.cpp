@@ -16,15 +16,12 @@
 
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/AbstractPropertyDescriptor.h"
-
-#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/TypeFilters/FilterRegistration/FilterRegistration.h"
-#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptorsRegistration.h"
-
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptors/ComponentAvailabilityPropertyDescriptor.h"
-
+#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptorsRegistration.h"
+#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/TypeFilters/FilterRegistration/FilterRegistration.h"
 #include "GameLogic/Imgui/ImguiDebugData.h"
 
 namespace ImguiPropertyFiltration

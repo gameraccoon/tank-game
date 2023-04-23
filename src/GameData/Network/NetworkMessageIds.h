@@ -10,4 +10,5 @@ enum class NetworkMessageId : u32
 	PlayerInput = 3,
 	EntityMove = 4,
 	GameplayCommand = 5,
+	WorldSnapshot = 6,
 };

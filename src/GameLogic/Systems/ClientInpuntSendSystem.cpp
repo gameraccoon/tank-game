@@ -7,15 +7,16 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/PlayerInputMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder) noexcept
+ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -44,7 +45,7 @@ void ClientInputSendSystem::update()
 
 	connectionManager->sendMessageToServer(
 		connectionId,
-		Network::CreatePlayerInputMessage(world),
+		Network::CreatePlayerInputMessage(mGameStateRewinder),
 		HAL::ConnectionManager::MessageReliability::Unreliable
 	);
 }

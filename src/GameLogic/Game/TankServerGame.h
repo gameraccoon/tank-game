@@ -6,6 +6,8 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 #include "HAL/Network/ConnectionManager.h"
 
 #include "GameLogic/Game/Game.h"
@@ -15,7 +17,7 @@
 
 class ArgumentsParser;
 
-class TankServerGame : public Game
+class TankServerGame final : public Game
 {
 public:
 	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool);
@@ -26,16 +28,19 @@ public:
 	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
-	bool shouldQuitGame() const override { return mShouldQuitGame; }
-	void quitGame() override { mShouldQuitGame = true; }
+	bool shouldQuitGame() const final { return mShouldQuitGame; }
+	void quitGame() final { mShouldQuitGame = true; }
+
+protected:
+	TimeData& getTimeData() final;
 
 private:
 	void initSystems(bool shouldRender);
 	void correctUpdates(u32 firstIncorrectUpdateIdx);
 	void processInputCorrections();
-	void applyInputForCurrentUpdate(u32 inputUpdateIndex);
 
 private:
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGame = false;
 	u16 mServerPort = 14436;

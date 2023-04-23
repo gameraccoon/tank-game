@@ -4,7 +4,8 @@
 
 #include "imgui/imgui.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
+
 #include "GameLogic/Imgui/ImguiDebugData.h"
 
 void ImguiMainMenu::update(ImguiDebugData& debugData)

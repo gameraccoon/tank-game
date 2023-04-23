@@ -14,18 +14,20 @@
 #include "Utils/Network/Messages/DisconnectMessage.h"
 #include "Utils/Network/Messages/GameplayCommandsMessage.h"
 #include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/Network/Messages/WorldSnapshotMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Network/ConnectionManager.h"
-
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 
 ClientNetworkSystem::ClientNetworkSystem(
 		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder,
 		const HAL::ConnectionManager::NetworkAddress& serverAddress,
 		bool& shouldQuitGame
 	) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 	, mServerAddress(serverAddress)
 	, mShouldQuitGameRef(shouldQuitGame)
 {
@@ -83,14 +85,17 @@ void ClientNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ApplyMovesMessage(world, message);
+			Network::ApplyMovesMessage(world, mGameStateRewinder, message);
 			break;
 		case NetworkMessageId::Disconnect:
 			Network::ApplyDisconnectMessage(message);
 			mShouldQuitGameRef = true;
 			break;
 		case NetworkMessageId::GameplayCommand:
-			Network::ApplyGameplayCommandsMessage(world, message);
+			Network::ApplyGameplayCommandsMessage(mGameStateRewinder, message);
+			break;
+		case NetworkMessageId::WorldSnapshot:
+			Network::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
 			break;
 		default:
 			ReportError("Unhandled message");

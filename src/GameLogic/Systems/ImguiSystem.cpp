@@ -19,11 +19,12 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/SharedManagers/WorldHolder.h"
+
 #include "HAL/Base/Engine.h"
 
 #include "GameLogic/Imgui/ImguiDebugData.h"
 #include "GameLogic/Render/RenderAccessor.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 
 ImguiSystem::ImguiSystem(
@@ -58,7 +59,7 @@ void ImguiSystem::update()
 		std::lock_guard l(mRenderDataMutex);
 
 		const auto [time] = mDebugData.worldHolder.getWorld().getWorldComponents().getComponents<const TimeComponent>();
-		mDebugData.time = time->getValue();
+		mDebugData.time = *time->getValue();
 
 		for (SDL_Event& sdlEvent : mEngine.getLastFrameEvents())
 		{

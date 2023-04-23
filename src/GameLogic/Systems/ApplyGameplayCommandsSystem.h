@@ -2,6 +2,7 @@
 
 #include <raccoon-ecs/system.h>
 
+class GameStateRewinder;
 class WorldHolder;
 
 /**
@@ -10,10 +11,11 @@ class WorldHolder;
 class ApplyGameplayCommandsSystem : public RaccoonEcs::System
 {
 public:
-	ApplyGameplayCommandsSystem(WorldHolder& worldHolder) noexcept;
+	ApplyGameplayCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
 
 	void update() override;
 
 private:
 	WorldHolder& mWorldHolder;
+	GameStateRewinder& mGameStateRewinder;
 };

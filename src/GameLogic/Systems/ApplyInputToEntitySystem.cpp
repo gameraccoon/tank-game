@@ -6,7 +6,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
 ApplyInputToEntitySystem::ApplyInputToEntitySystem(WorldHolder& worldHolder) noexcept

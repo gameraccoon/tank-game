@@ -4,9 +4,9 @@
 	"attributes": [
 		{
 			"name": "value",
-			"type": "TimeData",
+			"type": "const TimeData*",
 			"includes": ["\"GameData/Time/TimeData.h\""],
-			"flags": ["get_by_ref", "transient"]
+			"flags": ["transient"]
 		}
 	]
 }

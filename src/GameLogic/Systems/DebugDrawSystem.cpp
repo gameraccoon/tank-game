@@ -12,27 +12,28 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/CollisionComponent.generated.h"
 #include "GameData/Components/DebugDrawComponent.generated.h"
-#include "GameData/Components/InputHistoryComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
 DebugDrawSystem::DebugDrawSystem(
 		WorldHolder& worldHolder,
+		GameStateRewinder& gameStateRewinder,
 		ResourceManager& resourceManager) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 	, mResourceManager(resourceManager)
 {
 }
@@ -53,7 +54,7 @@ void DebugDrawSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const TimeData& timeValue = time->getValue();
+	const TimeData& timeValue = *time->getValue();
 
 	EntityManager& entityManager = world.getEntityManager();
 
@@ -160,46 +161,42 @@ void DebugDrawSystem::update()
 		const Vector2D crossCenterOffset{60, 280};
 		const Vector2D crossPieceSize{23, 23};
 		const float crossPieceOffset = 25;
-		const InputHistoryComponent* inputHistory = world.getNotRewindableWorldComponents().getOrAddComponent<const InputHistoryComponent>();
-		if (!inputHistory->getInputs().empty())
+		const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputForUpdate(timeValue.lastFixedUpdateIndex);
+		const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+		const float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+
+		if (horizontalMove < 0.0f)
 		{
-			const GameplayInput::FrameState& lastInput = inputHistory->getInputs().back();
-			float horisontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
-			float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowLeftTextureHandle;
+			quadData.alpha = std::clamp(-horizontalMove, 0.0f, 1.0f);
+		}
+		else if (horizontalMove > 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowRightTextureHandle;
+			quadData.alpha = std::clamp(horizontalMove, 0.0f, 1.0f);
+		}
 
-			if (horisontalMove < 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowLeftTextureHandle;
-				quadData.alpha = std::clamp(-horisontalMove, 0.0f, 1.0f);
-			}
-			else if (horisontalMove > 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowRightTextureHandle;
-				quadData.alpha = std::clamp(horisontalMove, 0.0f, 1.0f);
-			}
-
-			if (verticalMove > 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowDownTextureHandle;
-				quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
-			}
-			else if (verticalMove < 0.0f)
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
-				quadData.size = crossPieceSize;
-				quadData.spriteHandle = mArrowUpTextureHandle;
-				quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
-			}
+		if (verticalMove > 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowDownTextureHandle;
+			quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
+		}
+		else if (verticalMove < 0.0f)
+		{
+			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+			quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
+			quadData.size = crossPieceSize;
+			quadData.spriteHandle = mArrowUpTextureHandle;
+			quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
 		}
 	}
 

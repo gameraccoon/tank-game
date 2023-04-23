@@ -15,9 +15,9 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
-#include "GameLogic/Imgui/ImguiDebugData.h"
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
+#include "GameLogic/Imgui/ImguiDebugData.h"
 #include "GameLogic/Imgui/ComponentInspector/ComponentWidgetsRegistration.h"
 
 ImguiComponentInspectorWindow::ImguiComponentInspectorWindow()

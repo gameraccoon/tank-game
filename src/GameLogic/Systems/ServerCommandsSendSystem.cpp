@@ -3,19 +3,19 @@
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/GameplayCommandHistoryComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
+#include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/GameplayCommandsMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
 
-
-ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder) noexcept
+ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -34,13 +34,9 @@ void ServerCommandsSendSystem::update()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = world.getNotRewindableWorldComponents().getOrAddComponent<ServerConnectionsComponent>();
+	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
-	std::vector<ConnectionId> connections;
-	for (auto [connectionId, optionalEntity] : serverConnections->getControlledPlayers())
-	{
-		connections.emplace_back(connectionId);
-	}
+	const auto& connections = serverConnections->getClientData();
 
 	if (connections.empty())
 	{
@@ -49,36 +45,23 @@ void ServerCommandsSendSystem::update()
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	AssertFatal(time, "TimeComponent should be created before the game run");
-	const TimeData timeValue = time->getValue();
+	const TimeData& timeValue = *time->getValue();
 	const u32 firstFrameUpdateIdx = timeValue.lastFixedUpdateIndex - timeValue.countFixedTimeUpdatesThisFrame + 1;
-
-	GameplayCommandHistoryComponent* commandHistory = world.getNotRewindableWorldComponents().getOrAddComponent<GameplayCommandHistoryComponent>();
-	const u32 firstCommandsRecordUpdateIdx = commandHistory->getLastCommandUpdateIdx() - commandHistory->getRecords().size() + 1;
 
 	for (int i = 0; i < timeValue.countFixedTimeUpdatesThisFrame; ++i)
 	{
 		const u32 updateIdx = firstFrameUpdateIdx + i;
-		if (updateIdx < firstCommandsRecordUpdateIdx || updateIdx > commandHistory->getLastCommandUpdateIdx())
-		{
-			// we don't have a record in command history for that frame
-			continue;
-		}
 
-		const size_t idx = updateIdx - firstCommandsRecordUpdateIdx;
-		if (commandHistory->getRecords()[idx].list.empty())
+		const Network::GameplayCommandHistoryRecord& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
+		if (updateCommands.gameplayGeneratedCommands.list.empty() && updateCommands.externalCommands.list.empty())
 		{
 			// no commands that frame
 			continue;
 		}
 
-		for (const ConnectionId connectionId : connections)
+		for (const auto [connectionId, oneClientData] : connections)
 		{
-			const auto inputIt = serverConnections->getInputs().find(connectionId);
-			AssertFatal(inputIt != serverConnections->getInputs().end(), "We're processing connection that doesn't have an input record");
-
-			const Input::InputHistory& inputHistory = inputIt->second;
-
-			const s32 indexShift = inputHistory.indexShift;
+			const s32 indexShift = oneClientData.indexShift;
 
 			AssertFatal(indexShift != std::numeric_limits<s32>::max(), "indexShift for input should be initialized for a connected player");
 
@@ -92,7 +75,7 @@ void ServerCommandsSendSystem::update()
 
 			connectionManager->sendMessageToClient(
 				connectionId,
-				Network::CreateGameplayCommandsMessage(world, commandHistory->getRecords()[idx].list, connectionId, clientUpdateIdx),
+				Network::CreateGameplayCommandsMessage(world, updateCommands, connectionId, clientUpdateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}

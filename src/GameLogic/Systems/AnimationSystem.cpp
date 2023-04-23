@@ -13,7 +13,7 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 AnimationSystem::AnimationSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
@@ -27,7 +27,7 @@ void AnimationSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	float dt = time->getValue().lastFixedUpdateDt;
+	float dt = time->getValue()->lastFixedUpdateDt;
 
 	const auto [stateMachines] = gameData.getGameComponents().getComponents<const StateMachineComponent>();
 

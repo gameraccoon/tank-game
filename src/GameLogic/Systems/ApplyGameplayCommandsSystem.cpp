@@ -5,11 +5,12 @@
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils//SharedManagers/WorldHolder.h"
 
 
-ApplyGameplayCommandsSystem::ApplyGameplayCommandsSystem(WorldHolder& worldHolder) noexcept
+ApplyGameplayCommandsSystem::ApplyGameplayCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
+	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
@@ -21,7 +22,7 @@ void ApplyGameplayCommandsSystem::update()
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 	for (const Network::GameplayCommand::Ptr& gameplayCommand : gameplayCommands->getData().list)
 	{
-		gameplayCommand->execute(world);
+		gameplayCommand->execute(mGameStateRewinder, world);
 	}
 
 	gameplayCommands->getDataRef().list.clear();

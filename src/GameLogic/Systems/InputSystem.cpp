@@ -13,9 +13,9 @@
 #include "GameData/Input/InputBindings.h"
 #include "GameData/World.h"
 
-#include "HAL/InputControllersData.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "HAL/InputControllersData.h"
 
 
 InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept
@@ -93,7 +93,7 @@ void InputSystem::processGameplayInput()
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const GameplayTimestamp currentTimestamp = time->getValue().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
+	const GameplayTimestamp currentTimestamp = time->getValue()->lastFixedUpdateTimestamp.getIncreasedByUpdateCount(1);
 
 	GameplayInputComponent* gameplayInput = world.getWorldComponents().getOrAddComponent<GameplayInputComponent>();
 

@@ -14,7 +14,7 @@ namespace Input
 	struct InputHistory
 	{
 		std::vector<GameplayInput::FrameState> inputs;
-		u32 lastInputUpdateIdx = std::numeric_limits<u32>::max();
+		u32 lastInputUpdateIdx = 0;
 		s32 indexShift = std::numeric_limits<s32>::max();
 		unsigned int indexShiftIncorrectFrames = 0;
 	};

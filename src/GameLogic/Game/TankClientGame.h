@@ -6,6 +6,8 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
+#include "Utils/Network/GameStateRewinder.h"
+
 #include "GameLogic/Game/Game.h"
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Imgui/ImguiDebugData.h"
@@ -14,7 +16,7 @@
 class ArgumentsParser;
 class GameplayTimestamp;
 
-class TankClientGame : public Game
+class TankClientGame final : public Game
 {
 public:
 	using Game::Game;
@@ -25,18 +27,21 @@ public:
 	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
-	bool shouldQuitGame() const override { return mShouldQuitGame; }
+	bool shouldQuitGame() const final { return mShouldQuitGame; }
 	void quitGame() override { mShouldQuitGameNextTick = true; }
+
+protected:
+	TimeData& getTimeData() final;
 
 private:
 	void initSystems();
-	void correctUpdates(u32 lastUpdateIdxWithAuthoritativeMoves);
+	void correctUpdates(u32 firstUpdateToResimulateIdx);
 	void removeOldUpdates();
-	void processMoveCorrections();
+	void processCorrections();
 
 private:
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client , getComponentFactory(), getEntityGenerator()};
 	HAL::ConnectionManager mConnectionManager;
-	std::vector<World> mPreviousFrameWorlds;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 

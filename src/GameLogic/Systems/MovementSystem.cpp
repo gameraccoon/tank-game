@@ -7,7 +7,7 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 
 MovementSystem::MovementSystem(WorldHolder& worldHolder) noexcept
@@ -21,7 +21,7 @@ void MovementSystem::update()
 	World& world = mWorldHolder.getWorld();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const GameplayTimestamp timestampNow = time->getValue().lastFixedUpdateTimestamp;
+	const GameplayTimestamp timestampNow = time->getValue()->lastFixedUpdateTimestamp;
 
 	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
 		[timestampNow](MovementComponent* movement, TransformComponent* transform)

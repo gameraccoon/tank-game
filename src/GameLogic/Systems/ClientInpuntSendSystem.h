@@ -2,6 +2,7 @@
 
 #include <raccoon-ecs/system.h>
 
+class GameStateRewinder;
 class WorldHolder;
 
 /**
@@ -10,10 +11,11 @@ class WorldHolder;
 class ClientInputSendSystem : public RaccoonEcs::System
 {
 public:
-	ClientInputSendSystem(WorldHolder& worldHolder) noexcept;
+	ClientInputSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
 
 	void update() override;
 
 private:
 	WorldHolder& mWorldHolder;
+	GameStateRewinder& mGameStateRewinder;
 };

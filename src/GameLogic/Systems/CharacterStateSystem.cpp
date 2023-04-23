@@ -14,7 +14,7 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
-#include "GameLogic/SharedManagers/WorldHolder.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 CharacterStateSystem::CharacterStateSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
@@ -38,7 +38,7 @@ void CharacterStateSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-	const float dt = time->getValue().lastFixedUpdateDt;
+	const float dt = time->getValue()->lastFixedUpdateDt;
 
 	auto [stateMachine] = gameData.getGameComponents().getComponents<StateMachineComponent>();
 
