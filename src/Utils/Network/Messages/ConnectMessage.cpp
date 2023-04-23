@@ -2,7 +2,6 @@
 
 #include "Utils/Network/Messages/ConnectMessage.h"
 
-#include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
 
 #include "GameData/Components/CharacterStateComponent.generated.h"

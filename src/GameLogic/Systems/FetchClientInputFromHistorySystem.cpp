@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/Systems/FetchInputFromHistorySystem.h"
+#include "GameLogic/Systems/FetchClientInputFromHistorySystem.h"
 
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -9,13 +9,13 @@
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-FetchInputFromHistorySystem::FetchInputFromHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
+FetchClientInputFromHistorySystem::FetchClientInputFromHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 {
 }
 
-void FetchInputFromHistorySystem::update()
+void FetchClientInputFromHistorySystem::update()
 {
 	SCOPED_PROFILER("FetchInputFromHistorySystem::update");
 	World& world = mWorldHolder.getWorld();

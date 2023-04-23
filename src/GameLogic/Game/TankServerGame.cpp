@@ -28,6 +28,7 @@
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/FetchExternalCommandsSystem.h"
+#include "GameLogic/Systems/FetchServerInputFromHistorySystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
@@ -101,7 +102,6 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
 	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
-	applyInputForCurrentUpdate(thisUpdateIdx);
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
@@ -126,6 +126,7 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
 	getPreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerPort, mShouldQuitGame);
+	getGameLogicSystemsManager().registerSystem<FetchServerInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchExternalCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
@@ -199,31 +200,4 @@ void TankServerGame::processInputCorrections()
 
 	const u32 firstUpdateToKeep = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);
 	mGameStateRewinder.trimOldFrames(std::min(firstUpdateToKeep, lastProcessedUpdateIdx));
-}
-
-void TankServerGame::applyInputForCurrentUpdate(u32 inputUpdateIndex)
-{
-	SCOPED_PROFILER("TankServerGame::applyInputForCurrentUpdate");
-	EntityManager& entityManager = getWorldHolder().getWorld().getEntityManager();
-	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-	for (auto [connectionId, oneClientData] : serverConnections->getClientData())
-	{
-		if (oneClientData.playerEntity.isValid())
-		{
-			const Entity playerEntity = oneClientData.playerEntity.getEntity();
-			if (!entityManager.hasEntity(playerEntity))
-			{
-				ReportError("Player has entity assigned but it doesn't exist, connectionId=%u, entity id=%u", connectionId, playerEntity.getId());
-				continue;
-			}
-
-			auto [gameplayInput] = entityManager.getEntityComponents<GameplayInputComponent>(playerEntity);
-			if (gameplayInput == nullptr)
-			{
-				gameplayInput = entityManager.addComponent<GameplayInputComponent>(playerEntity);
-			}
-			const GameplayInput::FrameState& frameInput = mGameStateRewinder.getOrPredictPlayerInput(connectionId, inputUpdateIndex);
-			gameplayInput->setCurrentFrameState(frameInput);
-		}
-	}
 }

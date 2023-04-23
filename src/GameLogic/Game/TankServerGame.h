@@ -38,7 +38,6 @@ private:
 	void initSystems(bool shouldRender);
 	void correctUpdates(u32 firstIncorrectUpdateIdx);
 	void processInputCorrections();
-	void applyInputForCurrentUpdate(u32 inputUpdateIndex);
 
 private:
 	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator()};

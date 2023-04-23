@@ -8,10 +8,10 @@ class WorldHolder;
 /**
  * System applies input from the history record for this frame
  */
-class FetchInputFromHistorySystem : public RaccoonEcs::System
+class FetchClientInputFromHistorySystem : public RaccoonEcs::System
 {
 public:
-	FetchInputFromHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
+	FetchClientInputFromHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
 
 	void update() override;
 

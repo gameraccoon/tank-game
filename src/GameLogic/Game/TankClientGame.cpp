@@ -25,8 +25,8 @@
 #include "HAL/Base/Engine.h"
 
 #include "GameLogic/Systems/AnimationSystem.h"
-#include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 #include "GameLogic/Systems/ApplyConfirmedMovesSystem.h"
+#include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 #include "GameLogic/Systems/ApplyInputToEntitySystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
@@ -34,8 +34,8 @@
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"
+#include "GameLogic/Systems/FetchClientInputFromHistorySystem.h"
 #include "GameLogic/Systems/FetchConfirmedCommandsSystem.h"
-#include "GameLogic/Systems/FetchInputFromHistorySystem.h"
 #include "GameLogic/Systems/InputSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
@@ -154,7 +154,7 @@ void TankClientGame::initSystems()
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
-	getGameLogicSystemsManager().registerSystem<FetchInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<FetchClientInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyConfirmedMovesSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
