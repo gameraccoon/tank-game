@@ -14,12 +14,8 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
-#include "GameData/Components/GameplayCommandsComponent.generated.h"
-#include "GameData/Components/GameplayInputComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
@@ -30,6 +26,7 @@
 
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
+#include "GameLogic/Systems/ApplyConfirmedMovesSystem.h"
 #include "GameLogic/Systems/ApplyInputToEntitySystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
@@ -37,6 +34,8 @@
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"
+#include "GameLogic/Systems/FetchConfirmedCommandsSystem.h"
+#include "GameLogic/Systems/FetchInputFromHistorySystem.h"
 #include "GameLogic/Systems/InputSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
@@ -118,10 +117,6 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
-	applyPrecalculatedInput(thisUpdateIdx);
-	applyServerConfirmedMoves(thisUpdateIdx);
-	applyServerConfirmedCommands(thisUpdateIdx);
-
 	Game::fixedTimeUpdate(dt);
 }
 
@@ -158,6 +153,9 @@ void TankClientGame::initSystems()
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mShouldQuitGameNextTick);
+	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<FetchInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<ApplyConfirmedMovesSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
@@ -259,55 +257,6 @@ void TankClientGame::removeOldUpdates()
 	const u32 firstUpdateIdxToKeep = std::max(lastFullyConfirmedUpdateIdx, static_cast<u32>(lastUpdateIdx + 1 - maxUpdateToStore));
 
 	mGameStateRewinder.trimOldFrames(firstUpdateIdxToKeep);
-}
-
-void TankClientGame::applyServerConfirmedMoves(u32 updateIdx)
-{
-	// if we have confirmed moves for this update, apply them
-	if (mGameStateRewinder.hasConfirmedMovesForUpdate(updateIdx))
-	{
-		World& world = getWorldHolder().getWorld();
-		std::unordered_map<Entity, EntityMoveData> entityMoves;
-		for (const auto& move : mGameStateRewinder.getMovesForUpdate(updateIdx).moves)
-		{
-			entityMoves.emplace(move.entity, move);
-		}
-
-		world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
-			[&entityMoves](Entity entity, MovementComponent* movement, TransformComponent* transform) {
-				const auto it = entityMoves.find(entity);
-
-				if (it == entityMoves.end())
-				{
-					return;
-				}
-
-				const EntityMoveData& move = it->second;
-
-				transform->setLocation(move.location);
-				movement->setUpdateTimestamp(move.timestamp);
-			}
-		);
-	}
-}
-
-void TankClientGame::applyServerConfirmedCommands(u32 updateIdx)
-{
-	// if we have confirmed commands for this frame, apply them instead of what we generated last frame
-	if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIdx))
-	{
-		GameplayCommandsComponent* gameplayCommands = getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
-		gameplayCommands->setData(mGameStateRewinder.getCommandsForUpdate(updateIdx).gameplayGeneratedCommands);
-	}
-}
-
-void TankClientGame::applyPrecalculatedInput(u32 updateIdx)
-{
-	// if we have input already in the history, that means we are resimulating this frame, apply the input
-	ComponentSetHolder& thisFrameWorldComponents = getWorldHolder().getWorld().getWorldComponents();
-
-	GameplayInputComponent* gameplayInput = thisFrameWorldComponents.getOrAddComponent<GameplayInputComponent>();
-	gameplayInput->setCurrentFrameState(mGameStateRewinder.getInputForUpdate(updateIdx));
 }
 
 #endif // !DEDICATED_SERVER

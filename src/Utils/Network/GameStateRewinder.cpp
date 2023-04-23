@@ -366,7 +366,7 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 
 	const u32 numUpdatesToPredict = updateIdx - lastKnownInputUpdateIdx;
 
-	const GameplayInput::FrameState* predictedInput = nullptr;
+	const GameplayInput::FrameState* predictedInput;
 	if (numUpdatesToPredict < MAX_INPUT_TO_PREDICT)
 	{
 		predictedInput = &getPlayerInput(connectionId, lastKnownInputUpdateIdx);
@@ -472,6 +472,7 @@ const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 update
 {
 	assertClientOnly();
 	const OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
+	Assert(frameData.dataState.hasClientInput, "We trying to get input for update (%u) that doesn't have the input set", updateIdx);
 	return frameData.clientInput;
 }
 
@@ -482,7 +483,20 @@ void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::Fr
 	Assert(updateIdx < mLastStoredUpdateIdx + 10, "We trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, mLastStoredUpdateIdx);
 	createUpdateRecordIfDoesNotExist(updateIdx);
 	OneUpdateData& frameData = getUpdateRecordByUpdateIdx(updateIdx);
-	frameData.clientInput = newInput;
+	if (!frameData.dataState.hasClientInput)
+	{
+		frameData.clientInput = newInput;
+		frameData.dataState.hasClientInput = true;
+	}
+#ifdef DEBUG_CHECKS
+	else
+	{
+		if (frameData.clientInput != newInput)
+		{
+			ReportError("We got different input by resimulating an update, this is probably a bug");
+		}
+	}
+#endif // DEBUG_CHECKS
 }
 
 void GameStateRewinder::createUpdateRecordIfDoesNotExist(u32 updateIdx)
@@ -532,6 +546,7 @@ void GameStateRewinder::OneUpdateData::clear()
 	dataState.resetDesyncedData();
 	dataState.serverInputConfirmedPlayers.clear();
 	dataState.serverInputPredictedPlayers.clear();
+	dataState.hasClientInput = false;
 	clientMovement.moves.clear();
 	gameplayCommands.gameplayGeneratedCommands.list.clear();
 	gameplayCommands.externalCommands.list.clear();

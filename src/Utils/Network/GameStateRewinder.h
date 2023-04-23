@@ -105,6 +105,7 @@ private:
 			std::bitset<magic_enum::enum_count<DesyncType>()> desyncedData{};
 			std::unordered_set<ConnectionId> serverInputConfirmedPlayers{};
 			std::unordered_set<ConnectionId> serverInputPredictedPlayers{};
+			bool hasClientInput = false;
 
 			[[nodiscard]] SyncState getState(StateType type) const { return states[static_cast<size_t>(type)]; }
 			void setState(StateType type, SyncState newState) { states[static_cast<size_t>(type)] = newState; }
