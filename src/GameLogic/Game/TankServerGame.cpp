@@ -8,7 +8,6 @@
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -92,7 +91,7 @@ void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 
 	mConnectionManager.processNetworkEvents();
 
-	processInputCorrections();
+	updateHistory();
 }
 
 void TankServerGame::fixedTimeUpdate(float dt)
@@ -147,57 +146,23 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 #endif // !DEDICATED_SERVER
 }
 
-void TankServerGame::correctUpdates(u32 firstIncorrectUpdateIdx)
+void TankServerGame::updateHistory()
 {
-	SCOPED_PROFILER("TankServerGame::correctUpdates");
+	SCOPED_PROFILER("TankServerGame::updateHistory");
 
 	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-	const TimeData& timeValue = *time->getValue();
-	const float fixedUpdateDt = timeValue.lastFixedUpdateDt;
-
-	const u32 lastFixedUpdateIndex = timeValue.lastFixedUpdateIndex;
-
-	AssertFatal(firstIncorrectUpdateIdx > 0, "We can't correct the baseline zero update");
-	AssertFatal(firstIncorrectUpdateIdx <= lastFixedUpdateIndex, "We can't correct updates from the future");
-
-	LogInfo("Correct server updates from %u to %u", firstIncorrectUpdateIdx, lastFixedUpdateIndex);
-
-	mGameStateRewinder.unwindBackInHistory(firstIncorrectUpdateIdx);
-
-	for (u32 i = firstIncorrectUpdateIdx; i <= lastFixedUpdateIndex; ++i)
-	{
-		fixedTimeUpdate(fixedUpdateDt);
-	}
-}
-
-void TankServerGame::processInputCorrections()
-{
-	SCOPED_PROFILER("TankServerGame::processInputCorrections");
-
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
-
-	// first real update has index 1
-	if (time->getValue()->lastFixedUpdateIndex < 1)
-	{
-		return;
-	}
 
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
-
-	const u32 firstUpdateToCorrect = mGameStateRewinder.getFirstDesyncedUpdateIdx();
-
-	if (firstUpdateToCorrect <= lastProcessedUpdateIdx)
-	{
-		correctUpdates(firstUpdateToCorrect);
-	}
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 	std::vector<ConnectionId> players;
 	players.reserve(serverConnections->getClientData().size());
-	for (auto [connectionId, oneClientData] : serverConnections->getClientData()) {
+	for (auto [connectionId, oneClientData] : serverConnections->getClientData())
+	{
 		players.push_back(connectionId);
 	}
 
-	const u32 firstUpdateToKeep = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);
+	const std::optional<u32> firstUpdateToKeepOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);
+	const u32 firstUpdateToKeep = firstUpdateToKeepOption.value_or(mGameStateRewinder.getFirstStoredUpdateIdx());
 	mGameStateRewinder.trimOldFrames(std::min(firstUpdateToKeep, lastProcessedUpdateIdx));
 }

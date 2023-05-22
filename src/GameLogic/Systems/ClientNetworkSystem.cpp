@@ -10,22 +10,22 @@
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
-#include "Utils/Network/Messages/ConnectMessage.h"
-#include "Utils/Network/Messages/DisconnectMessage.h"
-#include "Utils/Network/Messages/GameplayCommandsMessage.h"
-#include "Utils/Network/Messages/MovesMessage.h"
-#include "Utils/Network/Messages/WorldSnapshotMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
-
 #include "HAL/Network/ConnectionManager.h"
 
+#include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
+#include "Utils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
+#include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
+#include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
+#include "Utils/Network/Messages/ServerClient/MovesMessage.h"
+#include "Utils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
+#include "Utils/SharedManagers/WorldHolder.h"
 
 ClientNetworkSystem::ClientNetworkSystem(
-		WorldHolder& worldHolder,
-		GameStateRewinder& gameStateRewinder,
-		const HAL::ConnectionManager::NetworkAddress& serverAddress,
-		bool& shouldQuitGame
-	) noexcept
+	WorldHolder& worldHolder,
+	GameStateRewinder& gameStateRewinder,
+	const HAL::ConnectionManager::NetworkAddress& serverAddress,
+	bool& shouldQuitGame
+) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 	, mServerAddress(serverAddress)
@@ -61,7 +61,7 @@ void ClientNetworkSystem::update()
 
 			connectionManager->sendMessageToServer(
 				connectionId,
-				Network::CreateConnectMessage(world),
+				Network::ClientServer::CreateConnectMessage(HAL::ConnectionManager::GetTimestampNow()),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}
@@ -74,7 +74,7 @@ void ClientNetworkSystem::update()
 
 	if (mShouldQuitGameRef)
 	{
-		connectionManager->sendMessageToServer(connectionId, Network::CreateDisconnectMessage(Network::DisconnectReason::ClientShutdown));
+		connectionManager->sendMessageToServer(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::ClientShutdown));
 		return;
 	}
 
@@ -85,17 +85,20 @@ void ClientNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ApplyMovesMessage(world, mGameStateRewinder, message);
-			break;
-		case NetworkMessageId::Disconnect:
-			Network::ApplyDisconnectMessage(message);
-			mShouldQuitGameRef = true;
+			Network::ServerClient::ApplyMovesMessage(world, mGameStateRewinder, message);
 			break;
 		case NetworkMessageId::GameplayCommand:
-			Network::ApplyGameplayCommandsMessage(mGameStateRewinder, message);
+			Network::ServerClient::ApplyGameplayCommandsMessage(mGameStateRewinder, message);
 			break;
 		case NetworkMessageId::WorldSnapshot:
-			Network::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
+			Network::ServerClient::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
+			break;
+		case NetworkMessageId::Disconnect:
+			Network::ServerClient::ApplyDisconnectMessage(message);
+			mShouldQuitGameRef = true;
+			break;
+		case NetworkMessageId::ConnectionAccepted:
+			Network::ServerClient::ApplyConnectionAcceptedMessage(mGameStateRewinder, HAL::ConnectionManager::GetTimestampNow(), message);
 			break;
 		default:
 			ReportError("Unhandled message");

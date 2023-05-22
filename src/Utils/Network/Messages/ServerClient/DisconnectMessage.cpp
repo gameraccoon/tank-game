@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "Utils/Network/Messages/DisconnectMessage.h"
+#include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
 
 #include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
@@ -9,7 +9,7 @@
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/World.h"
 
-namespace Network
+namespace Network::ServerClient
 {
 	HAL::ConnectionManager::Message CreateDisconnectMessage(DisconnectReason reason)
 	{
@@ -53,4 +53,4 @@ namespace Network
 
 		return reason;
 	}
-}
+} // namespace Network::ServerClient

@@ -8,7 +8,7 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/PlayerInputMessage.h"
+#include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
 #include "HAL/Network/ConnectionManager.h"
@@ -43,9 +43,13 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
+	if (!mGameStateRewinder.isInitialClientFrameIndexSet()) {
+		return;
+	}
+
 	connectionManager->sendMessageToServer(
 		connectionId,
-		Network::CreatePlayerInputMessage(mGameStateRewinder),
+		Network::ClientServer::CreatePlayerInputMessage(mGameStateRewinder),
 		HAL::ConnectionManager::MessageReliability::Unreliable
 	);
 }

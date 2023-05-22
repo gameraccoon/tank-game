@@ -876,6 +876,11 @@ namespace HAL
 		SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_FakeRateLimit_Recv_Burst, debugBehavior.rateLimitOneBurstBytes_Recv);
 	}
 
+	u64 ConnectionManager::GetTimestampNow()
+	{
+		return SteamNetworkingUtils()->GetLocalTimestamp();
+	}
+
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()
 	{
 		// we need this for thread-safe lazy initialization

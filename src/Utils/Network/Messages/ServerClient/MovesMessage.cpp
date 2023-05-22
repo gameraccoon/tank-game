@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/Network/Messages/ServerClient/MovesMessage.h"
 
 #include "Base/Types/Serialization.h"
 
@@ -13,23 +13,22 @@
 
 #include "Utils/Network/CompressedInput.h"
 
-namespace Network
+namespace Network::ServerClient
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, s32 indexShift, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx)
+	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx)
 	{
 		std::vector<std::byte> movesMessageData;
-
-		const u32 clientUpdateIdx = updateIdx - indexShift;
 
 		const bool hasMissingInput = lastKnownPlayerInputUpdateIdx < updateIdx;
 		const bool hasFinalInputs = lastKnownAllPlayersInputUpdateIdx >= updateIdx;
 
 		Serialization::AppendNumber<u8>(movesMessageData, static_cast<u8>(static_cast<u8>(hasMissingInput) + (static_cast<u8>(hasFinalInputs) << 1)));
-		if (hasMissingInput) {
-			Serialization::AppendNumber<u32>(movesMessageData, static_cast<u32>(lastKnownPlayerInputUpdateIdx - indexShift));
+		if (hasMissingInput)
+		{
+			Serialization::AppendNumber<u32>(movesMessageData, lastKnownPlayerInputUpdateIdx);
 		}
 
-		Serialization::AppendNumber<u32>(movesMessageData, clientUpdateIdx);
+		Serialization::AppendNumber<u32>(movesMessageData, updateIdx);
 
 		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 
@@ -46,8 +45,7 @@ namespace Network
 				Serialization::AppendNumber<f32>(movesMessageData, location.x);
 				Serialization::AppendNumber<f32>(movesMessageData, location.y);
 
-				const GameplayTimestamp clientMoveTimestamp = serverMoveTimestamp.isInitialized() ? serverMoveTimestamp.getDecreasedByUpdateCount(indexShift) : serverMoveTimestamp;
-				Serialization::AppendNumber<u32>(movesMessageData, clientMoveTimestamp.getRawValue());
+				Serialization::AppendNumber<u32>(movesMessageData, serverMoveTimestamp.getRawValue());
 			}
 		}
 
@@ -109,4 +107,4 @@ namespace Network
 
 		gameStateRewinder.applyAuthoritativeMoves(updateIdx, hasFinalInput, std::move(currentUpdateData));
 	}
-}
+} // namespace Network::ServerClient

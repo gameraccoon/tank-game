@@ -1,17 +1,17 @@
 #include "Base/precomp.h"
 
-#include "Utils/Network/Messages/PlayerInputMessage.h"
+#include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
 
 #include "Base/Types/Serialization.h"
 
-#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/CompressedInput.h"
+#include "Utils/Network/GameStateRewinder.h"
 
-namespace Network
+namespace Network::ClientServer
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
@@ -42,11 +42,11 @@ namespace Network
 		const bool oldAfterWrap = (oldFrameIndex < WRAP_MAX);
 		const bool newAfterWrap = (newFrameIndex < WRAP_MAX);
 
-		if ALMOST_NEVER(oldAboutToWrap && newAfterWrap)
+		if ALMOST_NEVER (oldAboutToWrap && newAfterWrap)
 		{
 			return true;
 		}
-		else if ALMOST_NEVER(newAboutToWrap && oldAfterWrap)
+		else if ALMOST_NEVER (newAboutToWrap && oldAfterWrap)
 		{
 			return false;
 		}
@@ -61,63 +61,45 @@ namespace Network
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;
 
-		const u32 clientUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex);
-		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
-		const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
-
-		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		OneClientData& clientData = serverConnections->getClientDataRef()[connectionId];
-
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
-		const s32 currentIndexShift = static_cast<s32>(time->getValue()->lastFixedUpdateIndex) - static_cast<s32>(clientUpdateIdx) + 1;
-		if (clientData.indexShift == std::numeric_limits<s32>::max())
-		{
-			clientData.indexShift = currentIndexShift;
-		}
-		else if (currentIndexShift != clientData.indexShift)
-		{
-			constexpr int INDEX_SHIFT_CHANGE_TOLERANCE = 2;
-			++clientData.indexShiftIncorrectFrames;
-			if (clientData.indexShiftIncorrectFrames > INDEX_SHIFT_CHANGE_TOLERANCE)
-			{
-				LogInfo("Correct indexShift from %d to %d", clientData.indexShift, currentIndexShift);
-				// correct index shift after we noticed it's incorrect for several frames
-				clientData.indexShift = currentIndexShift;
-				clientData.indexShiftIncorrectFrames = 0;
-			}
-		}
-		else
-		{
-			clientData.indexShiftIncorrectFrames = 0;
-		}
+		const u32 lastServerProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
-		const s32 indexShift = clientData.indexShift;
+		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex);
+		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
 
-		const u32 lastReceivedInputUpdateIdx = static_cast<u32>(static_cast<s32>(clientUpdateIdx) + indexShift);
+		LogInfo("Received input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 
-		const u32 firstStoredUpdateIdx = gameStateRewinder.getFirstStoredUpdateIdx();
-		const u32 lastStoredUpdateIdx = gameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
-		if (hasNewInput(lastStoredUpdateIdx, lastReceivedInputUpdateIdx))
+		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
 		{
+			// read the input (do it inside the "if", not to waste time on reading the input if it's not needed)
+			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
+
 			const u32 firstReceivedUpdateIdx = lastReceivedInputUpdateIdx - static_cast<u32>(receivedInputsCount) + 1;
+
 			// fill missing updates with repeating last input
-			if (lastStoredUpdateIdx < firstReceivedUpdateIdx)
+			if (firstReceivedUpdateIdx > lastServerProcessedUpdateIdx + 1)
 			{
 				static GameplayInput::FrameState emptyInput;
-				const GameplayInput::FrameState& lastInput = (lastStoredUpdateIdx > firstStoredUpdateIdx) ? gameStateRewinder.getPlayerInput(connectionId, lastStoredUpdateIdx) : emptyInput;
-				for (u32 updateIdx = lastStoredUpdateIdx + 1; updateIdx < firstReceivedUpdateIdx; ++updateIdx)
+				const u32 firstStoredUpdateIdx = gameStateRewinder.getFirstStoredUpdateIdx();
+				const GameplayInput::FrameState& lastInput = (lastServerProcessedUpdateIdx > firstStoredUpdateIdx) ? gameStateRewinder.getPlayerInput(connectionId, lastServerProcessedUpdateIdx) : emptyInput;
+				for (u32 updateIdx = lastServerProcessedUpdateIdx + 1; updateIdx < firstReceivedUpdateIdx; ++updateIdx)
 				{
 					gameStateRewinder.addPlayerInput(connectionId, updateIdx, lastInput);
 				}
 			}
 
 			// fill updates with received inputs
-			const u32 firstUpdateToFill = std::max(firstReceivedUpdateIdx, lastStoredUpdateIdx + 1);
+			const u32 firstUpdateToFill = std::max(firstReceivedUpdateIdx, lastServerProcessedUpdateIdx + 1);
 			for (u32 updateIdx = firstUpdateToFill; updateIdx <= lastReceivedInputUpdateIdx; ++updateIdx)
 			{
 				const size_t inputIdx = updateIdx - firstReceivedUpdateIdx;
 				gameStateRewinder.addPlayerInput(connectionId, updateIdx, receivedFrameStates[inputIdx]);
 			}
 		}
+		else
+		{
+			// we got no new input, we may want to send a message to the client to notify about that
+			// also we may need to prepare some buffer to delay applying player input for the next frames
+		}
 	}
-}
+} // namespace Network::ClientServer

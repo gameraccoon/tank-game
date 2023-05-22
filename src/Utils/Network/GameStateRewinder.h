@@ -19,7 +19,8 @@ namespace RaccoonEcs
 class GameStateRewinder
 {
 public:
-	enum class HistoryType {
+	enum class HistoryType
+	{
 		Client,
 		Server
 	};
@@ -65,13 +66,17 @@ public:
 	const GameplayInput::FrameState& getPlayerInput(ConnectionId connectionId, u32 updateIdx) const;
 	const GameplayInput::FrameState& getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx);
 	void addPlayerInput(ConnectionId connectionId, u32 updateIdx, const GameplayInput::FrameState& newInput);
-	u32 getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const;
-	u32 getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const;
+	std::optional<u32> getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const;
+	std::optional<u32> getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const;
 
 	// meaningful only on client
 	std::vector<GameplayInput::FrameState> getLastInputs(size_t size) const;
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);
+	void setInitialClientFrameIndex(u32 newFrameIndex);
+	bool isInitialClientFrameIndexSet() const;
+
+	bool isServerSide() const { return mHistoryType == HistoryType::Server; }
 
 private:
 	struct OneUpdateData {
@@ -92,9 +97,8 @@ private:
 		};
 
 		enum class DesyncType : u8 {
-			Input = 0,
-			Commands = 1,
-			Movement = 2,
+			Commands = 0,
+			Movement = 1,
 		};
 
 		struct DataState {
@@ -103,7 +107,6 @@ private:
 			std::array<SyncState, magic_enum::enum_count<StateType>()> states{};
 			std::bitset<magic_enum::enum_count<DesyncType>()> desyncedData{};
 			std::unordered_set<ConnectionId> serverInputConfirmedPlayers{};
-			std::unordered_set<ConnectionId> serverInputPredictedPlayers{};
 			bool hasClientInput = false;
 
 			[[nodiscard]] SyncState getState(StateType type) const { return states[static_cast<size_t>(type)]; }
@@ -145,7 +148,9 @@ private:
 
 private:
 	const HistoryType mHistoryType;
+	// after reaching this number of input frames, the old input will be cleared
 	constexpr static u32 MAX_INPUT_TO_PREDICT = 10;
+	constexpr static u32 DEBUG_MAX_FUTURE_FRAMES = 10;
 
 	TimeData mCurrentTimeData;
 
@@ -154,4 +159,5 @@ private:
 	std::vector<OneUpdateData> mUpdateHistory;
 	// what is the update index of the latest stored frame (can be in the future)
 	u32 mLastStoredUpdateIdx = mCurrentTimeData.lastFixedUpdateIndex;
+	bool mIsInitialClientFrameIndexSet = false;
 };

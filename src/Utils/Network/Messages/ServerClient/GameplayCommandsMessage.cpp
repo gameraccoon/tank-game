@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "Utils/Network/Messages/ConnectMessage.h"
+#include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
 
 #include "Base/Types/Serialization.h"
 
@@ -11,7 +11,7 @@
 
 #include "Utils/Network/GameStateRewinder.h"
 
-namespace Network
+namespace Network::ServerClient
 {
 	HAL::ConnectionManager::Message CreateGameplayCommandsMessage(World& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
 	{
@@ -53,10 +53,10 @@ namespace Network
 		commands.reserve(itemsCount);
 		for (size_t i = 0; i < itemsCount; ++i)
 		{
-			LogInfo("Command added on client on update %u for update %u", stateRewinder.getTimeData().lastFixedUpdateIndex + 1, clientUpdateIdx);
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
+			LogInfo("Command %u added on client on update %u for update %u", commands.back()->getType(), stateRewinder.getTimeData().lastFixedUpdateIndex + 1, clientUpdateIdx);
 		}
 
 		stateRewinder.applyAuthoritativeCommands(clientUpdateIdx, std::move(commands));
 	}
-}
+} // namespace Network::ServerClient

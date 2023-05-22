@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "Utils/Network/Messages/ConnectMessage.h"
+#include "Utils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
 
 #include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
@@ -13,7 +13,7 @@
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 
-namespace Network
+namespace Network::ServerClient
 {
 	HAL::ConnectionManager::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, World& world, ConnectionId connectionId)
 	{
@@ -58,7 +58,7 @@ namespace Network
 
 		const auto [gameplayCommandFactory] = gameStateRewinder.getNotRewindableComponents().getComponents<const GameplayCommandFactoryComponent>();
 
-		const u32 clientUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
 
 		const size_t itemsCount = static_cast<size_t>(Serialization::ReadNumber<u16>(message.data, streamIndex));
 
@@ -69,7 +69,7 @@ namespace Network
 			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
 		}
 
-		gameStateRewinder.applyAuthoritativeCommands(clientUpdateIdx, std::move(commands));
+		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));
 	}
 
 	void CleanBeforeApplyingSnapshot(World& world)
@@ -84,4 +84,4 @@ namespace Network
 		networkIdMapping->getNetworkIdToEntityRef().clear();
 		networkIdMapping->getEntityToNetworkIdRef().clear();
 	}
-}
+} // namespace Network::ServerClient

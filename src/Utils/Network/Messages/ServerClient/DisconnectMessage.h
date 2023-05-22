@@ -6,7 +6,7 @@
 
 class World;
 
-namespace Network
+namespace Network::ServerClient
 {
 	enum DisconnectReason
 	{
@@ -18,4 +18,4 @@ namespace Network
 
 	HAL::ConnectionManager::Message CreateDisconnectMessage(DisconnectReason reason);
 	DisconnectReason ApplyDisconnectMessage(const HAL::ConnectionManager::Message& message);
-}
+} // namespace Network::ServerClient

@@ -36,8 +36,7 @@ protected:
 
 private:
 	void initSystems(bool shouldRender);
-	void correctUpdates(u32 firstIncorrectUpdateIdx);
-	void processInputCorrections();
+	void updateHistory();
 
 private:
 	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator()};

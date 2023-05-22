@@ -2,6 +2,8 @@
 
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
 
+#include "Base/TimeConstants.h"
+
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
@@ -9,8 +11,8 @@
 #include "Utils/Application/ArgumentsParser.h"
 
 #include "HAL/Base/GameLoop.h"
-#include "GameLogic/Game/GraphicalClient.h"
 
+#include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/TankServerGame.h"
 
@@ -149,13 +151,13 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	size_t framesCount = 0;
 	while (!checklist.areAllChecked() && framesCount < 1000)
 	{
-		clientGame.dynamicTimePreFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
-		clientGame.fixedTimeUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC);
-		clientGame.dynamicTimePostFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
+		clientGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+		clientGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
+		clientGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 
-		serverGame.dynamicTimePreFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
-		serverGame.fixedTimeUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC);
-		serverGame.dynamicTimePostFrameUpdate(HAL::Constants::ONE_FIXED_UPDATE_SEC, 1);
+		serverGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+		serverGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
+		serverGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 		++framesCount;
 	}
 

@@ -7,8 +7,8 @@
 class World;
 class GameStateRewinder;
 
-namespace Network
+namespace Network::ClientServer
 {
 	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder);
 	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId);
-}
+} // namespace Network::ClientServer

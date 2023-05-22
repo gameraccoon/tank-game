@@ -5,10 +5,11 @@
 enum class NetworkMessageId : u32
 {
 	Connect = 0,
-	Disconnect = 1,
-	Ping = 2,
-	PlayerInput = 3,
-	EntityMove = 4,
-	GameplayCommand = 5,
-	WorldSnapshot = 6,
+	ConnectionAccepted = 1,
+	Disconnect = 2,
+	Ping = 3,
+	PlayerInput = 4,
+	EntityMove = 5,
+	GameplayCommand = 6,
+	WorldSnapshot = 7,
 };

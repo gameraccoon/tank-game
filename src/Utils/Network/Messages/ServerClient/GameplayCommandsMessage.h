@@ -10,8 +10,8 @@
 class World;
 class GameStateRewinder;
 
-namespace Network
+namespace Network::ServerClient
 {
 	HAL::ConnectionManager::Message CreateGameplayCommandsMessage(World& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx);
 	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const HAL::ConnectionManager::Message& message);
-}
+} // namespace Network::ServerClient

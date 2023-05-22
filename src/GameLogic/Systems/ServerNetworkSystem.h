@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <string>
 
 #include <raccoon-ecs/system.h>
 
@@ -20,7 +20,8 @@ public:
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
 		u16 serverPort,
-		bool& shouldQuitGame) noexcept;
+		bool& shouldQuitGame
+	) noexcept;
 
 	void update() override;
 
@@ -29,5 +30,6 @@ private:
 	GameStateRewinder& mGameStateRewinder;
 	const u16 mServerPort;
 	bool& mShouldQuitGame;
-	std::chrono::time_point<std::chrono::system_clock> mLastClientInterationTime;
+	std::chrono::time_point<std::chrono::system_clock> mLastClientInteractionTime;
+	static constexpr std::chrono::seconds SERVER_IDLE_TIMEOUT = std::chrono::seconds(60);
 };

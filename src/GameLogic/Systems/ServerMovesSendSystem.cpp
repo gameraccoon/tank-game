@@ -12,7 +12,7 @@
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
-#include "Utils/Network/Messages/MovesMessage.h"
+#include "Utils/Network/Messages/ServerClient/MovesMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
 
@@ -39,13 +39,11 @@ void ServerMovesSendSystem::update()
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
-	std::vector<std::pair<ConnectionId, s32>> indexShifts;
 	std::vector<ConnectionId> connections;
 	for (auto [connectionId, clientData] : serverConnections->getClientData())
 	{
 		if (clientData.playerEntity.isValid())
 		{
-			indexShifts.emplace_back(connectionId, clientData.indexShift);
 			connections.push_back(connectionId);
 		}
 	}
@@ -58,31 +56,21 @@ void ServerMovesSendSystem::update()
 	TupleVector<Entity, const MovementComponent*, const TransformComponent*> components;
 	world.getEntityManager().getComponentsWithEntities<const MovementComponent, const TransformComponent>(components);
 
-	const u32 lastAllPlayersInputUpdateIdx = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(connections);
+	const std::optional<u32> lastAllPlayersInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(connections);
+	const u32 lastAllPlayersInputUpdateIdx = lastAllPlayersInputUpdateIdxOption.value_or(0);
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	AssertFatal(time, "TimeComponent should be created before the game run");
 	const TimeData& timeValue = *time->getValue();
 
-	for (const auto& [connectionId, indexShift] : indexShifts)
+	for (const ConnectionId connectionId : connections)
 	{
-		if (indexShift == std::numeric_limits<s32>::max())
-		{
-			// we don't yet know how to map input indexes to this player, skip this update
-			continue;
-		}
-
-		if (timeValue.lastFixedUpdateIndex < static_cast<u32>(indexShift))
-		{
-			ReportError("Converted update index is less than zero, this shouldn't normally happen");
-			continue;
-		}
-
-		const u32 lastPlayerInputUpdateIdx = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
+		const std::optional<u32> lastPlayerInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
+		const u32 lastPlayerInputUpdateIdx = lastPlayerInputUpdateIdxOption.value_or(0);
 
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex + 1, timeValue.lastFixedUpdateTimestamp, indexShift, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
+			Network::ServerClient::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex + 1, timeValue.lastFixedUpdateTimestamp, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

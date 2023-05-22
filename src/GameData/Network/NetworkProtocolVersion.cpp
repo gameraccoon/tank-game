@@ -12,7 +12,7 @@ namespace Network
 	// increase by one, and add a comment for each change in how we communicate over network
 	// this includes:
 	// any changes to network protocols and libraries
-	// any addeed, removed, or changed messages
+	// any added, removed, or changed messages
 	// changes in serialization/deserialization logic
 	// changing order of serialization/deserialization of message data
 	// changing explicit order of sending reliable messages

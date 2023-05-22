@@ -173,6 +173,7 @@ namespace HAL
 		void closeConnectionsOpenFromThisManager();
 		void closeAllConnections();
 		static void SetDebugBehavior(const DebugBehavior& debugBehavior);
+		static u64 GetTimestampNow();
 
 	private:
 		struct Impl;

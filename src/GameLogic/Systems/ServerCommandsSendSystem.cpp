@@ -9,7 +9,7 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/GameplayCommandsMessage.h"
+#include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
 
@@ -61,21 +61,9 @@ void ServerCommandsSendSystem::update()
 
 		for (const auto [connectionId, oneClientData] : connections)
 		{
-			const s32 indexShift = oneClientData.indexShift;
-
-			AssertFatal(indexShift != std::numeric_limits<s32>::max(), "indexShift for input should be initialized for a connected player");
-
-			if (updateIdx < static_cast<u32>(indexShift))
-			{
-				ReportError("Converted update index is less than zero, this shouldn't normally happen");
-				continue;
-			}
-
-			const u32 clientUpdateIdx = updateIdx - static_cast<u32>(indexShift);
-
 			connectionManager->sendMessageToClient(
 				connectionId,
-				Network::CreateGameplayCommandsMessage(world, updateCommands, connectionId, clientUpdateIdx),
+				Network::ServerClient::CreateGameplayCommandsMessage(world, updateCommands, connectionId, updateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}

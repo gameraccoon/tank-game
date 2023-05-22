@@ -150,7 +150,7 @@ namespace Serialization
 		}
 		else
 		{
-			throw std::logic_error("Mixed entian is not supported");
+			throw std::logic_error("Mixed endian is not supported");
 		}
 
 		cursorPos += sizeof(Num);
