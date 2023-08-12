@@ -6,7 +6,7 @@
 
 #include <stdexcept>
 #include <string>
-#include <sdl/SDL.h>
+#include <SDL.h>
 
 namespace HAL
 {

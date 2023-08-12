@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glew/glew.h>
 
-#include "sdl/SDL_surface.h"
+#include "SDL_surface.h"
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
 

@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-#include "sdl/SDL_mixer.h"
+#include <SDL_mixer.h>
 
 #include "HAL/Audio/Sound.h"
 #include "HAL/Audio/Music.h"
