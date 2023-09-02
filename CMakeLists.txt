@@ -298,6 +298,14 @@ if (NOT EXISTS "${GAME_BIN_DIR}/resources")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources")
 endif()
 
+if (WIN32)
+	# copy dlls
+	file(GLOB WIN32_DLLS
+		"${EXTERNALS_DIR}/dll/${BIN_PLATFORM}/*"
+	)
+	file(COPY ${WIN32_DLLS} DESTINATION ${GAME_BIN_DIR})
+endif()
+
 # pre-compile additional code generation
 add_custom_target(
 	AdditionalCodeGeneration
