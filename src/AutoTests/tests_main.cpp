@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
 	auto cases = GetCases();
 
-	if (arguments.hasArgument("list-cases"))
+	if (arguments.hasArgument("list"))
 	{
 		for (const auto& casePair : cases)
 		{
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 
 	if (!arguments.hasArgument("case"))
 	{
-		LogError("Test case name has not been provided");
+		std::cout << "Test case name has not been provided, use:\n\t--list to get the list of available test cases\n\t--case <name> to run a specific test case\n";
 		return 1;
 	}
 
