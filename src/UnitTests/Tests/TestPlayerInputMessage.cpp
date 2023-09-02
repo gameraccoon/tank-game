@@ -4,7 +4,6 @@
 #include <memory>
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
-#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInput.h"
@@ -12,7 +11,6 @@
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
 
 
 namespace PlayerInputMessageInternal
@@ -24,7 +22,6 @@ namespace PlayerInputMessageInternal
 		World world{componentFactory, entityGenerator};
 		GameData gameData{componentFactory};
 		GameStateRewinder stateRewinder;
-		WorldHolder worldHolder{&stateRewinder.getWorld(0), gameData};
 
 		explicit TestGame(GameStateRewinder::HistoryType historyType)
 			: stateRewinder(historyType, componentFactory, entityGenerator)
