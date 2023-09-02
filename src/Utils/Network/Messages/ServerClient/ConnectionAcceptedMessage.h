@@ -4,6 +4,8 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+class GameStateRewinder;
+
 namespace Network::ServerClient
 {
 	HAL::ConnectionManager::Message CreateConnectionAcceptedMessage(u32 updateIdx, u64 forwardedTimestamp);

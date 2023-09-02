@@ -35,10 +35,11 @@ namespace Network::ServerClient
 		const u64 sentTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex);
 		// time in microseconds
 		const u64 roundTripTimeUs = timestampNow - sentTimestamp;
+		const u64 oneWayTimeUs = roundTripTimeUs / 2;
 		LogInfo("Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", gameStateRewinder.getTimeData().lastFixedUpdateIndex, updateIdx, roundTripTimeUs / 1000ull);
 
 		// estimate the frame we should be simulating on the client
-		const u32 estimatedClientFrameIndex = updateIdx + static_cast<u32>(std::ceil(float(roundTripTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
+		const u32 estimatedClientFrameIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
 		LogInfo("Estimated client frame index: %u", estimatedClientFrameIndex);
 		gameStateRewinder.setInitialClientFrameIndex(estimatedClientFrameIndex);
 	}
