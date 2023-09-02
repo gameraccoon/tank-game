@@ -8,7 +8,7 @@ class TestCheck
 {
 public:
 	virtual ~TestCheck() = default;
-	[[nodiscard]] virtual bool isChecked() const = 0;
+	[[nodiscard]] virtual bool wasChecked() const = 0;
 	[[nodiscard]] virtual bool hasPassed() const = 0;
 	[[nodiscard]] virtual std::string getErrorMessage() const = 0;
 };
@@ -30,20 +30,20 @@ public:
 	void checkAsPassed()
 	{
 		mIsPassed = true;
-		mIsChecked = true;
+		mWasChecked = true;
 	}
 
 	void checkAsFailed()
 	{
 		mIsPassed = false;
-		mIsChecked = true;
+		mWasChecked = true;
 	}
 
-	[[nodiscard]] bool isChecked() const override { return mIsChecked; }
+	[[nodiscard]] bool wasChecked() const override { return mWasChecked; }
 
 private:
 	bool mIsPassed = false;
-	bool mIsChecked = false;
+	bool mWasChecked = false;
 	std::string mErrorMessage;
 };
 
@@ -54,28 +54,21 @@ struct TestChecklist
 	template<typename Str, typename = std::enable_if_t<std::is_convertible_v<Str, std::string>>>
 	SimpleTestCheck& addSimpleCheck(Str&& errorMessage)
 	{
-		checks.emplace_back(std::make_unique<SimpleTestCheck>(std::forward<Str>(errorMessage)));
-		return static_cast<SimpleTestCheck&>(*checks.back());
-	}
-
-	TestCheck& addCheck(std::unique_ptr<TestCheck>&& check)
-	{
-		checks.emplace_back(std::move(check));
-		return *checks.back();
+		return addCheck<SimpleTestCheck>(std::forward<Str>(errorMessage));
 	}
 
 	template<typename Check, typename... Args>
-	TestCheck& emplaceCheck(Args&&... args)
+	Check& addCheck(Args&&... args)
 	{
 		checks.emplace_back(std::make_unique<Check>(std::forward<Args>(args)...));
-		return *checks.back();
+		return static_cast<Check&>(*checks.back());
 	}
 
 	[[nodiscard]] bool areAllChecked() const
 	{
 		for (const auto& check : checks)
 		{
-			if (!check->isChecked())
+			if (!check->wasChecked())
 			{
 				return false;
 			}

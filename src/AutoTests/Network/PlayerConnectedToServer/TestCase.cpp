@@ -98,7 +98,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 			return mFramesCount < mTimeoutFrames;
 		}
 
-		[[nodiscard]] bool isChecked() const final
+		[[nodiscard]] bool wasChecked() const final
 		{
 			return true;
 		}

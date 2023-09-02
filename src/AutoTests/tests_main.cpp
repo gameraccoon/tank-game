@@ -35,7 +35,7 @@ bool ValidateChecklist(const TestChecklist& checklist)
 	{
 		if (!check->hasPassed())
 		{
-			if (check->isChecked())
+			if (check->wasChecked())
 			{
 				LogInfo("Test check failed: %s", check->getErrorMessage());
 			}
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			LogError("Invalid random seed value: %s", seedStr.c_str());
+			std::cout << "Invalid random seed value: %s" << seedStr << "\n";
 			return 1;
 		}
 	}
@@ -111,11 +111,13 @@ int main(int argc, char** argv)
 		std::unique_ptr<BaseTestCase> testCase = caseIt->second();
 		TestChecklist checklist = testCase->start(arguments);
 		const bool isSuccessful = ValidateChecklist(checklist);
+
+		std::cout << "Test run " << (isSuccessful ? "was successful" : "failed, see the full log for errors") << "\n";
 		return isSuccessful ? 0 : 1;
 	}
 	else
 	{
-		LogError("Unknown test " + arguments.getArgumentValue("case"));
+		std::cout << "Unknown test " + arguments.getArgumentValue("case") << "\n";
 		return 1;
 	}
 }
