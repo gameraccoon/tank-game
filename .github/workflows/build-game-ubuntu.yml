@@ -4,11 +4,13 @@ on:
   push:
     paths:
       - .github/workflows/build-game-ubuntu.yml
-      - cmake/**
+      - .gitmodules
       - config/**
       - external/**
       - src/**
+      - scripts/**
       - CMakeLists.txt
+      - CMakePresets.json
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
