@@ -7,6 +7,11 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+// These tests are flaky and contaminate other tests
+// (the testing framework may flag some random tests as
+// failed when these tests are being run and assert)
+// it's better to run them manually when needed
+
 TEST(ConnectionManager, DISABLED_OpenAndClosePort)
 {
 	const u16 port = 48630;
