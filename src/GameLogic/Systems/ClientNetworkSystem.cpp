@@ -74,7 +74,7 @@ void ClientNetworkSystem::update()
 
 	if (mShouldQuitGameRef)
 	{
-		connectionManager->sendMessageToServer(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::ClientShutdown));
+		connectionManager->sendMessageToServer(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::ClientShutdown()));
 		return;
 	}
 
@@ -94,9 +94,12 @@ void ClientNetworkSystem::update()
 			Network::ServerClient::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
 			break;
 		case NetworkMessageId::Disconnect:
-			Network::ServerClient::ApplyDisconnectMessage(message);
+		{
+			const auto reason = Network::ServerClient::ApplyDisconnectMessage(message);
+			LogInfo(Network::ServerClient::ReasonToString(reason));
 			mShouldQuitGameRef = true;
 			break;
+		}
 		case NetworkMessageId::ConnectionAccepted:
 			Network::ServerClient::ApplyConnectionAcceptedMessage(mGameStateRewinder, HAL::ConnectionManager::GetTimestampNow(), message);
 			break;
