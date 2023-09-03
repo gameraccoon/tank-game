@@ -7,6 +7,7 @@
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
+#include "GameData/Time/TimeData.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/Multithreading/ThreadPool.h"

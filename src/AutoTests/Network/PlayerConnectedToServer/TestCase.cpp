@@ -16,6 +16,8 @@
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/TankServerGame.h"
 
+#include "AutoTests/BasicTestChecks.h"
+
 namespace PlayerConnectedToServerTestCaseInternal
 {
 	class ServerCheckSystem final : public RaccoonEcs::System
@@ -80,38 +82,6 @@ namespace PlayerConnectedToServerTestCaseInternal
 		SimpleTestCheck& mKeepConnectedCheck;
 		size_t mConnectedFramesCount = 0;
 	};
-
-	class TimeoutCheck final : public TestCheck
-	{
-	public:
-		explicit TimeoutCheck(size_t timeoutFrames)
-			: mTimeoutFrames(timeoutFrames)
-		{}
-
-		void update()
-		{
-			++mFramesCount;
-		}
-
-		[[nodiscard]] bool hasPassed() const final
-		{
-			return mFramesCount < mTimeoutFrames;
-		}
-
-		[[nodiscard]] bool wasChecked() const final
-		{
-			return true;
-		}
-
-		[[nodiscard]] std::string getErrorMessage() const final
-		{
-			return "Test didn't complete in " + std::to_string(mTimeoutFrames) + " frames";
-		}
-
-	private:
-		const size_t mTimeoutFrames = 0;
-		size_t mFramesCount = 0;
-	};
 }
 
 TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& arguments)
@@ -140,16 +110,15 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	clientGame.initResources();
 
 	TestChecklist checklist;
-	checklist.addCheck<TimeoutCheck>(1000);
-	SimpleTestCheck& serverConnectionCheck = checklist.addSimpleCheck("Server didn't record player connection");
-	SimpleTestCheck& serverKeepConnectedCheck = checklist.addSimpleCheck("Player didn't keep connection for 50 frames on server");
-	SimpleTestCheck& clientConnectionCheck = checklist.addSimpleCheck("Client didn't get controlled player");
-	SimpleTestCheck& clientKeepConnectionCheck = checklist.addSimpleCheck("Client didn't keep controlled player for 50 frames");
+	TimeoutCheck& timeoutCheck = checklist.addCheck<TimeoutCheck>(1000);
+	SimpleTestCheck& serverConnectionCheck = checklist.addCheck<SimpleTestCheck>("Server didn't record player connection");
+	SimpleTestCheck& serverKeepConnectedCheck = checklist.addCheck<SimpleTestCheck>("Player didn't keep connection for 50 frames on server");
+	SimpleTestCheck& clientConnectionCheck = checklist.addCheck<SimpleTestCheck>("Client didn't get controlled player");
+	SimpleTestCheck& clientKeepConnectionCheck = checklist.addCheck<SimpleTestCheck>("Client didn't keep controlled player for 50 frames");
 	serverGame.injectSystem<ServerCheckSystem>(serverConnectionCheck, serverKeepConnectedCheck);
 	clientGame.injectSystem<ClientCheckSystem>(clientConnectionCheck, clientKeepConnectionCheck);
 
-	size_t framesCount = 0;
-	while (!checklist.areAllChecked() && framesCount < 1000)
+	while (!checklist.areAllChecksValidated() && !checklist.hasAnyCheckFailed())
 	{
 		clientGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 		clientGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
@@ -158,7 +127,8 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 		serverGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 		serverGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 		serverGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-		++framesCount;
+
+		timeoutCheck.update();
 	}
 
 	clientGame.onGameShutdown();

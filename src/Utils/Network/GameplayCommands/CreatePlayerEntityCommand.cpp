@@ -2,6 +2,8 @@
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 
+#include "Base/Types/Serialization.h"
+
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
@@ -11,6 +13,8 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/World.h"
+
+#include "Utils/Network/GameStateRewinder.h"
 
 #include "Utils/Network/GameplayCommands/GameplayCommandTypes.h"
 

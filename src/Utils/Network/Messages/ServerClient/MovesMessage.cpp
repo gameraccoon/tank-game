@@ -12,6 +12,7 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/CompressedInput.h"
+#include "Utils/Network/GameStateRewinder.h"
 
 namespace Network::ServerClient
 {

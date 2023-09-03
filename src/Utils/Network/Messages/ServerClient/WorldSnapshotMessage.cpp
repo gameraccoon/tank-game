@@ -2,9 +2,9 @@
 
 #include "Utils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
 
-#include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
 
+#include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -12,6 +12,7 @@
 #include "GameData/World.h"
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
+#include "Utils/Network/GameStateRewinder.h"
 
 namespace Network::ServerClient
 {
