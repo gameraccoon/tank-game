@@ -140,7 +140,7 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	clientGame.initResources();
 
 	TestChecklist checklist;
-	checklist.emplaceCheck<TimeoutCheck>(1000);
+	checklist.addCheck<TimeoutCheck>(1000);
 	SimpleTestCheck& serverConnectionCheck = checklist.addSimpleCheck("Server didn't record player connection");
 	SimpleTestCheck& serverKeepConnectedCheck = checklist.addSimpleCheck("Player didn't keep connection for 50 frames on server");
 	SimpleTestCheck& clientConnectionCheck = checklist.addSimpleCheck("Client didn't get controlled player");
