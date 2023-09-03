@@ -10,8 +10,8 @@
 #include "Utils/Application/ArgumentsParser.h"
 
 #include "AutoTests/BaseTestCase.h"
-#include "AutoTests/TestChecks.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
+#include "AutoTests/TestCheckList.h"
 
 using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>()>>;
 
@@ -31,11 +31,11 @@ static CasesMap GetCases()
 bool ValidateChecklist(const TestChecklist& checklist)
 {
 	size_t failedChecksCount = 0;
-	for(const auto& check : checklist.checks)
+	for(const auto& check : checklist.getChecks())
 	{
 		if (!check->hasPassed())
 		{
-			if (check->wasChecked())
+			if (check->hasBeenValidated())
 			{
 				LogInfo("Test check failed: %s", check->getErrorMessage());
 			}
@@ -45,16 +45,22 @@ bool ValidateChecklist(const TestChecklist& checklist)
 			}
 			++failedChecksCount;
 		}
+		else
+		{
+			Assert(check->hasBeenValidated(), "Test check has passed but was not validated. This looks like a logical error in the test code.");
+		}
 	}
+
+	const size_t totalChecksCount = checklist.getChecks().size();
 
 	if (failedChecksCount > 0)
 	{
-		LogInfo("Failed %u checks out of %u", failedChecksCount, checklist.checks.size());
+		LogInfo("Failed %u checks out of %u", failedChecksCount, totalChecksCount);
 		return false;
 	}
 	else
 	{
-		LogInfo("Passed %d checks out of %d", checklist.checks.size(), checklist.checks.size());
+		LogInfo("Passed %d checks out of %d", totalChecksCount, totalChecksCount);
 		return true;
 	}
 }

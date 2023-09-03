@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AutoTests/TestChecks.h"
+#include "AutoTests/TestCheckList.h"
 
 #include "raccoon-ecs/system.h"
 
