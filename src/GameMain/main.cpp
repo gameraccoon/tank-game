@@ -1,7 +1,5 @@
 #include "Base/precomp.h"
 
-#include <ctime>
-#include <chrono>
 #include <iostream>
 
 #include <raccoon-ecs/error_handling.h>
@@ -45,7 +43,7 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 
 int main(int argc, char** argv)
 {
-	Random::gGlobalGenerator = Random::GlobalGeneratorType(static_cast<unsigned int>(time(nullptr)));
+	Random::gGlobalGenerator = Random::GlobalGeneratorType(std::random_device()());
 
 #ifdef RACCOON_ECS_DEBUG_CHECKS_ENABLED
 	RaccoonEcs::gErrorHandler = [](const std::string& error) { ReportError(error); };
