@@ -140,7 +140,7 @@ namespace HAL
 
 	void Engine::Impl::parseEvents()
 	{
-		SCOPED_PROFILER("Engine::Impl::parseEvents");
+		//SCOPED_PROFILER("Engine::Impl::parseEvents");
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
