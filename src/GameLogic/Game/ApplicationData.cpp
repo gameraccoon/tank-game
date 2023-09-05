@@ -9,12 +9,11 @@
 #include "GameLogic/Game/TankServerGame.h"
 #include "GameLogic/Render/RenderAccessor.h"
 
-ApplicationData::ApplicationData(int threadsCount)
-	: WorkerThreadsCount(threadsCount)
-	, RenderThreadId(threadsCount + 1)
-	, ResourceLoadingThreadId(threadsCount + 2)
-	, ServerThreadId(threadsCount + 3)
-	, threadPool(threadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); })
+ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount)
+	: WorkerThreadsCount(workerThreadsCount)
+	, ExtraThreadsCount(extraThreadsCount)
+	, RenderThreadId(ResourceLoadingThreadId + 1 + workerThreadsCount + extraThreadsCount)
+	, threadPool(workerThreadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); }, ResourceLoadingThreadId + 1)
 {
 	resourceManager.startLoadingThread([this]{ threadSaveProfileData(ResourceLoadingThreadId); });
 }
@@ -23,7 +22,7 @@ ApplicationData::ApplicationData(int threadsCount)
 void ApplicationData::startRenderThread()
 {
 	engine.releaseRenderContext();
-	renderThread.startThread(resourceManager, engine, [&engine = this->engine]{ engine.acquireRenderContext(); });
+	renderThread.startThread(resourceManager, engine, [&engineRef = this->engine]{ engineRef.acquireRenderContext(); });
 }
 #endif // !DEDICATED_SERVER
 
@@ -54,13 +53,19 @@ void ApplicationData::writeProfilingData()
 
 		data.threadNames.resize(ServerThreadId + 1);
 		data.threadNames[MainThreadId] = "Main Thread";
-		data.threadNames[RenderThreadId] = "Render Thread";
 		data.threadNames[ResourceLoadingThreadId] = "Resource Loading Thread";
-		data.threadNames[ServerThreadId] = "Server Thread";
 		for (int i = 0; i < WorkerThreadsCount; ++i)
 		{
 			// zero is reserved for main thread
-			data.threadNames[1 + i] = std::string("Worker Thread #") + std::to_string(i+1);
+			data.threadNames[ResourceLoadingThreadId + 1 + i] = std::string("Worker Thread #") + std::to_string(i+1);
+		}
+		for (int i = 0; i < ExtraThreadsCount; ++i)
+		{
+			data.threadNames[getAdditionalThreadIdByIndex(i)] = std::string("Extra Thread #") + std::to_string(i+1);
+		}
+		if (RenderThreadId != -1)
+		{
+			data.threadNames[RenderThreadId] = "Render Thread";
 		}
 
 		ProfileDataWriter::PrintScopedProfileToFile(ScopedProfileOutputPath, data);
@@ -83,4 +88,9 @@ void ApplicationData::shutdownThreads()
 #endif // !DEDICATED_SERVER
 	threadPool.shutdown();
 	resourceManager.stopLoadingThread();
+}
+
+int ApplicationData::getAdditionalThreadIdByIndex(int additionalThreadIndex) const
+{
+	return ResourceLoadingThreadId + 1 + WorkerThreadsCount + additionalThreadIndex;
 }

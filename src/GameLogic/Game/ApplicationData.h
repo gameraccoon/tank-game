@@ -11,11 +11,17 @@ class ApplicationData
 {
 public:
 	static constexpr int DefaultWorkerThreadCount = 3;
+
+	// we always have one main thread (doesn't matter if we're headless client or dedicated server)
 	const int MainThreadId = 0;
+	// we always have a resource loading thread
+	const int ResourceLoadingThreadId = 1;
+	// we always have one or more worker threads
 	const int WorkerThreadsCount = DefaultWorkerThreadCount;
-	const int RenderThreadId = WorkerThreadsCount + 1;
-	const int ResourceLoadingThreadId = RenderThreadId + 1;
-	const int ServerThreadId = ResourceLoadingThreadId + 1;
+	// we may have extra threads (e.g. if we run server and one or more clients all together)
+	const int ExtraThreadsCount = 0;
+	// we may have render thread (don't have it on dedicated server)
+	const int RenderThreadId = -1;
 	std::string ScopedProfileOutputPath = "./scoped_profile.json";
 
 	ThreadPool threadPool;
@@ -26,7 +32,7 @@ public:
 #endif // !DEDICATED_SERVER
 
 public:
-	explicit ApplicationData(int threadsCount);
+	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount);
 
 #ifndef DEDICATED_SERVER
 	void startRenderThread();
@@ -34,6 +40,8 @@ public:
 	void writeProfilingData();
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();
+
+	int getAdditionalThreadIdByIndex(int additionalThreadIndex) const;
 
 private:
 #ifdef ENABLE_SCOPED_PROFILER

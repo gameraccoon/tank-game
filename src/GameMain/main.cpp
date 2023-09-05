@@ -60,9 +60,10 @@ int main(int argc, char** argv)
 	const bool runServer = !arguments.hasArgument("connect");
 	const bool runSecondClient = !arguments.hasArgument("connect");
 
-	const int additionalThreadsCount = runGraphicalClient ? 1 : 0;
+	const int additionalThreadsCount = (runServer ? 1 : 0) + (runSecondClient ? 1 : 0);
+	int extraThreadIndex = 0;
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount + additionalThreadsCount));
+	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount), additionalThreadsCount);
 
 	SetupDebugNetworkBehavior(arguments);
 
@@ -81,16 +82,17 @@ int main(int argc, char** argv)
 	{
 		std::optional<RenderAccessorGameRef> renderAccessor;
 #ifndef DEDICATED_SERVER
-		int serverGraphicalInstance = graphicalInstanceIndex++;
+		const int serverGraphicalInstance = graphicalInstanceIndex++;
+		const int serverThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
 #endif // !DEDICATED_SERVER
-		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer]{
+		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer, serverThreadId]{
 			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
 			serverGame.preStart(arguments, renderAccessor);
 			serverGame.initResources();
 			HAL::RunGameLoop(serverGame, [&shouldStopServer]{ return shouldStopServer.load(std::memory_order_acquire); });
 			serverGame.onGameShutdown();
-			applicationData.threadSaveProfileData(applicationData.ServerThreadId);
+			applicationData.threadSaveProfileData(serverThreadId);
 		});
 	}
 
@@ -104,14 +106,15 @@ int main(int argc, char** argv)
 		if (runSecondClient)
 		{
 			const int client2GraphicalInstance = graphicalInstanceIndex++;
+			const int client2ThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
-			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer] {
+			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer, client2ThreadId] {
 				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool);
 				clientGame.preStart(arguments, renderAccessor);
 				clientGame.initResources();
 				HAL::RunGameLoop(clientGame, [&shouldStopServer] { return shouldStopServer.load(std::memory_order_acquire); });
 				clientGame.onGameShutdown();
-				applicationData.threadSaveProfileData(applicationData.ServerThreadId);
+				applicationData.threadSaveProfileData(client2ThreadId);
 			});
 		}
 
