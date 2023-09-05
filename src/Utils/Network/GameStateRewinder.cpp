@@ -472,7 +472,7 @@ void GameStateRewinder::setInitialClientFrameIndex(u32 newFrameIndex)
 
 	LogInfo("Client sets initial frame index from %u to %u (mLastStoredUpdateIdx was %u)", mCurrentTimeData.lastFixedUpdateIndex, newFrameIndex, mLastStoredUpdateIdx);
 
-	mCurrentTimeData.lastFixedUpdateTimestamp.increaseByUpdateCount(newFrameIndex - mCurrentTimeData.lastFixedUpdateIndex);
+	mCurrentTimeData.lastFixedUpdateTimestamp.increaseByUpdateCount(static_cast<s32>(newFrameIndex - mCurrentTimeData.lastFixedUpdateIndex));
 	mCurrentTimeData.lastFixedUpdateIndex = newFrameIndex;
 	mLastStoredUpdateIdx = newFrameIndex + 1;
 	mIsInitialClientFrameIndexSet = true;

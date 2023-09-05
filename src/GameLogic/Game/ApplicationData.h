@@ -26,7 +26,7 @@ public:
 #endif // !DEDICATED_SERVER
 
 public:
-	ApplicationData(int threadsCount);
+	explicit ApplicationData(int threadsCount);
 
 #ifndef DEDICATED_SERVER
 	void startRenderThread();

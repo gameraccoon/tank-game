@@ -19,7 +19,7 @@ namespace HAL
 
 struct GraphicalClient
 {
-	GraphicalClient(ApplicationData& applicationData);
+	explicit GraphicalClient(ApplicationData& applicationData);
 
 	void run(const ArgumentsParser& arguments, const RenderAccessorGameRef& renderAccessorGameRef);
 
