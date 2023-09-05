@@ -59,7 +59,7 @@ void RenderSystem::update()
 
 	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
 
-	const Vector2D drawShift = worldCachedData->getDrawShift();
+	const Vector2D drawShift = ZERO_VECTOR;
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 

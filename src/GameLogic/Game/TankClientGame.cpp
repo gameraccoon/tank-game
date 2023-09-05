@@ -147,8 +147,6 @@ void TankClientGame::initSystems()
 {
 	SCOPED_PROFILER("TankClientGame::initSystems");
 
-	AssertFatal(getEngine(), "TankClientGame created without Engine. We're going to crash");
-
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
@@ -170,7 +168,10 @@ void TankClientGame::initSystems()
 	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
 
 #ifdef IMGUI_ENABLED
-	getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *getEngine());
+	if (HAL::Engine* engine = getEngine())
+	{
+		getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
+	}
 #endif // IMGUI_ENABLED
 }
 

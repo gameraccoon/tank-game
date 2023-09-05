@@ -67,7 +67,6 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	{
 		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
 		renderAccessorComponent->setAccessor(renderAccessor);
-		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setDrawShift(Vector2D(300.0f, 0.0f));
 	}
 	{
 		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().addComponent<ConnectionManagerComponent>();

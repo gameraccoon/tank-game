@@ -56,12 +56,15 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount));
-
-	SetupDebugNetworkBehavior(arguments);
-
 	const bool runGraphicalClient = !arguments.hasArgument("open-port");
 	const bool runServer = !arguments.hasArgument("connect");
+	const bool runSecondClient = !arguments.hasArgument("connect");
+
+	const int additionalThreadsCount = runGraphicalClient ? 1 : 0;
+
+	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount + additionalThreadsCount));
+
+	SetupDebugNetworkBehavior(arguments);
 
 	AssertFatal(runGraphicalClient || runServer, "Can't specify --connect and --open-port at the same time");
 
@@ -69,7 +72,7 @@ int main(int argc, char** argv)
 	applicationData.startRenderThread();
 
 	int graphicalInstanceIndex = 0;
-	applicationData.renderThread.setAmountOfRenderedGameInstances(static_cast<int>(runGraphicalClient) + static_cast<int>(runServer));
+	applicationData.renderThread.setAmountOfRenderedGameInstances(static_cast<int>(runGraphicalClient) + static_cast<int>(runServer) + static_cast<int>(runSecondClient));
 #endif // !DEDICATED_SERVER
 
 	std::unique_ptr<std::thread> serverThread;
@@ -93,10 +96,27 @@ int main(int argc, char** argv)
 
 #ifndef DEDICATED_SERVER
 	std::unique_ptr<GraphicalClient> client;
+	std::unique_ptr<std::thread> client2Thread;
 	if (runGraphicalClient)
 	{
+		const int client1GraphicalInstance = graphicalInstanceIndex++;
+
+		if (runSecondClient)
+		{
+			const int client2GraphicalInstance = graphicalInstanceIndex++;
+			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
+			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer] {
+				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool);
+				clientGame.preStart(arguments, renderAccessor);
+				clientGame.initResources();
+				HAL::RunGameLoop(clientGame, [&shouldStopServer] { return shouldStopServer.load(std::memory_order_acquire); });
+				clientGame.onGameShutdown();
+				applicationData.threadSaveProfileData(applicationData.ServerThreadId);
+			});
+		}
+
 		client = std::make_unique<GraphicalClient>(applicationData);
-		client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), graphicalInstanceIndex++)); // blocking call
+		client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance)); // blocking call
 	}
 	else
 #endif // !DEDICATED_SERVER

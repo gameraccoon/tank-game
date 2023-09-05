@@ -6,10 +6,8 @@
 
 #include <SDL_video.h>
 #include <algorithm>
-#include <bitset>
 #include <glew/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/matrix.hpp>
 
 #include "Base/Types/ComplexTypes/VectorUtils.h"
 
@@ -25,6 +23,11 @@ namespace RenderThreadManagerInternal
 	static int gTotalGameInstancesCount = 1;
 	static unsigned int gGameInstancesLeftBitset = (1u << gTotalGameInstancesCount) - 1u;
 
+	static Vector2D CalculateRenderShift(int gameInstanceIdx)
+	{
+		return Vector2D{ 300.0f * static_cast<float>(gameInstanceIdx % 2), 300.0f * static_cast<float>(gameInstanceIdx / 2) };
+	}
+
 	class RenderVisitor
 	{
 	public:
@@ -33,6 +36,7 @@ namespace RenderThreadManagerInternal
 			, mEngine(engine)
 			, mLastSurface(lastSurface)
 			, mGameInstanceIdx(gameInstanceIdx)
+			, mRenderShift(CalculateRenderShift(gameInstanceIdx))
 		{}
 
 		void operator()(BackgroundRenderData&& bgData)
@@ -48,7 +52,7 @@ namespace RenderThreadManagerInternal
 
 			bindSurface(bgSprite->getSurface());
 			Graphics::Render::DrawTiledQuad(
-				bgData.start,
+				bgData.start + mRenderShift,
 				bgData.size,
 				bgData.uv
 			);
@@ -75,7 +79,7 @@ namespace RenderThreadManagerInternal
 				points.emplace_back(point, Graphics::QuadLerp(spriteUV, 0.5f+point.x*backScale.x, 0.5f+point.y*backScale.y));
 			}
 
-			const Vector2D drawShift = fanData.start + fanData.size;
+			const Vector2D drawShift = fanData.start + fanData.size + mRenderShift;
 			glm::mat4 transform(1.0f);
 			transform = glm::translate(transform, glm::vec3(drawShift.x, drawShift.y, 0.0f));
 			bindSurface(sprite->getSurface());
@@ -98,7 +102,7 @@ namespace RenderThreadManagerInternal
 
 			bindSurface(sprite->getSurface());
 			Graphics::Render::DrawQuad(
-				quadData.position,
+				quadData.position + mRenderShift,
 				quadData.size,
 				quadData.anchor,
 				quadData.rotation,
@@ -126,7 +130,7 @@ namespace RenderThreadManagerInternal
 			}
 
 			glm::mat4 transform(1.0f);
-			transform = glm::translate(transform, glm::vec3(polygonData.drawShift.x, polygonData.drawShift.y, 0.0f));
+			transform = glm::translate(transform, glm::vec3(polygonData.drawShift.x + mRenderShift.x, polygonData.drawShift.y + mRenderShift.y, 0.0f));
 			bindSurface(sprite->getSurface());
 			Graphics::Render::DrawFan(polygonData.points, transform, 0.3f);
 		}
@@ -149,7 +153,7 @@ namespace RenderThreadManagerInternal
 			}
 
 			glm::mat4 transform(1.0f);
-			transform = glm::translate(transform, glm::vec3(stripData.drawShift.x, stripData.drawShift.y, 0.0f));
+			transform = glm::translate(transform, glm::vec3(stripData.drawShift.x + mRenderShift.x, stripData.drawShift.y + mRenderShift.y, 0.0f));
 			bindSurface(sprite->getSurface());
 			Graphics::Render::DrawStrip(stripData.points, transform, stripData.alpha);
 		}
@@ -158,7 +162,7 @@ namespace RenderThreadManagerInternal
 		{
 			SCOPED_PROFILER("RenderVisitor->TextRenderData");
 
-			// need an implimentation when text rendering is fixed
+			// need an implementation when text rendering is fixed
 		}
 
 		void operator()(const CustomRenderFunction& renderFunction)
@@ -199,6 +203,7 @@ namespace RenderThreadManagerInternal
 		HAL::Engine& mEngine;
 		const Graphics::Surface*& mLastSurface;
 		const int mGameInstanceIdx;
+		const Vector2D mRenderShift;
 	};
 
 	using DataPtr = std::unique_ptr<RenderData>;
@@ -206,12 +211,12 @@ namespace RenderThreadManagerInternal
 	using InstanceFrames = std::vector<FrameData>;
 	using DataToRender = std::vector<InstanceFrames>;
 
-	static void PopulateFrameData(DataToRender& outData, std::vector<DataPtr>& inDataToTrasfer)
+	static void PopulateFrameData(DataToRender& outData, std::vector<DataPtr>& inDataToTransfer)
 	{
 		SCOPED_PROFILER("PopulateFrameData");
 
 		outData.resize(gTotalGameInstancesCount);
-		for (DataPtr& operationsBulk : inDataToTrasfer)
+		for (DataPtr& operationsBulk : inDataToTransfer)
 		{
 			if (!operationsBulk->layers.empty())
 			{
@@ -282,7 +287,7 @@ namespace RenderThreadManagerInternal
 		// remove all frames before the last
 		for (InstanceFrames& frames : dataToRender)
 		{
-			frames.erase(frames.begin(), frames.begin() + (frames.size() - 1));
+			frames.erase(frames.begin(), frames.begin() + static_cast<int>(frames.size() - 1));
 		}
 	}
 }
