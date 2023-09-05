@@ -51,7 +51,7 @@ void ApplicationData::writeProfilingData()
 			data.scopedProfilerDatas.emplace_back(threadId, std::move(records));
 		}
 
-		data.threadNames.resize(ServerThreadId + 1);
+		data.threadNames.resize(getAdditionalThreadIdByIndex(ExtraThreadsCount) + 1);
 		data.threadNames[MainThreadId] = "Main Thread";
 		data.threadNames[ResourceLoadingThreadId] = "Resource Loading Thread";
 		for (int i = 0; i < WorkerThreadsCount; ++i)

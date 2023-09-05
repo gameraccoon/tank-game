@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 #endif // !DEDICATED_SERVER
 
 	std::unique_ptr<std::thread> serverThread;
-	std::atomic_bool shouldStopServer;
+	std::atomic_bool shouldStopExtraThreads = false;
 	if (runServer)
 	{
 		std::optional<RenderAccessorGameRef> renderAccessor;
@@ -86,11 +86,11 @@ int main(int argc, char** argv)
 		const int serverThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
 #endif // !DEDICATED_SERVER
-		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer, serverThreadId]{
+		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, serverThreadId] {
 			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
 			serverGame.preStart(arguments, renderAccessor);
 			serverGame.initResources();
-			HAL::RunGameLoop(serverGame, [&shouldStopServer]{ return shouldStopServer.load(std::memory_order_acquire); });
+			HAL::RunGameLoop(serverGame, [&shouldStopExtraThreads] { return shouldStopExtraThreads.load(std::memory_order_acquire); });
 			serverGame.onGameShutdown();
 			applicationData.threadSaveProfileData(serverThreadId);
 		});
@@ -108,11 +108,11 @@ int main(int argc, char** argv)
 			const int client2GraphicalInstance = graphicalInstanceIndex++;
 			const int client2ThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
-			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopServer, client2ThreadId] {
+			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, client2ThreadId] {
 				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool);
 				clientGame.preStart(arguments, renderAccessor);
 				clientGame.initResources();
-				HAL::RunGameLoop(clientGame, [&shouldStopServer] { return shouldStopServer.load(std::memory_order_acquire); });
+				HAL::RunGameLoop(clientGame, [&shouldStopExtraThreads] { return shouldStopExtraThreads.load(std::memory_order_acquire); });
 				clientGame.onGameShutdown();
 				applicationData.threadSaveProfileData(client2ThreadId);
 			});
@@ -124,16 +124,16 @@ int main(int argc, char** argv)
 	else
 #endif // !DEDICATED_SERVER
 	{
-		std::thread inputThread([&shouldStopServer]{
+		std::thread inputThread([&shouldStopExtraThreads] {
 			std::string command;
 			// break the tie between std::cin and std::cout just in case
 			std::cin.tie(nullptr);
-			while(true)
+			while (true)
 			{
 				std::cin >> command;
 				if (command == "quit" || command == "exit" || command == "stop")
 				{
-					shouldStopServer = true;
+					shouldStopExtraThreads = true;
 					break;
 				}
 			}
@@ -146,6 +146,12 @@ int main(int argc, char** argv)
 	if (runServer)
 	{
 		serverThread->join(); // this call waits for the server thread to be joined
+	}
+
+	if (runSecondClient)
+	{
+		shouldStopExtraThreads = true;
+		client2Thread->join(); // this call waits for the client thread to be joined
 	}
 
 	applicationData.shutdownThreads(); // this call waits for the threads to be joined
