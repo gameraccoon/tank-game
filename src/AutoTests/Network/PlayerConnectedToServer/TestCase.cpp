@@ -88,11 +88,12 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 {
 	using namespace PlayerConnectedToServerTestCaseInternal;
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount));
+	const int clientsCount = 1;
+
+	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount), clientsCount);
 
 	applicationData.startRenderThread();
 
-	const int clientsCount = 1;
 	applicationData.renderThread.setAmountOfRenderedGameInstances(clientsCount + 1);
 
 	std::unique_ptr<std::thread> serverThread;
