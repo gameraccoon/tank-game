@@ -26,7 +26,7 @@ void GameStateRewinder::trimOldFrames(u32 firstUpdateToKeep)
 	if (shiftLeft > 0)
 	{
 		std::rotate(mUpdateHistory.begin(), mUpdateHistory.begin() + static_cast<int>(shiftLeft), mUpdateHistory.end());
-		mLastStoredUpdateIdx += shiftLeft;
+		mLastStoredUpdateIdx += static_cast<u32>(shiftLeft);
 	}
 
 	// mark new records as empty
@@ -38,7 +38,7 @@ void GameStateRewinder::trimOldFrames(u32 firstUpdateToKeep)
 
 u32 GameStateRewinder::getFirstStoredUpdateIdx() const
 {
-	return mLastStoredUpdateIdx + 1 - mUpdateHistory.size();
+	return static_cast<u32>(mLastStoredUpdateIdx + 1 - mUpdateHistory.size());
 }
 
 void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
@@ -49,11 +49,11 @@ void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
 
 	for (size_t i = 0; i < updatesToResimulate; ++i)
 	{
-		OneUpdateData& updateData = getUpdateRecordByUpdateIdx(mCurrentTimeData.lastFixedUpdateIndex - i);
+		OneUpdateData& updateData = getUpdateRecordByUpdateIdx(static_cast<u32>(mCurrentTimeData.lastFixedUpdateIndex - i));
 		updateData.dataState.resetDesyncedData();
 	}
 
-	mCurrentTimeData.lastFixedUpdateIndex -= updatesToResimulate;
+	mCurrentTimeData.lastFixedUpdateIndex -= static_cast<u32>(updatesToResimulate);
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
 }
 
