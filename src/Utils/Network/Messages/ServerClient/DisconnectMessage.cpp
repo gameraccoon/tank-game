@@ -75,7 +75,7 @@ namespace Network::ServerClient
 		using namespace DisconnectMessageInternal;
 
 		size_t streamIndex = message.payloadStartPos;
-		const u8 reasonIdx = Serialization::ReadNumber<u8>(message.data, streamIndex);
+		const u8 reasonIdx = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
 
 		if (reasonIdx >= std::variant_size_v<DisconnectReason::Value>)
 		{
@@ -89,8 +89,8 @@ namespace Network::ServerClient
 		std::visit(Overload{
 			[&streamIndex, &message](DisconnectReason::IncompatibleNetworkProtocolVersion& value)
 			{
-				value.serverVersion = Serialization::ReadNumber<u32>(message.data, streamIndex);
-				value.clientVersion = Serialization::ReadNumber<u32>(message.data, streamIndex);
+				value.serverVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+				value.clientVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 			},
 			[reasonIdx](DisconnectReason::Unknown& value)
 			{

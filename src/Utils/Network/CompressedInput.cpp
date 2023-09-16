@@ -114,15 +114,15 @@ namespace Utils
 		std::vector<GameplayInput::FrameState> result;
 		result.resize(inputsToRead);
 
-		const size_t changedAxesCount = Serialization::ReadNumber<u8>(stream, streamIndex);
+		const size_t changedAxesCount = Serialization::ReadNumber<u8>(stream, streamIndex).value_or(0);
 
 		// fill non-zero axes, zero values should be filled by default
 		for (size_t i = 0; i < changedAxesCount; ++i)
 		{
-			const size_t axisIndex = Serialization::ReadNumber<u8>(stream, streamIndex);
+			const size_t axisIndex = Serialization::ReadNumber<u8>(stream, streamIndex).value_or(0);
 			for (size_t frameIdx = 0; frameIdx < inputsToRead; ++frameIdx)
 			{
-				const float value = Serialization::ReadNumber<f32>(stream, streamIndex);
+				const float value = Serialization::ReadNumber<f32>(stream, streamIndex).value_or(0.0f);
 				result[frameIdx].setRawAxisState(axisIndex, value);
 			}
 		}
@@ -133,9 +133,9 @@ namespace Utils
 			size_t nextFrameToProcess = 0;
 			while (nextFrameToProcess < inputsToRead)
 			{
-				const size_t frameEndIdx = Serialization::ReadNumber<u8>(stream, streamIndex);
-				const GameplayInput::KeyState state = static_cast<GameplayInput::KeyState>(Serialization::ReadNumber<u8>(stream, streamIndex));
-				const GameplayTimestamp lastFlipTimestamp{Serialization::ReadNumber<u32>(stream, streamIndex)};
+				const size_t frameEndIdx = Serialization::ReadNumber<u8>(stream, streamIndex).value_or(0);
+				const GameplayInput::KeyState state = static_cast<GameplayInput::KeyState>(Serialization::ReadNumber<u8>(stream, streamIndex).value_or(0));
+				const GameplayTimestamp lastFlipTimestamp{ Serialization::ReadNumber<u32>(stream, streamIndex).value_or(0) };
 
 				for (; nextFrameToProcess < frameEndIdx; ++nextFrameToProcess)
 				{

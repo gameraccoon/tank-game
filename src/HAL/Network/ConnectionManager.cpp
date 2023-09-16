@@ -626,7 +626,7 @@ namespace HAL
 	u32 ConnectionManager::Message::readMessageType() const
 	{
 		size_t headerCursorPos = 0;
-		return Serialization::ReadNumber<u32>(data, headerCursorPos);
+		return Serialization::ReadNumber<u32>(data, headerCursorPos).value_or(0);
 	}
 
 	ConnectionManager::ConnectionManager() = default;

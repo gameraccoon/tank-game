@@ -31,8 +31,8 @@ namespace Network::ServerClient
 	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, u64 timestampNow, const HAL::ConnectionManager::Message& message)
 	{
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
-		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
-		const u64 sentTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex);
+		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+		const u64 sentTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
 		// time in microseconds
 		const u64 roundTripTimeUs = timestampNow - sentTimestamp;
 		const u64 oneWayTimeUs = roundTripTimeUs / 2;

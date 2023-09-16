@@ -35,7 +35,7 @@ namespace Network::ServerClient
 				if (transform && networkIdIt != networkIdMapping->getEntityToNetworkId().end())
 				{
 					const Vector2D pos = transform->getLocation();
-					commands.push_back(CreatePlayerEntityCommand::createServerSide(pos, entityConnectionId, networkIdIt->second));
+					commands.push_back(CreatePlayerEntityCommand::createServerSide(pos, networkIdIt->second, entityConnectionId));
 				}
 			}
 		}
@@ -59,15 +59,18 @@ namespace Network::ServerClient
 
 		const auto [gameplayCommandFactory] = gameStateRewinder.getNotRewindableComponents().getComponents<const GameplayCommandFactoryComponent>();
 
-		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 
-		const size_t itemsCount = static_cast<size_t>(Serialization::ReadNumber<u16>(message.data, streamIndex));
+		const size_t itemsCount = static_cast<size_t>(Serialization::ReadNumber<u16>(message.data, streamIndex).value_or(0));
 
 		std::vector<GameplayCommand::Ptr> commands;
 		commands.reserve(itemsCount);
 		for (size_t i = 0; i < itemsCount; ++i)
 		{
-			commands.push_back(gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex));
+			if (auto command = gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex))
+			{
+				commands.push_back(std::move(command));
+			}
 		}
 
 		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));

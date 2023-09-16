@@ -62,14 +62,14 @@ namespace Network::ServerClient
 
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
-		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex);
+		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
 		const bool hasMissingInput = (bitset & 1) != 0;
 		const bool hasFinalInput = (bitset & (1 << 1)) != 0;
 		if (hasMissingInput)
 		{
-			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 		}
-		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex);
+		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 		// we are not interested in values greater than the update idx of input that we are processing
 		// for any non-relevant value, assume it is equal to updateIdx
 		lastReceivedInputUpdateIdx = hasMissingInput ? std::min(lastReceivedInputUpdateIdx, updateIdx) : updateIdx;
@@ -93,13 +93,13 @@ namespace Network::ServerClient
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
 		{
-			const u64 serverEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex);
+			const u64 serverEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
 			const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(serverEntityId);
 			Entity entity = (entityIt != networkIdMapping->getNetworkIdToEntity().end()) ? entityIt->second : Entity(0);
 			Vector2D location{};
-			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex);
-			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex);
-			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex));
+			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
+			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
+			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0));
 
 			currentUpdateData.addMove(entity, location, lastUpdateTimestamp);
 		}

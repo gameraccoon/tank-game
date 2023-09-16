@@ -64,8 +64,8 @@ namespace Network::ClientServer
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		const u32 lastServerProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
-		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex);
-		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex);
+		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex).value_or(0);
+		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex).value_or(0);
 
 		LogInfo("Received input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 

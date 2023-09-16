@@ -90,9 +90,9 @@ namespace Network
 	GameplayCommand::Ptr CreatePlayerEntityCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
 	{
 		const IsOwner isOwner = (Serialization::ReadNumber<u8>(stream, inOutCursorPos) != 0) ? IsOwner::Yes : IsOwner::No;
-		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos);
-		const float playerPosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos);
-		const float playerPosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos);
+		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0);
+		const float playerPosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0);
+		const float playerPosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0);
 
 		return createClientSide(
 			Vector2D(playerPosX, playerPosY),
