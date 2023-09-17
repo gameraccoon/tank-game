@@ -79,7 +79,7 @@ namespace Network
 
 	void CreatePlayerEntityCommand::serverSerialize(World& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
 	{
-		inOutStream.reserve(inOutStream.size() + 1 + 4 + 8 + 4*2);
+		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4*2);
 
 		Serialization::AppendNumber<u8>(inOutStream, static_cast<u8>(receiverConnectionId == mOwnerConnectionId));
 		Serialization::AppendNumber<u64>(inOutStream, mNetworkEntityId);
