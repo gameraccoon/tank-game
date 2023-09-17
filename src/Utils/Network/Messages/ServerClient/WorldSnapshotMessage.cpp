@@ -47,6 +47,7 @@ namespace Network::ServerClient
 		Serialization::AppendNumber<u16>(messageData, static_cast<u16>(commands.size()));
 		for (Network::GameplayCommand::Ptr& command : commands)
 		{
+			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(command->getType()));
 			command->serverSerialize(world, messageData, connectionId);
 		}
 
