@@ -26,7 +26,7 @@ public:
 
 private:
 	/** Write line with timestamp */
-	void writeLine(const std::string& text);
+	void writeLine(const char* logPrefix, const std::string& text);
 
 	/** Filestream that holds the logfile handler */
 	std::ofstream mLogFileStream;
