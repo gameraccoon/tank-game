@@ -35,12 +35,12 @@ ServerNetworkSystem::ServerNetworkSystem(
 {
 }
 
-static void SynchronizeServerStateToNewPlayer(World& /*world*/, ConnectionId /*newPlayerConnectionId*/, HAL::ConnectionManager& /*connectionManager*/)
+static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, World& world, ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
 {
-	/*connectionManager.sendMessageToClient(
+	connectionManager.sendMessageToClient(
 		newPlayerConnectionId,
-		Network::CreateWorldSnapshotMessage(world, newPlayerConnectionId)
-	);*/
+		Network::ServerClient::CreateWorldSnapshotMessage(gameStateRewinder, world, newPlayerConnectionId)
+	);
 }
 
 static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
@@ -58,7 +58,7 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& 
 			Network::ServerClient::CreateConnectionAcceptedMessage(timeValue.lastFixedUpdateIndex + 1, result.forwardedTimestamp)
 		);
 
-		SynchronizeServerStateToNewPlayer(world, connectionId, connectionManager);
+		SynchronizeServerStateToNewPlayer(gameStateRewinder, world, connectionId, connectionManager);
 
 		gameStateRewinder.appendExternalCommandToHistory(
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame

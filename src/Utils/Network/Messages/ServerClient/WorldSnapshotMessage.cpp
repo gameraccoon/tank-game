@@ -41,11 +41,16 @@ namespace Network::ServerClient
 		}
 
 		std::vector<std::byte> messageData;
-		Serialization::AppendNumber<u32>(messageData, static_cast<u32>(commands.size()));
+
+		Serialization::AppendNumber<u32>(messageData, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+
+		Serialization::AppendNumber<u16>(messageData, static_cast<u16>(commands.size()));
 		for (Network::GameplayCommand::Ptr& command : commands)
 		{
 			command->serverSerialize(world, messageData, connectionId);
 		}
+
+		LogInfo("Send CreateWorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 
 		return HAL::ConnectionManager::Message{
 			static_cast<u32>(NetworkMessageId::WorldSnapshot),
@@ -74,6 +79,8 @@ namespace Network::ServerClient
 		}
 
 		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));
+
+		LogInfo("Applied CreateWorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 	}
 
 	void CleanBeforeApplyingSnapshot(World& world)
