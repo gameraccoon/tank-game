@@ -36,25 +36,21 @@ Log& Log::Instance()
 void Log::writeError(const std::string& text)
 {
 	writeLine("Error: ", text);
-	mLogFileStream << std::flush;
 }
 
 void Log::writeWarning(const std::string& text)
 {
 	writeLine("Warning: ", text);
-	mLogFileStream << std::flush;
 }
 
 void Log::writeLog(const std::string& text)
 {
 	writeLine("Log: ", text);
-	mLogFileStream << std::flush;
 }
 
 void Log::writeInit(const std::string& text)
 {
 	writeLine("Init: ", text);
-	mLogFileStream << std::flush;
 }
 
 void Log::writeLine(const char* logPrefix, const std::string& text)
@@ -64,8 +60,10 @@ void Log::writeLine(const char* logPrefix, const std::string& text)
 		auto now = std::chrono::system_clock::now();
 		auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
+		mLogWriteMutex.lock();
 		mLogFileStream << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X [") << std::this_thread::get_id() << "] ";
-		mLogFileStream << logPrefix << text << "\n";
+		mLogFileStream << logPrefix << text << "\n" << std::flush;
+		mLogWriteMutex.unlock();
 	}
 
 	std::clog << text << "\n";

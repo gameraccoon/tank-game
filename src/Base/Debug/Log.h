@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <string>
+#include <mutex>
 
 /**
  * Class that helps to write log messages
@@ -30,6 +31,7 @@ private:
 
 	/** Filestream that holds the logfile handler */
 	std::ofstream mLogFileStream;
+	std::mutex mLogWriteMutex;
 
 	/* Turn off unusable operations */
 	Log();
