@@ -217,14 +217,19 @@ void TankClientGame::processCorrections()
 
 		if (firstDesyncedUpdate == firstUpdateIdx)
 		{
+			ReportError("We tried to correct the first update that we store, we can't do that");
 			// we can't correct the first update, since we don't have the previous state
 			firstDesyncedUpdate += 1;
 		}
 
-		// if we need to process corrections
-		if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != std::numeric_limits<u32>::max())
+		// if the desynced update in the past
+		if (firstDesyncedUpdate <= mGameStateRewinder.getTimeData().lastFixedUpdateIndex)
 		{
-			correctUpdates(firstDesyncedUpdate);
+			// if we need to process corrections
+			if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != std::numeric_limits<u32>::max())
+			{
+				correctUpdates(firstDesyncedUpdate);
+			}
 		}
 	}
 
