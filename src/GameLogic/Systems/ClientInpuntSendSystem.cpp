@@ -43,7 +43,7 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-	if (!mGameStateRewinder.isInitialClientFrameIndexSet()) {
+	if (!mGameStateRewinder.isInitialClientUpdateIndexSet()) {
 		return;
 	}
 

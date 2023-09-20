@@ -455,7 +455,7 @@ void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::Fr
 #endif // DEBUG_CHECKS
 }
 
-void GameStateRewinder::setInitialClientFrameIndex(u32 newFrameIndex)
+void GameStateRewinder::setInitialClientUpdateIndex(u32 newFrameIndex)
 {
 	assertClientOnly();
 
@@ -467,7 +467,7 @@ void GameStateRewinder::setInitialClientFrameIndex(u32 newFrameIndex)
 	mIsInitialClientFrameIndexSet = true;
 }
 
-bool GameStateRewinder::isInitialClientFrameIndexSet() const
+bool GameStateRewinder::isInitialClientUpdateIndexSet() const
 {
 	return mIsInitialClientFrameIndexSet;
 }

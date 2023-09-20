@@ -39,8 +39,13 @@ namespace Network::ServerClient
 		LogInfo("Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", gameStateRewinder.getTimeData().lastFixedUpdateIndex, updateIdx, roundTripTimeUs / 1000ull);
 
 		// estimate the frame we should be simulating on the client
-		const u32 estimatedClientFrameIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
-		LogInfo("Estimated client frame index: %u", estimatedClientFrameIndex);
-		gameStateRewinder.setInitialClientFrameIndex(estimatedClientFrameIndex);
+		const u32 estimatedClientUpdateIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
+
+		// we can still receive updates from updateIdx, so we need to make sure we have enough frames in the history
+		const u32 storedSimulatedUpdatesCount = gameStateRewinder.getTimeData().lastFixedUpdateIndex - gameStateRewinder.getFirstStoredUpdateIdx() - 1;
+		const u32 resultingClientUpdateIndex = std::min(estimatedClientUpdateIndex, updateIdx + storedSimulatedUpdatesCount);
+
+		LogInfo("Estimated client update index: %u, resulting client update index: %u", estimatedClientUpdateIndex, resultingClientUpdateIndex);
+		gameStateRewinder.setInitialClientUpdateIndex(resultingClientUpdateIndex);
 	}
 } // namespace Network::ServerClient

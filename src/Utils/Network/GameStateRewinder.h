@@ -73,15 +73,15 @@ public:
 	std::vector<GameplayInput::FrameState> getLastInputs(size_t size) const;
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);
-	void setInitialClientFrameIndex(u32 newFrameIndex);
-	bool isInitialClientFrameIndexSet() const;
+	void setInitialClientUpdateIndex(u32 newFrameIndex);
+	bool isInitialClientUpdateIndexSet() const;
 
 	bool isServerSide() const { return mHistoryType == HistoryType::Server; }
 
 private:
 	struct OneUpdateData {
 		enum class SyncState : u8 {
-			// nothing is stored for this frame
+			// nothing is stored for this update
 			NoData = 0,
 			// stored predicted data
 			Predicted = 1,

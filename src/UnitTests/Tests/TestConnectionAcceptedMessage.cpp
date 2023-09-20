@@ -32,7 +32,7 @@ namespace TestConnectionAcceptedMessageInternal
 	}
 } // namespace TestConnectionAcceptedMessageInternal
 
-TEST(ConnectionAcceptedMessage, ConnectionAcceptedMessageReceived_SetsCorrectClientIndex)
+TEST(ConnectionAcceptedMessage, HistoryWithSingleRecord_ConnectionAcceptedMessageReceived_SetsCorrectClientIndex)
 {
 	using namespace TestConnectionAcceptedMessageInternal;
 
@@ -40,9 +40,29 @@ TEST(ConnectionAcceptedMessage, ConnectionAcceptedMessageReceived_SetsCorrectCli
 
 	auto clientGame = CreateClientGameInstance();
 
-	EXPECT_FALSE(clientGame->stateRewinder.isInitialClientFrameIndexSet());
+	EXPECT_FALSE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
 	Network::ServerClient::ApplyConnectionAcceptedMessage(clientGame->stateRewinder, 50320000u, message);
 
-	EXPECT_TRUE(clientGame->stateRewinder.isInitialClientFrameIndexSet());
+	EXPECT_TRUE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
+	EXPECT_EQ(clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex, 399u);
+}
+
+TEST(ConnectionAcceptedMessage, HistoryWithEnoughOldRecords_ConnectionAcceptedMessageReceived_SetsCorrectClientIndex)
+{
+	using namespace TestConnectionAcceptedMessageInternal;
+
+	HAL::ConnectionManager::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
+
+	auto clientGame = CreateClientGameInstance();
+	for (u32 i = 0; i < 19; ++i)
+	{
+		clientGame->stateRewinder.advanceSimulationToNextUpdate(i + 1);
+		clientGame->stateRewinder.getTimeData().fixedUpdate(0.016f, 1);
+	}
+
+	EXPECT_FALSE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
+	Network::ServerClient::ApplyConnectionAcceptedMessage(clientGame->stateRewinder, 50320000u, message);
+
+	EXPECT_TRUE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
 	EXPECT_EQ(clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex, 410u);
 }
