@@ -83,7 +83,7 @@ void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
 	}
 }
 
-u32 GameStateRewinder::getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) const
+u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 {
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 	for (u32 updateIdx = mLastStoredUpdateIdx;; --updateIdx)
@@ -92,20 +92,9 @@ u32 GameStateRewinder::getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) 
 		const OneUpdateData::SyncState moveState = updateData.dataState.getState(OneUpdateData::StateType::Movement);
 		const OneUpdateData::SyncState commandsState = updateData.dataState.getState(OneUpdateData::StateType::Commands);
 
-		if (onlyFullyConfirmed)
+		if (moveState == OneUpdateData::SyncState::FinalAuthoritative && commandsState == OneUpdateData::SyncState::FinalAuthoritative)
 		{
-			if (moveState == OneUpdateData::SyncState::FinalAuthoritative && commandsState == OneUpdateData::SyncState::FinalAuthoritative)
-			{
-				return updateIdx;
-			}
-		}
-		else
-		{
-			if ((moveState == OneUpdateData::SyncState::NotFinalAuthoritative || moveState == OneUpdateData::SyncState::FinalAuthoritative) &&
-				(commandsState == OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == OneUpdateData::SyncState::FinalAuthoritative))
-			{
-				return updateIdx;
-			}
+			return updateIdx;
 		}
 
 		if (updateIdx == firstStoredUpdateIdx)
@@ -114,7 +103,7 @@ u32 GameStateRewinder::getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) 
 		}
 	}
 
-	return firstStoredUpdateIdx - 1;
+	return std::numeric_limits<u32>::max();
 }
 
 u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const

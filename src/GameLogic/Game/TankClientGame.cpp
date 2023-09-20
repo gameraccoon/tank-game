@@ -244,7 +244,7 @@ void TankClientGame::removeOldUpdates()
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 	const u32 firstUpdateIdx = mGameStateRewinder.getFirstStoredUpdateIdx();
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
-	const u32 lastFullyConfirmedUpdateIdx = mGameStateRewinder.getLastConfirmedClientUpdateIdx(true);
+	const u32 lastFullyConfirmedUpdateIdx = mGameStateRewinder.getLastConfirmedClientUpdateIdx();
 
 	if (lastUpdateIdx == std::numeric_limits<u32>::max() || lastFullyConfirmedUpdateIdx == std::numeric_limits<u32>::max())
 	{

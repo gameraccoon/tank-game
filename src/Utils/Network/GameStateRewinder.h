@@ -47,7 +47,7 @@ public:
 	World& getWorld(u32 updateIdx) const;
 	void advanceSimulationToNextUpdate(u32 newUpdateIdx);
 
-	u32 getLastConfirmedClientUpdateIdx(bool onlyFullyConfirmed) const;
+	u32 getLastConfirmedClientUpdateIdx() const;
 	u32 getFirstDesyncedUpdateIdx() const;
 
 	void appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand);
