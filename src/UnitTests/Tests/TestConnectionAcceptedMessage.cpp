@@ -44,7 +44,7 @@ TEST(ConnectionAcceptedMessage, HistoryWithSingleRecord_ConnectionAcceptedMessag
 	Network::ServerClient::ApplyConnectionAcceptedMessage(clientGame->stateRewinder, 50320000u, message);
 
 	EXPECT_TRUE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
-	EXPECT_EQ(clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex, 399u);
+	EXPECT_EQ(clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex, 398u);
 }
 
 TEST(ConnectionAcceptedMessage, HistoryWithEnoughOldRecords_ConnectionAcceptedMessageReceived_SetsCorrectClientIndex)

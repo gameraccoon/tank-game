@@ -36,16 +36,27 @@ namespace Network::ServerClient
 		// time in microseconds
 		const u64 roundTripTimeUs = timestampNow - sentTimestamp;
 		const u64 oneWayTimeUs = roundTripTimeUs / 2;
-		LogInfo("Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", gameStateRewinder.getTimeData().lastFixedUpdateIndex, updateIdx, roundTripTimeUs / 1000ull);
+		const u32 previousClientUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex;
+		LogInfo("Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", previousClientUpdateIdx, updateIdx, roundTripTimeUs / 1000ull);
 
 		// estimate the frame we should be simulating on the client
 		const u32 estimatedClientUpdateIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
 
-		// we can still receive updates from updateIdx, so we need to make sure we have enough frames in the history
-		const u32 storedSimulatedUpdatesCount = gameStateRewinder.getTimeData().lastFixedUpdateIndex - gameStateRewinder.getFirstStoredUpdateIdx() - 1;
+		// we can still receive updates from updateIdx - 1, so we need to make sure we have enough frames in the history
+		const u32 firstStoredUpdateIdx = gameStateRewinder.getFirstStoredUpdateIdx();
+		const u32 storedSimulatedUpdatesCount = gameStateRewinder.getTimeData().lastFixedUpdateIndex - 1 - firstStoredUpdateIdx - 1;
 		const u32 resultingClientUpdateIndex = std::min(estimatedClientUpdateIndex, updateIdx + storedSimulatedUpdatesCount);
 
 		LogInfo("Estimated client update index: %u, resulting client update index: %u", estimatedClientUpdateIndex, resultingClientUpdateIndex);
+
+		// if we have records that would have negative indexes, we need to clean them now
+		const s64 updateIndexShift = static_cast<s64>(previousClientUpdateIdx) - static_cast<s64>(resultingClientUpdateIndex);
+		const s64 shiftedFirstUpdateIdx = static_cast<s64>(firstStoredUpdateIdx) + updateIndexShift;
+		if (shiftedFirstUpdateIdx >= 0)
+		{
+			gameStateRewinder.trimOldFrames(previousClientUpdateIdx - static_cast<u32>(shiftedFirstUpdateIdx) + 1);
+		}
+
 		gameStateRewinder.setInitialClientUpdateIndex(resultingClientUpdateIndex);
 	}
 } // namespace Network::ServerClient
