@@ -4,17 +4,17 @@
 #include <unordered_set>
 #include <neargye/magic_enum.hpp>
 
-#include "GameData/EcsDefinitions.h"
-#include "GameData/Input/InputHistory.h"
+#include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/Network/MovementHistory.h"
 #include "GameData/Time/TimeData.h"
-#include "GameData/World.h"
 
+class World;
 namespace RaccoonEcs
 {
 	class EntityGenerator;
 }
+
 
 class GameStateRewinder
 {

@@ -5,6 +5,7 @@
 #include "Base/Types/Serialization.h"
 
 #include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/Input/InputHistory.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/World.h"
 

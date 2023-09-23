@@ -2,6 +2,9 @@
 
 #include "Utils/Network/GameStateRewinder.h"
 
+#include "GameData/World.h"
+#include "GameData/EcsDefinitions.h"
+
 GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
 	: mHistoryType(historyType)
 	, mNotRewindableComponents(componentFactory)
