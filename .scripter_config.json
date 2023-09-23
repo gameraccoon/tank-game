@@ -235,6 +235,25 @@
     },
     {
       "Original": {
+        "uid": "f992a9f3-d542-483b-aff7-65f1eb78c521",
+        "name": "Run unit tests",
+        "icon": {
+          "path": "scripts/scripter/icons/tests.webp",
+          "path_type": "WorkingDirRelative"
+        },
+        "command": {
+          "path": "scripts/scripter/windows/run_unit_tests.cmd",
+          "path_type": "WorkingDirRelative"
+        },
+        "arguments": "",
+        "autorerun_count": 0,
+        "ignore_previous_failures": false,
+        "requires_arguments": false,
+        "arguments_hint": "\"arg1\" \"arg2\""
+      }
+    },
+    {
+      "Original": {
         "uid": "1614450e-ee7b-4503-8e5b-6c7b6d1bc9cc",
         "name": "Clean Reset",
         "icon": {
