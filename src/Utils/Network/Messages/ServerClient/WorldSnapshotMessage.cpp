@@ -9,6 +9,7 @@
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
+#include "GameData/Time/TimeData.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
