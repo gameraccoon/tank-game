@@ -49,14 +49,6 @@ namespace Network::ServerClient
 
 		LogInfo("Estimated client update index: %u, resulting client update index: %u", estimatedClientUpdateIndex, resultingClientUpdateIndex);
 
-		// if we have records that would have negative indexes, we need to clean them now
-		const s64 updateIndexShift = static_cast<s64>(previousClientUpdateIdx) - static_cast<s64>(resultingClientUpdateIndex);
-		const s64 shiftedFirstUpdateIdx = static_cast<s64>(firstStoredUpdateIdx) + updateIndexShift;
-		if (shiftedFirstUpdateIdx >= 0)
-		{
-			gameStateRewinder.trimOldFrames(previousClientUpdateIdx - static_cast<u32>(shiftedFirstUpdateIdx) + 1);
-		}
-
 		gameStateRewinder.setInitialClientUpdateIndex(resultingClientUpdateIndex);
 	}
 } // namespace Network::ServerClient

@@ -53,11 +53,30 @@ public:
 		return getLastStoredUpdateIdx() - static_cast<IndexType>(mRecords.size()) + 1;
 	}
 
+	T& getRecordUnsafe(IndexType updateIdx)
+	{
+		const IndexType firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+		const IndexType lastFrameHistoryUpdateIdx = getLastStoredUpdateIdx();
+		AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx, "Trying to get a frame before cut of the history, requested frame %u, the oldest frame %u", updateIdx, firstFrameHistoryUpdateIdx);
+		AssertFatal(updateIdx <= lastFrameHistoryUpdateIdx, "Trying to get a frame from future that doesn't yet have frames, requested frame %u, the last stored frame %u", updateIdx, lastFrameHistoryUpdateIdx);
+		return mRecords[updateIdx - firstFrameHistoryUpdateIdx];
+	}
+
+	const T& getRecordUnsafe(IndexType updateIdx) const
+	{
+		const IndexType firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+		const IndexType lastFrameHistoryUpdateIdx = getLastStoredUpdateIdx();
+		AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx, "Trying to get a frame before cut of the history, requested frame %u, the oldest frame %u", updateIdx, firstFrameHistoryUpdateIdx);
+		AssertFatal(updateIdx <= lastFrameHistoryUpdateIdx, "Trying to get a frame from future that doesn't yet have frames, requested frame %u, the last stored frame %u", updateIdx, lastFrameHistoryUpdateIdx);
+		return mRecords[updateIdx - firstFrameHistoryUpdateIdx];
+	}
+
 	T& getOrCreateRecordByUpdateIdx(IndexType updateIdx)
 	{
 		const IndexType firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+		const IndexType lastFrameHistoryUpdateIdx = getLastStoredUpdateIdx();
 		AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx, "Can't create frames before cut of the history, new frame %u, the oldest frame %u", updateIdx, firstFrameHistoryUpdateIdx);
-		if (updateIdx >= firstFrameHistoryUpdateIdx)
+		if (updateIdx > lastFrameHistoryUpdateIdx)
 		{
 			const size_t newRecordIndex = static_cast<size_t>(updateIdx - firstFrameHistoryUpdateIdx);
 			if (newRecordIndex >= mRecords.size())
@@ -72,7 +91,7 @@ public:
 		return mRecords[updateIdx - firstFrameHistoryUpdateIdx];
 	}
 
-	void setLastUpdateIdxAndCleanNegativeFrames(IndexType lastUpdateIdx)
+	void setLastStoredUpdateIdxAndCleanNegativeFrames(IndexType lastUpdateIdx)
 	{
 		// if some records can potentially go negative
 		const IndexType lastStoredUpdateIdx = getLastStoredUpdateIdx();
@@ -82,15 +101,15 @@ public:
 			// if they are going to go negative
 			if (getFirstStoredUpdateIdx() < idxDifference)
 			{
-				const IndexType firstIndexToKeep = static_cast<int>(idxDifference - getFirstStoredUpdateIdx());
+				const int firstIndexToKeep = static_cast<int>(idxDifference) - static_cast<int>(getFirstStoredUpdateIdx());
 				// we should keep at least one record in the history
 				if (firstIndexToKeep < getLastStoredUpdateIdx())
 				{
-					mRecords.erase(mRecords.begin(), mRecords.begin() + static_cast<int>(firstIndexToKeep));
+					mRecords.erase(mRecords.begin(), mRecords.begin() + firstIndexToKeep);
 				}
 				else
 				{
-					ReportFatalError("We're trying to remove more records from history than we have %u %u %u", lastStoredUpdateIdx, mRecords.size(), lastUpdateIdx);
+					ReportFatalError("We're trying to remove more records from history than we have. %u %u %u", lastStoredUpdateIdx, mRecords.size(), lastUpdateIdx);
 					return;
 				}
 			}

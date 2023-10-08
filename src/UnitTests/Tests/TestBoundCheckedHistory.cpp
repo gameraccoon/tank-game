@@ -66,10 +66,10 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ChangeHistoryFrame_CorrectFrameIsCh
 
 	history.getOrCreateRecordByUpdateIdx(2) = 2;
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(0), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(1), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(2), 2);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(3), 0);
+	EXPECT_EQ(history.getRecordUnsafe(0), 0);
+	EXPECT_EQ(history.getRecordUnsafe(1), 0);
+	EXPECT_EQ(history.getRecordUnsafe(2), 2);
+	EXPECT_EQ(history.getRecordUnsafe(3), 0);
 }
 
 TEST(BoundCheckedHistory, HistoryWithUpdates_ChangeHistoryFrameAndAddNewFrame_ChangedFrameIsPreserved)
@@ -80,12 +80,12 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ChangeHistoryFrameAndAddNewFrame_Ch
 	history.getOrCreateRecordByUpdateIdx(2) = 2;
 	history.getOrCreateRecordByUpdateIdx(5);
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(0), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(1), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(2), 2);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(3), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(4), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(5), 0);
+	EXPECT_EQ(history.getRecordUnsafe(0), 0);
+	EXPECT_EQ(history.getRecordUnsafe(1), 0);
+	EXPECT_EQ(history.getRecordUnsafe(2), 2);
+	EXPECT_EQ(history.getRecordUnsafe(3), 0);
+	EXPECT_EQ(history.getRecordUnsafe(4), 0);
+	EXPECT_EQ(history.getRecordUnsafe(5), 0);
 }
 
 TEST(BoundCheckedHistory, HistoryWithUpdates_ShiftUpdateIdxUp_ShiftsBeginAndEnd)
@@ -93,7 +93,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ShiftUpdateIdxUp_ShiftsBeginAndEnd)
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.setLastUpdateIdxAndCleanNegativeFrames(5);
+	history.setLastStoredUpdateIdxAndCleanNegativeFrames(5);
 
 	EXPECT_EQ(history.getFirstStoredUpdateIdx(), 2);
 	EXPECT_EQ(history.getLastStoredUpdateIdx(), 5);
@@ -104,7 +104,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ShiftUpdateIdxDown_RemovesHistoryTh
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.setLastUpdateIdxAndCleanNegativeFrames(1);
+	history.setLastStoredUpdateIdxAndCleanNegativeFrames(1);
 
 	EXPECT_EQ(history.getFirstStoredUpdateIdx(), 0);
 	EXPECT_EQ(history.getLastStoredUpdateIdx(), 1);
@@ -116,12 +116,12 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrame_ShiftUpdateIdxUp_SetFram
 	history.getOrCreateRecordByUpdateIdx(3);
 	history.getOrCreateRecordByUpdateIdx(2) = 3;
 
-	history.setLastUpdateIdxAndCleanNegativeFrames(5);
+	history.setLastStoredUpdateIdxAndCleanNegativeFrames(5);
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(2), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(3), 0);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(4), 3);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(5), 0);
+	EXPECT_EQ(history.getRecordUnsafe(2), 0);
+	EXPECT_EQ(history.getRecordUnsafe(3), 0);
+	EXPECT_EQ(history.getRecordUnsafe(4), 3);
+	EXPECT_EQ(history.getRecordUnsafe(5), 0);
 }
 
 TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrame_ShiftUpdateIdxDown_SetFrameShifted)
@@ -130,10 +130,10 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrame_ShiftUpdateIdxDown_SetFr
 	history.getOrCreateRecordByUpdateIdx(3);
 	history.getOrCreateRecordByUpdateIdx(2) = 5;
 
-	history.setLastUpdateIdxAndCleanNegativeFrames(1);
+	history.setLastStoredUpdateIdxAndCleanNegativeFrames(1);
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(0), 5);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(1), 0);
+	EXPECT_EQ(history.getRecordUnsafe(0), 5);
+	EXPECT_EQ(history.getRecordUnsafe(1), 0);
 }
 
 TEST(BoundCheckedHistory, NewHistory_TrimOldFrames_NothingChanges)
@@ -191,37 +191,37 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingThreeOldFram
 {
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
-	history.getOrCreateRecordByUpdateIdx(0) = 10;
-	history.getOrCreateRecordByUpdateIdx(1) = 11;
-	history.getOrCreateRecordByUpdateIdx(2) = 12;
-	history.getOrCreateRecordByUpdateIdx(3) = 13;
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
 
 	history.trimOldFrames(1, [](int& frameValue) {
 		ASSERT_EQ(frameValue, 10);
 		frameValue = -1;
 	});
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(1), 11);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(2), 12);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(3), 13);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(4), -1);
+	EXPECT_EQ(history.getRecordUnsafe(1), 11);
+	EXPECT_EQ(history.getRecordUnsafe(2), 12);
+	EXPECT_EQ(history.getRecordUnsafe(3), 13);
+	EXPECT_EQ(history.getRecordUnsafe(4), -1);
 }
 
 TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingTwoOldFrames_SetFramesDoNotChangePlaces)
 {
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
-	history.getOrCreateRecordByUpdateIdx(0) = 10;
-	history.getOrCreateRecordByUpdateIdx(1) = 11;
-	history.getOrCreateRecordByUpdateIdx(2) = 12;
-	history.getOrCreateRecordByUpdateIdx(3) = 13;
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
 
 	history.trimOldFrames(2, [](int& frameValue) {
 		frameValue = -3;
 	});
 
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(2), 12);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(3), 13);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(4), -3);
-	EXPECT_EQ(history.getOrCreateRecordByUpdateIdx(5), -3);
+	EXPECT_EQ(history.getRecordUnsafe(2), 12);
+	EXPECT_EQ(history.getRecordUnsafe(3), 13);
+	EXPECT_EQ(history.getRecordUnsafe(4), -3);
+	EXPECT_EQ(history.getRecordUnsafe(5), -3);
 }
