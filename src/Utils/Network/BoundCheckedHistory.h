@@ -101,11 +101,11 @@ public:
 			// if they are going to go negative
 			if (getFirstStoredUpdateIdx() < idxDifference)
 			{
-				const int firstIndexToKeep = static_cast<int>(idxDifference) - static_cast<int>(getFirstStoredUpdateIdx());
+				const IndexType firstIndexToKeep = idxDifference - getFirstStoredUpdateIdx();
 				// we should keep at least one record in the history
 				if (firstIndexToKeep < getLastStoredUpdateIdx())
 				{
-					mRecords.erase(mRecords.begin(), mRecords.begin() + firstIndexToKeep);
+					mRecords.erase(mRecords.begin(), mRecords.begin() + static_cast<int>(firstIndexToKeep));
 				}
 				else
 				{
@@ -119,7 +119,7 @@ public:
 	}
 
 	template<typename CleanFn>
-	void trimOldFrames(int firstUpdateToKeep, CleanFn&& cleanFn)
+	void trimOldFrames(IndexType firstUpdateToKeep, CleanFn&& cleanFn)
 	{
 		const IndexType firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 
