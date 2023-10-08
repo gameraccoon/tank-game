@@ -521,8 +521,9 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 	mPimpl->assertServerOnly();
 	// iterate backwards through the frame history and find the first frame that has input data for all the players
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
-	for (u32 updateIdx = mPimpl->lastStoredUpdateIdx; updateIdx >= firstStoredUpdateIdx; --updateIdx)
+	for (u32 i = mPimpl->lastStoredUpdateIdx + 1; i >= firstStoredUpdateIdx + 1; --i)
 	{
+		u32 updateIdx = i - 1;
 		const Impl::OneUpdateData& frameData = mPimpl->getUpdateRecordByUpdateIdx(updateIdx);
 		bool found = true;
 		for (const ConnectionId connectionId : connections)
