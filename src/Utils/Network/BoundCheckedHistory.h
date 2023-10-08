@@ -2,17 +2,15 @@
 
 #include <span>
 
-#include "Base/Types/BasicTypes.h"
-
-template<typename T>
+template<typename IndexType, typename T>
 struct HistorySpan
 {
 	const std::span<T> span;
-	const u32 beginRecordUpdateIdx = 0;
-	const u32 endRecordUpdateIdx = 0;
+	const IndexType beginRecordUpdateIdx = 0;
+	const IndexType endRecordUpdateIdx = 0;
 
-	u32 getFirstUpdateIdx() const { return beginRecordUpdateIdx; }
-	u32 getLastUpdateIdx() const { return endRecordUpdateIdx - 1; }
+	IndexType getFirstUpdateIdx() const { return beginRecordUpdateIdx; }
+	IndexType getLastUpdateIdx() const { return endRecordUpdateIdx - 1; }
 
 	auto begin() { return span.begin(); }
 	auto end() { return span.end(); }
@@ -20,7 +18,7 @@ struct HistorySpan
 	auto begin() const { return span.begin(); }
 	auto end() const { return span.end(); }
 
-	T& getRecordByUpdateIdx(u32 idx)
+	T& getRecordByUpdateIdx(IndexType idx)
 	{
 		AssertFatal(beginRecordUpdateIdx <= endRecordUpdateIdx, "End should never be less than begin of HistorySpan %u <= %u", beginRecordUpdateIdx, endRecordUpdateIdx);
 		AssertFatal(span.size() == endRecordUpdateIdx - beginRecordUpdateIdx, "Size of a HistorySpan doesn't match distance between begin and end %u %u %u", span.size(), endRecordUpdateIdx, beginRecordUpdateIdx);
@@ -29,34 +27,35 @@ struct HistorySpan
 	}
 };
 
-template<typename T>
+template<typename IndexType, typename T>
 class BoundCheckedHistory
 {
 public:
-	static constexpr u32 INVALID_UPDATE_IDX = std::numeric_limits<u32>::max();
+	static constexpr IndexType INVALID_UPDATE_IDX = std::numeric_limits<IndexType>::max();
 
 public:
-	BoundCheckedHistory(int capacity = 1) {
+	BoundCheckedHistory(int capacity = 1)
+	{
 		mRecords.reserve(capacity);
 		// we always store at least one record
 		mRecords.resize(1);
 	}
 
-	u32 getLastStoredUpdateIdx() const
+	IndexType getLastStoredUpdateIdx() const
 	{
 		AssertFatal(!mRecords.empty(), "History should always contain at least one record");
 		AssertFatal(mRecords.size() - 1 <= mLastStoredUpdateIdx, "mLastStoredUpdateIdx and mRecords got desynchronized %u %u", mLastStoredUpdateIdx, mRecords.size());
 		return mLastStoredUpdateIdx;
 	}
 
-	u32 getFirstStoredUpdateIdx() const
+	IndexType getFirstStoredUpdateIdx() const
 	{
-		return getLastStoredUpdateIdx() - static_cast<u32>(mRecords.size()) + 1;
+		return getLastStoredUpdateIdx() - static_cast<IndexType>(mRecords.size()) + 1;
 	}
 
-	T& getOrCreateRecordByUpdateIdx(u32 updateIdx)
+	T& getOrCreateRecordByUpdateIdx(IndexType updateIdx)
 	{
-		const u32 firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
+		const IndexType firstFrameHistoryUpdateIdx = getFirstStoredUpdateIdx();
 		AssertFatal(updateIdx >= firstFrameHistoryUpdateIdx, "Can't create frames before cut of the history, new frame %u, the oldest frame %u", updateIdx, firstFrameHistoryUpdateIdx);
 		if (updateIdx >= firstFrameHistoryUpdateIdx)
 		{
@@ -73,17 +72,17 @@ public:
 		return mRecords[updateIdx - firstFrameHistoryUpdateIdx];
 	}
 
-	void setLastUpdateIdxAndCleanNegativeFrames(u32 lastUpdateIdx)
+	void setLastUpdateIdxAndCleanNegativeFrames(IndexType lastUpdateIdx)
 	{
 		// if some records can potentially go negative
-		const u32 lastStoredUpdateIdx = getLastStoredUpdateIdx();
+		const IndexType lastStoredUpdateIdx = getLastStoredUpdateIdx();
 		if (lastUpdateIdx < lastStoredUpdateIdx)
 		{
-			const u32 idxDifference = lastStoredUpdateIdx - lastUpdateIdx;
+			const IndexType idxDifference = lastStoredUpdateIdx - lastUpdateIdx;
 			// if they are going to go negative
 			if (getFirstStoredUpdateIdx() < idxDifference)
 			{
-				const u32 firstIndexToKeep = static_cast<int>(idxDifference - getFirstStoredUpdateIdx());
+				const IndexType firstIndexToKeep = static_cast<int>(idxDifference - getFirstStoredUpdateIdx());
 				// we should keep at least one record in the history
 				if (firstIndexToKeep < getLastStoredUpdateIdx())
 				{
@@ -100,7 +99,41 @@ public:
 		mLastStoredUpdateIdx = lastUpdateIdx;
 	}
 
+	template<typename CleanFn>
+	void trimOldFrames(int firstUpdateToKeep, CleanFn&& cleanFn)
+	{
+		const IndexType firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+
+		if (firstUpdateToKeep < firstStoredUpdateIdx)
+		{
+			ReportFatalError("We can't keep more updates than we already store");
+			return;
+		}
+
+		const IndexType lastStoredUpdateIdx = getLastStoredUpdateIdx();
+		if (firstUpdateToKeep > lastStoredUpdateIdx)
+		{
+			ReportFatalError("We can't leave less than one update in the history");
+			return;
+		}
+
+		const IndexType shiftLeft = firstUpdateToKeep - firstStoredUpdateIdx;
+		if (shiftLeft > 0)
+		{
+			std::rotate(mRecords.begin(), mRecords.begin() + static_cast<int>(shiftLeft), mRecords.end());
+			mLastStoredUpdateIdx += static_cast<IndexType>(shiftLeft);
+		}
+
+		if constexpr (!std::is_same_v<CleanFn, nullptr_t>)
+		{
+			for (IndexType i = 0; i < shiftLeft; ++i)
+			{
+				cleanFn(std::ref(mRecords[mRecords.size() - 1 - static_cast<size_t>(i)]));
+			}
+		}
+	}
+
 private:
 	std::vector<T> mRecords;
-	u32 mLastStoredUpdateIdx = 0;
+	IndexType mLastStoredUpdateIdx = 0;
 };
