@@ -522,7 +522,7 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t s
 {
 	mPimpl->assertClientOnly();
 	std::vector<GameplayInput::FrameState> result;
-	const size_t inputSize = std::min(size, static_cast<size_t>(mPimpl->currentTimeData.lastFixedUpdateIndex - mPimpl->updateHistory.getFirstStoredUpdateIdx()));
+	const size_t inputSize = std::min(size, static_cast<size_t>(mPimpl->currentTimeData.lastFixedUpdateIndex - getFirstStoredUpdateIdx()));
 	result.reserve(inputSize);
 
 	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((mPimpl->updateHistory.getLastStoredUpdateIdx() > size) ? (mPimpl->updateHistory.getLastStoredUpdateIdx() + 1 - size) : 1u));
