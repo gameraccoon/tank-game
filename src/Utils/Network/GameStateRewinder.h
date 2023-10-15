@@ -4,6 +4,7 @@
 
 #include "GameData/Input/GameplayInput.h"
 #include "GameData/Network/GameplayCommand.h"
+#include "GameData/Time/TimeData.h"
 
 #include "GameData/EcsDefinitions.h"
 
@@ -13,7 +14,6 @@ namespace RaccoonEcs
 	class EntityGenerator;
 }
 struct MovementUpdateData;
-struct TimeData;
 
 class GameStateRewinder
 {
@@ -32,11 +32,11 @@ public:
 	GameStateRewinder(GameStateRewinder&&) = delete;
 	GameStateRewinder& operator=(GameStateRewinder&&) = delete;
 
-	ComponentSetHolder& getNotRewindableComponents();
-	const ComponentSetHolder& getNotRewindableComponents() const;
+	ComponentSetHolder& getNotRewindableComponents() { return mNotRewindableComponents; }
+	const ComponentSetHolder& getNotRewindableComponents() const { return mNotRewindableComponents; }
 
-	TimeData& getTimeData();
-	const TimeData& getTimeData() const;
+	TimeData& getTimeData() { return mCurrentTimeData; }
+	const TimeData& getTimeData() const { return mCurrentTimeData; }
 
 	u32 getFirstStoredUpdateIdx() const;
 	void trimOldFrames(u32 firstUpdateToKeep);
@@ -74,11 +74,18 @@ public:
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);
 	void setInitialClientUpdateIndex(u32 newFrameIndex);
-	bool isInitialClientUpdateIndexSet() const;
+	bool isInitialClientUpdateIndexSet() const { return mIsInitialClientFrameIndexSet; }
 
-	bool isServerSide() const;
+private:
+	void assertServerOnly() const;
+	void assertClientOnly() const;
 
 private:
 	class Impl;
 	std::unique_ptr<Impl> mPimpl;
+
+	const HistoryType mHistoryType;
+	ComponentSetHolder mNotRewindableComponents;
+	TimeData mCurrentTimeData;
+	bool mIsInitialClientFrameIndexSet = false;
 };
