@@ -226,7 +226,8 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 
 void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)
 {
-	Assert(updateIdx > getTimeData().lastFixedUpdateIndex, "We are trying to append command to an update that is in the past. updateIndex is %u and last fixed update is %u", updateIdx, getTimeData().lastFixedUpdateIndex);
+	assertNotChaningPast(updateIdx);
+
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
 	const Impl::OneUpdateData::SyncState commandsState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
@@ -264,6 +265,8 @@ void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Ne
 
 void GameStateRewinder::writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands)
 {
+	assertNotChaningPast(updateIdx);
+
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
 	const Impl::OneUpdateData::SyncState commandsState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
@@ -299,6 +302,8 @@ const Network::GameplayCommandHistoryRecord& GameStateRewinder::getCommandsForUp
 void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
 {
 	assertClientOnly();
+	assertNotChaningPast(updateIdx);
+
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
 	const Impl::OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
@@ -342,11 +347,14 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFina
 const MovementUpdateData& GameStateRewinder::getMovesForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
+
 	return mPimpl->updateHistory.getRecordUnsafe(updateIdx).clientMovement;
 }
 
 bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
 {
+	assertClientOnly();
+
 	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx())
 	{
 		const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
@@ -360,6 +368,7 @@ bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
 const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId connectionId, u32 updateIdx) const
 {
 	assertServerOnly();
+
 	static const GameplayInput::FrameState emptyInput;
 	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 
@@ -382,6 +391,7 @@ const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId 
 const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx)
 {
 	assertServerOnly();
+
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	GameplayInput::FrameState& updateInput = frameData.serverInput[connectionId];
 	if (frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
@@ -422,7 +432,8 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx, const GameplayInput::FrameState& newInput)
 {
 	assertServerOnly();
-	Assert(updateIdx > getTimeData().lastFixedUpdateIndex, "We are trying to append command to an update that is in the past. updateIndex is %u and last fixed update is %u", updateIdx, getTimeData().lastFixedUpdateIndex);
+	assertNotChaningPast(updateIdx);
+
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	frameData.serverInput[connectionId] = newInput;
 	frameData.dataState.serverInputConfirmedPlayers.insert(connectionId);
@@ -431,6 +442,7 @@ void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx,
 std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const
 {
 	assertServerOnly();
+
 	// iterate backwards through the frame history and find the first frame that has input data for this player
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 	for (u32 updateIdx = mPimpl->updateHistory.getLastStoredUpdateIdx();; --updateIdx)
@@ -454,6 +466,7 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(Connec
 std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const
 {
 	assertServerOnly();
+
 	// iterate backwards through the frame history and find the first frame that has input data for all the players
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 	for (u32 i = mPimpl->updateHistory.getLastStoredUpdateIdx() + 1; i >= firstStoredUpdateIdx + 1; --i)
@@ -482,6 +495,7 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t size) const
 {
 	assertClientOnly();
+
 	std::vector<GameplayInput::FrameState> result;
 	const size_t inputSize = std::min(size, static_cast<size_t>(mCurrentTimeData.lastFixedUpdateIndex - getFirstStoredUpdateIdx()));
 	result.reserve(inputSize);
@@ -503,6 +517,7 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t s
 bool GameStateRewinder::hasInputForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
+
 	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 	return frameData.dataState.hasClientInput;
 }
@@ -510,6 +525,7 @@ bool GameStateRewinder::hasInputForUpdate(u32 updateIdx) const
 const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
+
 	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 	Assert(frameData.dataState.hasClientInput, "We are trying to get input for update (%u) that doesn't have the input set", updateIdx);
 	return frameData.clientInput;
@@ -518,6 +534,7 @@ const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 update
 void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput)
 {
 	assertClientOnly();
+	assertNotChaningPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	if (!frameData.dataState.hasClientInput)
@@ -559,6 +576,11 @@ void GameStateRewinder::assertServerOnly() const
 void GameStateRewinder::assertClientOnly() const
 {
 	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
+}
+
+void GameStateRewinder::assertNotChaningPast(u32 changedUpdateIdx) const
+{
+	Assert(changedUpdateIdx > mCurrentTimeData.lastFixedUpdateIndex, "We are trying to make a change to an update that is in the past. changedUpdateIdx is %u and last fixed update is %u", changedUpdateIdx, mCurrentTimeData.lastFixedUpdateIndex);
 }
 
 void GameStateRewinder::Impl::OneUpdateData::clear()

@@ -79,6 +79,7 @@ public:
 private:
 	void assertServerOnly() const;
 	void assertClientOnly() const;
+	void assertNotChaningPast(u32 changedUpdateIdx) const;
 
 private:
 	class Impl;
