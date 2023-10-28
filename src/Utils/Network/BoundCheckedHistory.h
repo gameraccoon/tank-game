@@ -44,7 +44,7 @@ public:
 	IndexType getLastStoredUpdateIdx() const
 	{
 		AssertFatal(!mRecords.empty(), "History should always contain at least one record");
-		AssertFatal(mRecords.size() - 1 <= mLastStoredUpdateIdx, "mLastStoredUpdateIdx and mRecords got desynchronized %u %u", mLastStoredUpdateIdx, mRecords.size());
+		AssertFatal(mRecords.size() - 1 <= static_cast<size_t>(mLastStoredUpdateIdx), "mLastStoredUpdateIdx and mRecords got desynchronized %u %u", mLastStoredUpdateIdx, mRecords.size());
 		return mLastStoredUpdateIdx;
 	}
 
