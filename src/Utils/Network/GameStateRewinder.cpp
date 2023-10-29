@@ -226,7 +226,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 
 void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)
 {
-	assertNotChaningPast(updateIdx);
+	assertNotChangingPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -265,7 +265,7 @@ void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Ne
 
 void GameStateRewinder::writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands)
 {
-	assertNotChaningPast(updateIdx);
+	assertNotChangingPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -302,7 +302,7 @@ const Network::GameplayCommandHistoryRecord& GameStateRewinder::getCommandsForUp
 void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
 {
 	assertClientOnly();
-	assertNotChaningPast(updateIdx);
+	assertNotChangingPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -432,7 +432,7 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx, const GameplayInput::FrameState& newInput)
 {
 	assertServerOnly();
-	assertNotChaningPast(updateIdx);
+	assertNotChangingPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	frameData.serverInput[connectionId] = newInput;
@@ -534,7 +534,7 @@ const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 update
 void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput)
 {
 	assertClientOnly();
-	assertNotChaningPast(updateIdx);
+	assertNotChangingPast(updateIdx);
 
 	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	if (!frameData.dataState.hasClientInput)
@@ -578,7 +578,7 @@ void GameStateRewinder::assertClientOnly() const
 	AssertFatal(mHistoryType == HistoryType::Client, "This method should only be called on the client");
 }
 
-void GameStateRewinder::assertNotChaningPast(u32 changedUpdateIdx) const
+void GameStateRewinder::assertNotChangingPast(u32 changedUpdateIdx) const
 {
 	Assert(changedUpdateIdx > mCurrentTimeData.lastFixedUpdateIndex, "We are trying to make a change to an update that is in the past. changedUpdateIdx is %u and last fixed update is %u", changedUpdateIdx, mCurrentTimeData.lastFixedUpdateIndex);
 }
