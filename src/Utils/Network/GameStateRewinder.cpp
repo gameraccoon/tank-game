@@ -135,15 +135,15 @@ void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
 	LogInfo("unwindBackInHistory(firstUpdateToResimulate=%u)", firstUpdateToResimulate);
-	const size_t updatesToResimulate = mCurrentTimeData.lastFixedUpdateIndex - firstUpdateToResimulate + 1;
 
-	for (size_t i = 0; i < updatesToResimulate; ++i)
+	const Impl::History::ForwardRange updateDataToReset = mPimpl->updateHistory.getRecordsUnsafe(firstUpdateToResimulate, mCurrentTimeData.lastFixedUpdateIndex);
+	for (const auto [updateData, updateIdx] : updateDataToReset)
 	{
-		Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(static_cast<u32>(mCurrentTimeData.lastFixedUpdateIndex - i));
 		updateData.dataState.resetDesyncedData();
 	}
 
-	mCurrentTimeData.lastFixedUpdateIndex -= static_cast<u32>(updatesToResimulate);
+	const u32 updatesToResimulate = updateDataToReset.getUpdatesCount();
+	mCurrentTimeData.lastFixedUpdateIndex -= updatesToResimulate;
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
 }
 
@@ -173,21 +173,15 @@ void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
 
 u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 {
-	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
-	for (u32 updateIdx = mPimpl->updateHistory.getLastStoredUpdateIdx();; --updateIdx)
+	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
+	for (const auto [updateData, updateIdx] : records)
 	{
-		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 		const Impl::OneUpdateData::SyncState moveState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
 		const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
 
 		if (moveState == Impl::OneUpdateData::SyncState::FinalAuthoritative && commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
 		{
 			return updateIdx;
-		}
-
-		if (updateIdx == firstStoredUpdateIdx)
-		{
-			break;
 		}
 	}
 
@@ -198,25 +192,23 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 {
 	assertClientOnly();
 
-	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
-	u32 lastRealUpdate = mPimpl->updateHistory.getLastStoredUpdateIdx();
-	for (;; --lastRealUpdate)
-	{
-		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(lastRealUpdate);
-		if (!updateData.isEmpty())
-		{
-			break;
-		}
+	// find last non-empty update
+	const Impl::History::ReverseRange allRecords = mPimpl->updateHistory.getAllRecordsReverse();
+	auto lastRealUpdateIt = std::find_if(allRecords.begin(), allRecords.end(), [](const auto recordPair) {
+		return !recordPair.record.isEmpty();
+	});
 
-		if (lastRealUpdate == firstStoredUpdateIdx)
-		{
-			break;
-		}
+	if (lastRealUpdateIt == allRecords.end())
+	{
+		return std::numeric_limits<u32>::max();
 	}
 
-	for (u32 updateIdx = firstStoredUpdateIdx; updateIdx <= lastRealUpdate; ++updateIdx)
+	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
+	u32 lastRealUpdateIdx = (*lastRealUpdateIt).updateIdx;
+
+	const Impl::History::ForwardRange realRecords = mPimpl->updateHistory.getRecordsUnsafe(firstStoredUpdateIdx, lastRealUpdateIdx);
+	for (auto [updateData, updateIdx] : realRecords)
 	{
-		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 		if (updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Movement) || updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Commands))
 		{
 			return updateIdx;
@@ -445,21 +437,14 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(Connec
 {
 	assertServerOnly();
 
-	// iterate backwards through the frame history and find the first frame that has input data for this player
-	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
-	for (u32 updateIdx = mPimpl->updateHistory.getLastStoredUpdateIdx();; --updateIdx)
-	{
-		const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-		if (frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
-		{
-			return updateIdx;
-		}
+	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
+	auto lastKnownInputUpdateIt = std::find_if(records.begin(), records.end(), [connectionId](const auto recordPair) {
+		return recordPair.record.dataState.serverInputConfirmedPlayers.contains(connectionId);
+	});
 
-		// check in the end of the loop to avoid underflow
-		if (updateIdx == firstStoredUpdateIdx)
-		{
-			break;
-		}
+	if (lastKnownInputUpdateIt != records.end())
+	{
+		return (*lastKnownInputUpdateIt).updateIdx;
 	}
 
 	return std::nullopt;
@@ -469,26 +454,17 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 {
 	assertServerOnly();
 
-	// iterate backwards through the frame history and find the first frame that has input data for all the players
-	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
-	for (u32 i = mPimpl->updateHistory.getLastStoredUpdateIdx() + 1; i >= firstStoredUpdateIdx + 1; --i)
-	{
-		u32 updateIdx = i - 1;
-		const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-		bool found = true;
-		for (const ConnectionId connectionId : connections)
-		{
-			if (!frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
-			{
-				found = false;
-				break;
-			}
-		}
+	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
 
-		if (found)
-		{
-			return updateIdx;
-		}
+	auto lastKnownInputUpdateIt = std::find_if(records.begin(), records.end(), [connections](const auto recordPair) {
+		return std::all_of(connections.begin(), connections.end(), [recordPair](const ConnectionId connectionId) {
+			return recordPair.record.dataState.serverInputConfirmedPlayers.contains(connectionId);
+		});
+	});
+
+	if (lastKnownInputUpdateIt != records.end())
+	{
+		return (*lastKnownInputUpdateIt).updateIdx;
 	}
 
 	return std::nullopt;
