@@ -225,3 +225,112 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingTwoOldFrames
 	EXPECT_EQ(history.getRecordUnsafe(4), -3);
 	EXPECT_EQ(history.getRecordUnsafe(5), -3);
 }
+
+TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_GetForwardRange_RangeIsCorrect)
+{
+	BoundCheckedHistory<int, int> history;
+	history.getOrCreateRecordByUpdateIdx(3);
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
+
+	const auto range = history.getRecordsUnsafe(1, 2);
+
+	ASSERT_EQ(range.getUpdatesCount(), 2u);
+	ASSERT_NE(range.begin(), range.end());
+	EXPECT_EQ((*range.begin()).updateIdx, 1);
+	EXPECT_EQ((*range.begin()).record, 11);
+	ASSERT_NE(++range.begin(), range.end());
+	EXPECT_EQ((*(++range.begin())).updateIdx, 2);
+	EXPECT_EQ((*(++range.begin())).record, 12);
+	EXPECT_EQ(++(++range.begin()), range.end());
+}
+
+TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_GetReverseRange_RangeIsCorrect)
+{
+	BoundCheckedHistory<int, int> history;
+	history.getOrCreateRecordByUpdateIdx(3);
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
+
+	const auto range = history.getRecordsReverseUnsafe(1, 2);
+
+	ASSERT_EQ(range.getUpdatesCount(), 2u);
+	ASSERT_NE(range.begin(), range.end());
+	EXPECT_EQ((*range.begin()).updateIdx, 2);
+	EXPECT_EQ((*range.begin()).record, 12);
+	ASSERT_NE(++range.begin(), range.end());
+	EXPECT_EQ((*(++range.begin())).updateIdx, 1);
+	EXPECT_EQ((*(++range.begin())).record, 11);
+	EXPECT_EQ(++(++range.begin()), range.end());
+}
+
+TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_GetAllRecordsRange_RangeIsCorrect)
+{
+	BoundCheckedHistory<int, int> history;
+	history.getOrCreateRecordByUpdateIdx(3);
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
+
+	const auto range = history.getAllRecords();
+
+	ASSERT_EQ(range.getUpdatesCount(), 4u);
+	auto it = range.begin();
+
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 0);
+	EXPECT_EQ((*it).record, 10);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 1);
+	EXPECT_EQ((*it).record, 11);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 2);
+	EXPECT_EQ((*it).record, 12);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 3);
+	EXPECT_EQ((*it).record, 13);
+	++it;
+	EXPECT_EQ(it, range.end());
+}
+
+TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_GetAllRecordsReverseRange_RangeIsCorrect)
+{
+	BoundCheckedHistory<int, int> history;
+	history.getOrCreateRecordByUpdateIdx(3);
+	history.getRecordUnsafe(0) = 10;
+	history.getRecordUnsafe(1) = 11;
+	history.getRecordUnsafe(2) = 12;
+	history.getRecordUnsafe(3) = 13;
+
+	const auto range = history.getAllRecordsReverse();
+
+	ASSERT_EQ(range.getUpdatesCount(), 4u);
+	auto it = range.begin();
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 3);
+	EXPECT_EQ((*it).record, 13);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 2);
+	EXPECT_EQ((*it).record, 12);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 1);
+	EXPECT_EQ((*it).record, 11);
+	++it;
+	ASSERT_NE(it, range.end());
+	EXPECT_EQ((*it).updateIdx, 0);
+	EXPECT_EQ((*it).record, 10);
+	++it;
+	EXPECT_EQ(it, range.end());
+}
+
+static_assert(std::is_base_of_v<std::iterator_traits<HistoryRange<int, int, true>::Iterator>::iterator_category, std::input_iterator_tag>, "HistoryRange<...>::Iterator should be input iterator");

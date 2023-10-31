@@ -81,6 +81,8 @@ public:
 		void clear();
 	};
 
+	using History = BoundCheckedHistory<OneUpdateData, u32>;
+
 public:
 	Impl(ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
 	{
@@ -101,7 +103,7 @@ public:
 	constexpr static u32 DEBUG_MAX_FUTURE_FRAMES = 10;
 
 	// history of frames, may contain frames in the future
-	BoundCheckedHistory<u32, OneUpdateData> updateHistory;
+	History updateHistory;
 };
 
 GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
