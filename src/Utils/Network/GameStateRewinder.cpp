@@ -478,10 +478,11 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t s
 	const size_t inputSize = std::min(size, static_cast<size_t>(mCurrentTimeData.lastFixedUpdateIndex - getFirstStoredUpdateIdx()));
 	result.reserve(inputSize);
 
-	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((mPimpl->updateHistory.getLastStoredUpdateIdx() > size) ? (mPimpl->updateHistory.getLastStoredUpdateIdx() + 1 - size) : 1u));
+	const u32 getLastStoredUpdateIdx = mPimpl->updateHistory.getLastStoredUpdateIdx();
+	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((getLastStoredUpdateIdx > size) ? (getLastStoredUpdateIdx + 1 - size) : 1u));
 
-	for (u32 updateIdx = firstInputUpdate; updateIdx <= mCurrentTimeData.lastFixedUpdateIndex; ++updateIdx)
-	{
+	const Impl::History::ForwardRange records = mPimpl->updateHistory.getRecordsUnsafe(firstInputUpdate, mCurrentTimeData.lastFixedUpdateIndex);
+	for (const auto [updateData, updateIdx] : records) {
 		// first update may not have input set yet
 		if (updateIdx != firstInputUpdate || hasInputForUpdate(updateIdx))
 		{
