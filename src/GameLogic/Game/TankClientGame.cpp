@@ -205,7 +205,7 @@ void TankClientGame::processCorrections()
 {
 	SCOPED_PROFILER("TankGameClient::processCorrections");
 
-	if (mGameStateRewinder.getTimeData().lastFixedUpdateIndex == 0 || mGameStateRewinder.getTimeData().lastFixedUpdateIndex == std::numeric_limits<u32>::max())
+	if (mGameStateRewinder.getTimeData().lastFixedUpdateIndex == 0 || mGameStateRewinder.getTimeData().lastFixedUpdateIndex == GameStateRewinder::INVALID_UPDATE_IDX)
 	{
 		return;
 	}
@@ -226,7 +226,7 @@ void TankClientGame::processCorrections()
 		if (firstDesyncedUpdate <= mGameStateRewinder.getTimeData().lastFixedUpdateIndex)
 		{
 			// if we need to process corrections
-			if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != std::numeric_limits<u32>::max())
+			if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != GameStateRewinder::INVALID_UPDATE_IDX)
 			{
 				correctUpdates(firstDesyncedUpdate);
 			}
@@ -251,7 +251,7 @@ void TankClientGame::removeOldUpdates()
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
 	const u32 lastFullyConfirmedUpdateIdx = mGameStateRewinder.getLastConfirmedClientUpdateIdx();
 
-	if (lastUpdateIdx == std::numeric_limits<u32>::max() || lastFullyConfirmedUpdateIdx == std::numeric_limits<u32>::max())
+	if (lastUpdateIdx == std::numeric_limits<u32>::max() || lastFullyConfirmedUpdateIdx == GameStateRewinder::INVALID_UPDATE_IDX)
 	{
 		return;
 	}

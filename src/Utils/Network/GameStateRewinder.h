@@ -25,6 +25,9 @@ public:
 	};
 
 public:
+	static constexpr u32 INVALID_UPDATE_IDX = std::numeric_limits<u32>::max();
+
+public:
 	GameStateRewinder(HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
 	~GameStateRewinder();
 	GameStateRewinder(const GameStateRewinder&) = delete;

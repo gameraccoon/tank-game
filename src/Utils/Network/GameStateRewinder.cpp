@@ -185,7 +185,7 @@ u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 		}
 	}
 
-	return std::numeric_limits<u32>::max();
+	return INVALID_UPDATE_IDX;
 }
 
 u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
@@ -200,14 +200,14 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 
 	if (lastRealUpdateIt == allRecords.end())
 	{
-		return std::numeric_limits<u32>::max();
+		return INVALID_UPDATE_IDX;
 	}
 
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 	u32 lastRealUpdateIdx = (*lastRealUpdateIt).updateIdx;
 
 	const Impl::History::ForwardRange realRecords = mPimpl->updateHistory.getRecordsUnsafe(firstStoredUpdateIdx, lastRealUpdateIdx);
-	for (auto [updateData, updateIdx] : realRecords)
+	for (const auto [updateData, updateIdx] : realRecords)
 	{
 		if (updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Movement) || updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Commands))
 		{
@@ -215,7 +215,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 		}
 	}
 
-	return std::numeric_limits<u32>::max();
+	return INVALID_UPDATE_IDX;
 }
 
 void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)
