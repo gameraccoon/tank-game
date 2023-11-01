@@ -42,7 +42,7 @@ public:
 	const TimeData& getTimeData() const { return mCurrentTimeData; }
 
 	u32 getFirstStoredUpdateIdx() const;
-	void trimOldFrames(u32 firstUpdateToKeep);
+	void trimOldUpdates(u32 firstUpdateToKeep);
 
 	void unwindBackInHistory(u32 firstUpdateToResimulate);
 
@@ -77,7 +77,7 @@ public:
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);
 	void setInitialClientUpdateIndex(u32 newFrameIndex);
-	bool isInitialClientUpdateIndexSet() const { return mIsInitialClientFrameIndexSet; }
+	bool isInitialClientUpdateIndexSet() const { return mIsInitialClientUpdateIndexSet; }
 
 private:
 	void assertServerOnly() const;
@@ -91,5 +91,5 @@ private:
 	const HistoryType mHistoryType;
 	ComponentSetHolder mNotRewindableComponents;
 	TimeData mCurrentTimeData;
-	bool mIsInitialClientFrameIndexSet = false;
+	bool mIsInitialClientUpdateIndexSet = false;
 };

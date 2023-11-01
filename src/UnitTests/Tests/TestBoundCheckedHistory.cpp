@@ -93,7 +93,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ShiftUpdateIdxUp_ShiftsBeginAndEnd)
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.setLastStoredUpdateIdxAndCleanNegativeFrames(5);
+	history.setLastStoredUpdateIdxAndCleanNegativeUpdates(5);
 
 	EXPECT_EQ(history.getFirstStoredUpdateIdx(), 2);
 	EXPECT_EQ(history.getLastStoredUpdateIdx(), 5);
@@ -104,7 +104,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_ShiftUpdateIdxDown_RemovesHistoryTh
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.setLastStoredUpdateIdxAndCleanNegativeFrames(1);
+	history.setLastStoredUpdateIdxAndCleanNegativeUpdates(1);
 
 	EXPECT_EQ(history.getFirstStoredUpdateIdx(), 0);
 	EXPECT_EQ(history.getLastStoredUpdateIdx(), 1);
@@ -116,7 +116,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrame_ShiftUpdateIdxUp_SetFram
 	history.getOrCreateRecordByUpdateIdx(3);
 	history.getOrCreateRecordByUpdateIdx(2) = 3;
 
-	history.setLastStoredUpdateIdxAndCleanNegativeFrames(5);
+	history.setLastStoredUpdateIdxAndCleanNegativeUpdates(5);
 
 	EXPECT_EQ(history.getRecordUnsafe(2), 0);
 	EXPECT_EQ(history.getRecordUnsafe(3), 0);
@@ -130,17 +130,17 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrame_ShiftUpdateIdxDown_SetFr
 	history.getOrCreateRecordByUpdateIdx(3);
 	history.getOrCreateRecordByUpdateIdx(2) = 5;
 
-	history.setLastStoredUpdateIdxAndCleanNegativeFrames(1);
+	history.setLastStoredUpdateIdxAndCleanNegativeUpdates(1);
 
 	EXPECT_EQ(history.getRecordUnsafe(0), 5);
 	EXPECT_EQ(history.getRecordUnsafe(1), 0);
 }
 
-TEST(BoundCheckedHistory, NewHistory_TrimOldFrames_NothingChanges)
+TEST(BoundCheckedHistory, NewHistory_TrimOldUpdates_NothingChanges)
 {
 	BoundCheckedHistory<int, int> history;
 
-	history.trimOldFrames(0, [](int&){
+	history.trimOldUpdates(0, [](int&) {
 		FAIL();
 	});
 
@@ -153,7 +153,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_TrimSomeOldFrames_OldFramesPushedIn
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.trimOldFrames(2, [](int& frameValue) {
+	history.trimOldUpdates(2, [](int& frameValue) {
 		ASSERT_EQ(frameValue, 0);
 	});
 
@@ -166,7 +166,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_TrimNoOldFrames_AmountOfFramesNotCh
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.trimOldFrames(0, [](int&) {
+	history.trimOldUpdates(0, [](int&) {
 		FAIL();
 	});
 
@@ -179,7 +179,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_TrimAllOldFrames_OldFramesPushedInt
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.trimOldFrames(3, [](int& frameValue) {
+	history.trimOldUpdates(3, [](int& frameValue) {
 		ASSERT_EQ(frameValue, 0);
 	});
 
@@ -196,7 +196,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingThreeOldFram
 	history.getRecordUnsafe(2) = 12;
 	history.getRecordUnsafe(3) = 13;
 
-	history.trimOldFrames(1, [](int& frameValue) {
+	history.trimOldUpdates(1, [](int& frameValue) {
 		ASSERT_EQ(frameValue, 10);
 		frameValue = -1;
 	});
@@ -216,7 +216,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingTwoOldFrames
 	history.getRecordUnsafe(2) = 12;
 	history.getRecordUnsafe(3) = 13;
 
-	history.trimOldFrames(2, [](int& frameValue) {
+	history.trimOldUpdates(2, [](int& frameValue) {
 		frameValue = -3;
 	});
 

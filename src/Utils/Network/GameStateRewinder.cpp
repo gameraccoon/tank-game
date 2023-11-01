@@ -93,16 +93,16 @@ public:
 
 	OneUpdateData& getOrCreateRecordByUpdateIdx(u32 updateIdx)
 	{
-		Assert(updateIdx < updateHistory.getLastStoredUpdateIdx() + Impl::DEBUG_MAX_FUTURE_FRAMES, "We are trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, updateHistory.getLastStoredUpdateIdx());
+		Assert(updateIdx < updateHistory.getLastStoredUpdateIdx() + Impl::DEBUG_MAX_FUTURE_UPDATES, "We are trying to append command to an update that is very far in the future. This is probably a bug. updateIndex is %u and last stored update is %u", updateIdx, updateHistory.getLastStoredUpdateIdx());
 		return updateHistory.getOrCreateRecordByUpdateIdx(updateIdx);
 	}
 
 public:
 	// after reaching this number of input frames, the old input will be cleared
 	constexpr static u32 MAX_INPUT_TO_PREDICT = 10;
-	constexpr static u32 DEBUG_MAX_FUTURE_FRAMES = 10;
+	constexpr static u32 DEBUG_MAX_FUTURE_UPDATES = 10;
 
-	// history of frames, may contain frames in the future
+	// history of updates, may contain updates in the future
 	History updateHistory;
 };
 
@@ -120,13 +120,12 @@ u32 GameStateRewinder::getFirstStoredUpdateIdx() const
 	return mPimpl->updateHistory.getFirstStoredUpdateIdx();
 }
 
-void GameStateRewinder::trimOldFrames(u32 firstUpdateToKeep)
+void GameStateRewinder::trimOldUpdates(u32 firstUpdateToKeep)
 {
-	SCOPED_PROFILER("GameStateRewinder::trimOldFrames");
-	LogInfo("trimOldFrames(%u)", firstUpdateToKeep);
+	SCOPED_PROFILER("GameStateRewinder::trimOldUpdates");
+	LogInfo("trimOldUpdates(%u)", firstUpdateToKeep);
 
-	mPimpl->updateHistory.trimOldFrames(firstUpdateToKeep, [](Impl::OneUpdateData& removedUpdateData)
-	{
+	mPimpl->updateHistory.trimOldUpdates(firstUpdateToKeep, [](Impl::OneUpdateData& removedUpdateData) {
 		removedUpdateData.clear();
 	});
 }
@@ -156,18 +155,18 @@ void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
 {
 	SCOPED_PROFILER("GameStateRewinder::advanceSimulationToNextUpdate");
 
-	Impl::OneUpdateData& newFrameData = mPimpl->getOrCreateRecordByUpdateIdx(newUpdateIdx);
+	Impl::OneUpdateData& newUpdateData = mPimpl->getOrCreateRecordByUpdateIdx(newUpdateIdx);
 
-	const Impl::OneUpdateData& previousFrameData = mPimpl->updateHistory.getRecordUnsafe(newUpdateIdx - 1);
+	const Impl::OneUpdateData& previousUpdateData = mPimpl->updateHistory.getRecordUnsafe(newUpdateIdx - 1);
 
-	// copy previous frame data to the new frame
-	if (newFrameData.gameState)
+	// copy previous update data to the new update
+	if (newUpdateData.gameState)
 	{
-		newFrameData.gameState->overrideBy(*previousFrameData.gameState);
+		newUpdateData.gameState->overrideBy(*previousUpdateData.gameState);
 	}
 	else
 	{
-		newFrameData.gameState = std::make_unique<World>(*previousFrameData.gameState);
+		newUpdateData.gameState = std::make_unique<World>(*previousUpdateData.gameState);
 	}
 }
 
@@ -222,55 +221,55 @@ void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::G
 {
 	assertNotChangingPast(updateIdx);
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	const Impl::OneUpdateData::SyncState commandsState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
+	const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
 	if (commandsState == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
 	{
 		ReportError("Trying to append command to update %u that already has authoritative commands", updateIdx);
 		return;
 	}
 
-	frameData.gameplayCommands.externalCommands.list.push_back(std::move(newCommand));
+	updateData.gameplayCommands.externalCommands.list.push_back(std::move(newCommand));
 
-	frameData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::Predicted);
+	updateData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::Predicted);
 }
 
 void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Network::GameplayCommand::Ptr>&& commands)
 {
 	assertClientOnly();
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	if (frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands) == Impl::OneUpdateData::SyncState::FinalAuthoritative)
+	if (updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands) == Impl::OneUpdateData::SyncState::FinalAuthoritative)
 	{
 		ReportError("Trying to apply authoritative commands to update %u that already has final authoritative commands", updateIdx);
 		return;
 	}
 
-	if (frameData.gameplayCommands.gameplayGeneratedCommands.list != commands)
+	if (updateData.gameplayCommands.gameplayGeneratedCommands.list != commands)
 	{
-		frameData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Commands, true);
+		updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Commands, true);
 	}
 
-	frameData.gameplayCommands.gameplayGeneratedCommands.list = std::move(commands);
-	frameData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::NotFinalAuthoritative);
+	updateData.gameplayCommands.gameplayGeneratedCommands.list = std::move(commands);
+	updateData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::NotFinalAuthoritative);
 }
 
 void GameStateRewinder::writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands)
 {
 	assertNotChangingPast(updateIdx);
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	const Impl::OneUpdateData::SyncState commandsState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
+	const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
 	if (commandsState == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
 	{
 		return;
 	}
 
-	frameData.gameplayCommands.gameplayGeneratedCommands = updateCommands;
-	frameData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::Predicted);
+	updateData.gameplayCommands.gameplayGeneratedCommands = updateCommands;
+	updateData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::Predicted);
 }
 
 bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
@@ -279,8 +278,8 @@ bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
 
 	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx())
 	{
-		const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-		const Impl::OneUpdateData::SyncState state = frameData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
+		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
 		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
 	}
 
@@ -289,8 +288,8 @@ bool GameStateRewinder::hasConfirmedCommandsForUpdate(u32 updateIdx) const
 
 const Network::GameplayCommandHistoryRecord& GameStateRewinder::getCommandsForUpdate(u32 updateIdx) const
 {
-	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-	return frameData.gameplayCommands;
+	const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+	return updateData.gameplayCommands;
 }
 
 void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
@@ -298,13 +297,13 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	const Impl::OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
 	if (previousMovementDataState == Impl::OneUpdateData::SyncState::NoData || previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted)
 	{
-		frameData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Predicted);
-		frameData.clientMovement = std::move(newUpdateData);
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Predicted);
+		updateData.clientMovement = std::move(newUpdateData);
 	}
 }
 
@@ -320,21 +319,21 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFina
 		return;
 	}
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	const Impl::OneUpdateData::SyncState previousMovementDataState = frameData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
 
 	if (previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted || previousMovementDataState == Impl::OneUpdateData::SyncState::NoData)
 	{
 		// we have predicted data for this update, check if it matches
-		if (frameData.clientMovement.updateHash != authoritativeMovementData.updateHash)
+		if (updateData.clientMovement.updateHash != authoritativeMovementData.updateHash)
 		{
-			frameData.clientMovement = std::move(authoritativeMovementData);
-			frameData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
+			updateData.clientMovement = std::move(authoritativeMovementData);
+			updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
 		}
 
 		const Impl::OneUpdateData::SyncState newMovementDataState = isFinal ? Impl::OneUpdateData::SyncState::FinalAuthoritative : Impl::OneUpdateData::SyncState::NotFinalAuthoritative;
-		frameData.dataState.setState(Impl::OneUpdateData::StateType::Movement, newMovementDataState);
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, newMovementDataState);
 	}
 }
 
@@ -351,8 +350,8 @@ bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
 
 	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx())
 	{
-		const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-		const Impl::OneUpdateData::SyncState state = frameData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
 		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
 	}
 
@@ -364,17 +363,17 @@ const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId 
 	assertServerOnly();
 
 	static const GameplayInput::FrameState emptyInput;
-	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+	const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 
-	if (!frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
+	if (!updateData.dataState.serverInputConfirmedPlayers.contains(connectionId))
 	{
 		ReportError("We shouldn't call getPlayerInput to get input that wasn't confirmed, use getOrPredictPlayerInput instead");
 		return emptyInput;
 	}
 
-	const auto it = frameData.serverInput.find(connectionId);
-	Assert(it != frameData.serverInput.end(), "Trying to get input for player %u for update %u but there is no input for this player", connectionId, updateIdx);
-	if (it == frameData.serverInput.end())
+	const auto it = updateData.serverInput.find(connectionId);
+	Assert(it != updateData.serverInput.end(), "Trying to get input for player %u for update %u but there is no input for this player", connectionId, updateIdx);
+	if (it == updateData.serverInput.end())
 	{
 		return emptyInput;
 	}
@@ -386,9 +385,9 @@ const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(Conn
 {
 	assertServerOnly();
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-	GameplayInput::FrameState& updateInput = frameData.serverInput[connectionId];
-	if (frameData.dataState.serverInputConfirmedPlayers.contains(connectionId))
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	GameplayInput::FrameState& updateInput = updateData.serverInput[connectionId];
+	if (updateData.dataState.serverInputConfirmedPlayers.contains(connectionId))
 	{
 		// we have confirmed or already predicted input for this player, so we don't need to predict anything
 		return updateInput;
@@ -428,9 +427,9 @@ void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx,
 	assertServerOnly();
 	assertNotChangingPast(updateIdx);
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-	frameData.serverInput[connectionId] = newInput;
-	frameData.dataState.serverInputConfirmedPlayers.insert(connectionId);
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	updateData.serverInput[connectionId] = newInput;
+	updateData.dataState.serverInputConfirmedPlayers.insert(connectionId);
 }
 
 std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const
@@ -497,17 +496,17 @@ bool GameStateRewinder::hasInputForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
 
-	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-	return frameData.dataState.hasClientInput;
+	const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+	return updateData.dataState.hasClientInput;
 }
 
 const GameplayInput::FrameState& GameStateRewinder::getInputForUpdate(u32 updateIdx) const
 {
 	assertClientOnly();
 
-	const Impl::OneUpdateData& frameData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-	Assert(frameData.dataState.hasClientInput, "We are trying to get input for update (%u) that doesn't have the input set", updateIdx);
-	return frameData.clientInput;
+	const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+	Assert(updateData.dataState.hasClientInput, "We are trying to get input for update (%u) that doesn't have the input set", updateIdx);
+	return updateData.clientInput;
 }
 
 void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput)
@@ -515,16 +514,16 @@ void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::Fr
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
 
-	Impl::OneUpdateData& frameData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-	if (!frameData.dataState.hasClientInput)
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+	if (!updateData.dataState.hasClientInput)
 	{
-		frameData.clientInput = newInput;
-		frameData.dataState.hasClientInput = true;
+		updateData.clientInput = newInput;
+		updateData.dataState.hasClientInput = true;
 	}
 #ifdef DEBUG_CHECKS
 	else
 	{
-		if (frameData.clientInput != newInput)
+		if (updateData.clientInput != newInput)
 		{
 			ReportError("We got different input by resimulating an update, this is probably a bug");
 		}
@@ -538,13 +537,13 @@ void GameStateRewinder::setInitialClientUpdateIndex(u32 newUpdateIndex)
 
 	LogInfo("Client sets initial update index from %u to %u (mLastStoredUpdateIdx was %u)", mCurrentTimeData.lastFixedUpdateIndex, newUpdateIndex, mPimpl->updateHistory.getLastStoredUpdateIdx());
 
-	const s32 frameShift = static_cast<s32>(newUpdateIndex) - static_cast<s32>(mCurrentTimeData.lastFixedUpdateIndex);
+	const s32 updateShift = static_cast<s32>(newUpdateIndex) - static_cast<s32>(mCurrentTimeData.lastFixedUpdateIndex);
 
-	mCurrentTimeData.lastFixedUpdateTimestamp.increaseByUpdateCount(frameShift);
+	mCurrentTimeData.lastFixedUpdateTimestamp.increaseByUpdateCount(updateShift);
 	mCurrentTimeData.lastFixedUpdateIndex = newUpdateIndex;
-	const u32 newLastStoredUpdateIdx = static_cast<u32>(static_cast<s32>(mPimpl->updateHistory.getLastStoredUpdateIdx()) + frameShift);
-	mPimpl->updateHistory.setLastStoredUpdateIdxAndCleanNegativeFrames(newLastStoredUpdateIdx);
-	mIsInitialClientFrameIndexSet = true;
+	const u32 newLastStoredUpdateIdx = static_cast<u32>(static_cast<s32>(mPimpl->updateHistory.getLastStoredUpdateIdx()) + updateShift);
+	mPimpl->updateHistory.setLastStoredUpdateIdxAndCleanNegativeUpdates(newLastStoredUpdateIdx);
+	mIsInitialClientUpdateIndexSet = true;
 }
 
 void GameStateRewinder::assertServerOnly() const

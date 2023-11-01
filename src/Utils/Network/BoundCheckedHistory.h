@@ -205,7 +205,7 @@ public:
 		return ReverseRange{mRecords.data() + (mRecords.size() - 1), mRecords.data() - 1, getLastStoredUpdateIdx()};
 	}
 
-	void setLastStoredUpdateIdxAndCleanNegativeFrames(IndexType lastUpdateIdx)
+	void setLastStoredUpdateIdxAndCleanNegativeUpdates(IndexType lastUpdateIdx)
 	{
 		// if some records can potentially go negative
 		const IndexType lastStoredUpdateIdx = getLastStoredUpdateIdx();
@@ -233,7 +233,7 @@ public:
 	}
 
 	template<typename CleanFn>
-	void trimOldFrames(IndexType firstUpdateToKeep, CleanFn&& cleanFn)
+	void trimOldUpdates(IndexType firstUpdateToKeep, CleanFn&& cleanFn)
 	{
 		const IndexType firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 

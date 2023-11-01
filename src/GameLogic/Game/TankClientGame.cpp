@@ -262,7 +262,7 @@ void TankClientGame::removeOldUpdates()
 	// if we have some confirmed frames that are now safe to remove
 	const u32 firstUpdateIdxToKeep = std::max(lastFullyConfirmedUpdateIdx, static_cast<u32>(lastUpdateIdx + 1 - maxUpdateToStore));
 
-	mGameStateRewinder.trimOldFrames(firstUpdateIdxToKeep);
+	mGameStateRewinder.trimOldUpdates(firstUpdateIdxToKeep);
 }
 
 #endif // !DEDICATED_SERVER

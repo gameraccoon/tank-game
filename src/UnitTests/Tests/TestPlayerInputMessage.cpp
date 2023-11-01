@@ -226,11 +226,11 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
 		clientGame->stateRewinder.setInputForUpdate(7u, frameState);
 		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 7u;
-		clientGame->stateRewinder.trimOldFrames(6u);
+		clientGame->stateRewinder.trimOldUpdates(6u);
 	}
 
 	// keep only two inputs from above
-	clientGame->stateRewinder.trimOldFrames(6u);
+	clientGame->stateRewinder.trimOldUpdates(6u);
 	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{

@@ -163,5 +163,5 @@ void TankServerGame::updateHistory()
 
 	const std::optional<u32> firstUpdateToKeepOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);
 	const u32 firstUpdateToKeep = firstUpdateToKeepOption.value_or(mGameStateRewinder.getFirstStoredUpdateIdx());
-	mGameStateRewinder.trimOldFrames(std::min(firstUpdateToKeep, lastProcessedUpdateIdx));
+	mGameStateRewinder.trimOldUpdates(std::min(firstUpdateToKeep, lastProcessedUpdateIdx));
 }
