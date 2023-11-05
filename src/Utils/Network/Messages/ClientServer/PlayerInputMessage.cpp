@@ -82,7 +82,7 @@ namespace Network::ClientServer
 			{
 				static GameplayInput::FrameState emptyInput;
 				const u32 firstStoredUpdateIdx = gameStateRewinder.getFirstStoredUpdateIdx();
-				const GameplayInput::FrameState& lastInput = (lastServerProcessedUpdateIdx > firstStoredUpdateIdx) ? gameStateRewinder.getPlayerInput(connectionId, lastServerProcessedUpdateIdx) : emptyInput;
+				const GameplayInput::FrameState& lastInput = (lastServerProcessedUpdateIdx > firstStoredUpdateIdx) ? gameStateRewinder.getOrPredictPlayerInput(connectionId, lastServerProcessedUpdateIdx) : emptyInput;
 				for (u32 updateIdx = lastServerProcessedUpdateIdx + 1; updateIdx < firstReceivedUpdateIdx; ++updateIdx)
 				{
 					gameStateRewinder.addPlayerInput(connectionId, updateIdx, lastInput);
