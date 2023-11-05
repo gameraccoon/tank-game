@@ -4,7 +4,6 @@
 
 #include "Base/TimeConstants.h"
 
-#include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 
@@ -121,13 +120,13 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 
 	while (!checklist.areAllChecksValidated() && !checklist.hasAnyCheckFailed())
 	{
-		clientGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-		clientGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
-		clientGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-
 		serverGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 		serverGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 		serverGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+
+		clientGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+		clientGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
+		clientGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 
 		timeoutCheck.update();
 	}
