@@ -56,14 +56,18 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	const bool runGraphicalClient = !arguments.hasArgument("open-port");
+	const bool runGraphicalClient = !arguments.hasArgument("open-port") && !arguments.hasArgument("no-render");
 	const bool runServer = !arguments.hasArgument("connect");
 	const bool runSecondClient = !arguments.hasArgument("connect");
 
 	const int additionalThreadsCount = (runServer ? 1 : 0) + (runSecondClient ? 1 : 0);
 	int extraThreadIndex = 0;
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount), additionalThreadsCount);
+	ApplicationData applicationData(
+		arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount),
+		additionalThreadsCount,
+		runGraphicalClient ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
+	);
 
 	SetupDebugNetworkBehavior(arguments);
 

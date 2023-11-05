@@ -89,11 +89,19 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 
 	const int clientsCount = 1;
 
-	ApplicationData applicationData(arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount), clientsCount);
+	const bool isRenderEnabled = !arguments.hasArgument("no-render");
 
-	applicationData.startRenderThread();
+	ApplicationData applicationData(
+		arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount),
+		clientsCount,
+		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
+	);
 
-	applicationData.renderThread.setAmountOfRenderedGameInstances(clientsCount + 1);
+	if (isRenderEnabled)
+	{
+		applicationData.startRenderThread();
+		applicationData.renderThread.setAmountOfRenderedGameInstances(clientsCount + 1);
+	}
 
 	std::unique_ptr<std::thread> serverThread;
 
@@ -105,7 +113,8 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	serverGame.preStart(arguments, renderAccessor);
 	serverGame.initResources();
 
-	TankClientGame clientGame(&applicationData.engine, applicationData.resourceManager, applicationData.threadPool);
+	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
+	TankClientGame clientGame(enginePtr, applicationData.resourceManager, applicationData.threadPool);
 	clientGame.preStart(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1));
 	clientGame.initResources();
 

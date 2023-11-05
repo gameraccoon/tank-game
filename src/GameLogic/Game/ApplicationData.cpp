@@ -9,20 +9,25 @@
 #include "GameLogic/Game/TankServerGame.h"
 #include "GameLogic/Render/RenderAccessor.h"
 
-ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount)
+ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, Render render)
 	: WorkerThreadsCount(workerThreadsCount)
 	, ExtraThreadsCount(extraThreadsCount)
 	, RenderThreadId(ResourceLoadingThreadId + 1 + workerThreadsCount + extraThreadsCount)
 	, threadPool(workerThreadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); }, ResourceLoadingThreadId + 1)
+	, renderEnabled(render == Render::Enabled)
 {
-	resourceManager.startLoadingThread([this]{ threadSaveProfileData(ResourceLoadingThreadId); });
+	if (renderEnabled)
+	{
+		engine.emplace(800, 600);
+		resourceManager.startLoadingThread([this] { threadSaveProfileData(ResourceLoadingThreadId); });
+	}
 }
 
 #ifndef DEDICATED_SERVER
 void ApplicationData::startRenderThread()
 {
-	engine.releaseRenderContext();
-	renderThread.startThread(resourceManager, engine, [&engineRef = this->engine]{ engineRef.acquireRenderContext(); });
+	engine->releaseRenderContext();
+	renderThread.startThread(resourceManager, engine.value(), [&engineRef = *engine]{ engineRef.acquireRenderContext(); });
 }
 #endif // !DEDICATED_SERVER
 
@@ -32,6 +37,7 @@ void ApplicationData::writeProfilingData()
 	{
 		ProfileDataWriter::ProfileData data;
 #ifndef DEDICATED_SERVER
+		if (renderEnabled)
 		{
 			data.scopedProfilerDatas.emplace_back();
 			ProfileDataWriter::ScopedProfilerData& renderScopedProfilerData = data.scopedProfilerDatas.back();

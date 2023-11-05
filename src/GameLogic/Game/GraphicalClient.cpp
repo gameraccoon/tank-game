@@ -8,8 +8,8 @@
 
 
 GraphicalClient::GraphicalClient(ApplicationData& applicationData)
-	: game(&applicationData.engine, applicationData.resourceManager, applicationData.threadPool)
-	, engine(applicationData.engine)
+	: game(&applicationData.engine.value(), applicationData.resourceManager, applicationData.threadPool)
+	, engine(applicationData.engine.value())
 {
 }
 

@@ -10,6 +10,12 @@
 class ApplicationData
 {
 public:
+		enum class Render
+		{
+			Enabled,
+			Disabled,
+		};
+public:
 	static constexpr int DefaultWorkerThreadCount = 3;
 
 	// we always have one main thread (doesn't matter if we're headless client or dedicated server)
@@ -28,11 +34,13 @@ public:
 	ResourceManager resourceManager;
 #ifndef DEDICATED_SERVER
 	RenderThreadManager renderThread;
-	HAL::Engine engine{800, 600};
+	std::optional<HAL::Engine> engine;
 #endif // !DEDICATED_SERVER
 
+	bool renderEnabled = true;
+
 public:
-	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount);
+	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, Render render = Render::Enabled);
 
 #ifndef DEDICATED_SERVER
 	void startRenderThread();
