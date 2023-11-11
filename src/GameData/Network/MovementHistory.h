@@ -7,7 +7,6 @@
 
 #include "GameData/Geometry/Vector2D.h"
 #include "GameData/Network/NetworkEntityId.h"
-#include "GameData/Time/GameplayTimestamp.h"
 
 struct EntityMoveHash
 {
@@ -29,7 +28,6 @@ struct EntityMoveData
 {
 	NetworkEntityId networkEntityId;
 	Vector2D location;
-	GameplayTimestamp timestamp;
 };
 
 struct MovementUpdateData
@@ -37,11 +35,11 @@ struct MovementUpdateData
 	std::vector<EntityMoveHash> updateHash;
 	std::vector<EntityMoveData> moves;
 
-	void addMove(NetworkEntityId networkEntityId, Vector2D location, GameplayTimestamp timestamp)
+	void addMove(NetworkEntityId networkEntityId, Vector2D location)
 	{
 		AssertFatal(updateHash.size() == moves.size(), "Vector sizes mismatch in moves history, this should never happen");
 		updateHash.emplace_back(networkEntityId, location);
-		moves.emplace_back(networkEntityId, location, timestamp);
+		moves.emplace_back(networkEntityId, location);
 	}
 
 	void addHash(NetworkEntityId networkEntityId, Vector2D location)

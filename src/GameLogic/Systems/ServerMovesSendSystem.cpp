@@ -5,7 +5,7 @@
 #include "Base/Types/TemplateAliases.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -54,8 +54,8 @@ void ServerMovesSendSystem::update()
 		return;
 	}
 
-	TupleVector<Entity, const MovementComponent*, const TransformComponent*> components;
-	world.getEntityManager().getComponentsWithEntities<const MovementComponent, const TransformComponent>(components);
+	TupleVector<const TransformComponent*, const NetworkIdComponent*> components;
+	world.getEntityManager().getComponents<const TransformComponent, const NetworkIdComponent>(components);
 
 	const std::optional<u32> lastAllPlayersInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(connections);
 	const u32 lastAllPlayersInputUpdateIdx = lastAllPlayersInputUpdateIdxOption.value_or(0);
@@ -71,7 +71,7 @@ void ServerMovesSendSystem::update()
 
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::ServerClient::CreateMovesMessage(world, components, timeValue.lastFixedUpdateIndex + 1, timeValue.lastFixedUpdateTimestamp, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
+			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

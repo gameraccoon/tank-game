@@ -4,19 +4,17 @@
 
 #include "Base/Types/Serialization.h"
 
-#include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/MovementHistory.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/World.h"
 
 #include "Utils/Network/CompressedInput.h"
 #include "Utils/Network/GameStateRewinder.h"
 
 namespace Network::ServerClient
 {
-	HAL::ConnectionManager::Message CreateMovesMessage(World& world, const TupleVector<Entity, const MovementComponent*, const TransformComponent*>& components, u32 updateIdx, GameplayTimestamp lastUpdateTimestamp, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx)
+	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, u32 updateIdx, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx)
 	{
 		std::vector<std::byte> movesMessageData;
 
@@ -31,23 +29,12 @@ namespace Network::ServerClient
 
 		Serialization::AppendNumber<u32>(movesMessageData, updateIdx);
 
-		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
-
-		for (auto [entity, movement, transform] : components)
+		for (auto [transform, networkId] : components)
 		{
-			const GameplayTimestamp serverMoveTimestamp = movement->getUpdateTimestamp();
-			// only if we moved within some agreed (between client and server) period of time
-			if (serverMoveTimestamp.isInitialized() && serverMoveTimestamp.getIncreasedByUpdateCount(15) > lastUpdateTimestamp)
-			{
-				const auto networkIdIt = networkIdMapping->getEntityToNetworkId().find(entity);
-				AssertFatal(networkIdIt != networkIdMapping->getEntityToNetworkId().end(), "We should have network id mapped for all entities that we replicate to clients");
-				Serialization::AppendNumber<u64>(movesMessageData, networkIdIt->second);
-				const Vector2D location = transform->getLocation();
-				Serialization::AppendNumber<f32>(movesMessageData, location.x);
-				Serialization::AppendNumber<f32>(movesMessageData, location.y);
-
-				Serialization::AppendNumber<u32>(movesMessageData, serverMoveTimestamp.getRawValue());
-			}
+			Serialization::AppendNumber<u64>(movesMessageData, networkId->getId());
+			const Vector2D location = transform->getLocation();
+			Serialization::AppendNumber<f32>(movesMessageData, location.x);
+			Serialization::AppendNumber<f32>(movesMessageData, location.y);
 		}
 
 		return HAL::ConnectionManager::Message{
@@ -83,9 +70,8 @@ namespace Network::ServerClient
 			Vector2D location{};
 			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
-			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0));
 
-			currentUpdateData.addMove(networkEntityId, location, lastUpdateTimestamp);
+			currentUpdateData.addMove(networkEntityId, location);
 		}
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());

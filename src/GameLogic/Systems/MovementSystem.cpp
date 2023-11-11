@@ -30,7 +30,6 @@ void MovementSystem::update()
 		{
 			Vector2D pos = transform->getLocation() + movement->getNextStep();
 			transform->setLocation(pos);
-			movement->setUpdateTimestamp(timestampNow);
 			movement->setPreviousStep(movement->getNextStep());
 			movement->setNextStep(ZERO_VECTOR);
 		}
@@ -38,7 +37,6 @@ void MovementSystem::update()
 		if (transform->getRotation() != movement->getSightDirection().rotation())
 		{
 			transform->setRotation(movement->getSightDirection().rotation());
-			movement->setUpdateTimestamp(timestampNow);
 		}
 	});
 }

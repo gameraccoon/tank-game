@@ -2,7 +2,6 @@
 
 #include "GameLogic/Systems/ApplyConfirmedMovesSystem.h"
 
-#include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -35,8 +34,8 @@ void ApplyConfirmedMovesSystem::update()
 			entityMoves.emplace(move.networkEntityId, move);
 		}
 
-		world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent, const NetworkIdComponent>(
-			[&entityMoves](MovementComponent* movement, TransformComponent* transform, const NetworkIdComponent* networkId) {
+		world.getEntityManager().forEachComponentSet<TransformComponent, const NetworkIdComponent>(
+			[&entityMoves](TransformComponent* transform, const NetworkIdComponent* networkId) {
 				const auto it = entityMoves.find(networkId->getId());
 
 				if (it == entityMoves.end())
@@ -47,7 +46,6 @@ void ApplyConfirmedMovesSystem::update()
 				const EntityMoveData& move = it->second;
 
 				transform->setLocation(move.location);
-				movement->setUpdateTimestamp(move.timestamp);
 			}
 		);
 	}
