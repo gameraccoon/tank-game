@@ -216,7 +216,9 @@ TEST(BoundCheckedHistory, HistoryWithUpdatesAndSetFrames_TrimKeepingTwoOldFrames
 	history.getRecordUnsafe(2) = 12;
 	history.getRecordUnsafe(3) = 13;
 
-	history.trimOldUpdates(2, [](int& frameValue) {
+	std::set<int> expectedValues = { 10, 11 };
+	history.trimOldUpdates(2, [&expectedValues](int& frameValue) {
+		EXPECT_EQ(expectedValues.erase(frameValue), static_cast<size_t>(1));
 		frameValue = -3;
 	});
 
