@@ -76,34 +76,34 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 5u);
 
 		{
-			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
-			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame3Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
-			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
+			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
+			EXPECT_EQ(frame1Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
+			EXPECT_EQ(frame1Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
+			EXPECT_FLOAT_EQ(frame1Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2);
-			EXPECT_EQ(frame4Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
-			EXPECT_EQ(frame4Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame4Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
+			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2);
+			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
+			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
 		}
 		{
-			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3);
-			EXPECT_EQ(frame5Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-			EXPECT_EQ(frame5Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame5Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
+			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3);
+			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
+			EXPECT_EQ(frame3Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
+			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame6Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4);
-			EXPECT_EQ(frame6Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
-			EXPECT_EQ(frame6Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
-			EXPECT_FLOAT_EQ(frame6Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
+			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4);
+			EXPECT_EQ(frame4Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
+			EXPECT_EQ(frame4Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
+			EXPECT_FLOAT_EQ(frame4Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		}
 		{
-			const GameplayInput::FrameState& frame7Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5);
-			EXPECT_EQ(frame7Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame7Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
-			EXPECT_FLOAT_EQ(frame7Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
+			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5);
+			EXPECT_EQ(frame5Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
+			EXPECT_EQ(frame5Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
+			EXPECT_FLOAT_EQ(frame5Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		}
 	}
 }
@@ -167,34 +167,34 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 5u);
 
 		{
-			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
-			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
-			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
+			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
+			EXPECT_EQ(frame1Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
+			EXPECT_EQ(frame1Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
+			EXPECT_FLOAT_EQ(frame1Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2);
-			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2);
+			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
+			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
+		}
+		{
+			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3);
+			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
 			EXPECT_EQ(frame3Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
+			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3);
-			EXPECT_EQ(frame4Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-			EXPECT_EQ(frame4Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame4Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
+			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4);
+			EXPECT_EQ(frame4Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
+			EXPECT_EQ(frame4Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
+			EXPECT_FLOAT_EQ(frame4Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		}
 		{
-			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4);
-			EXPECT_EQ(frame5Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
+			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5);
+			EXPECT_EQ(frame5Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
 			EXPECT_EQ(frame5Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
-			EXPECT_FLOAT_EQ(frame5Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
-		}
-		{
-			const GameplayInput::FrameState& frame6Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5);
-			EXPECT_EQ(frame6Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame6Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(3));
-			EXPECT_FLOAT_EQ(frame6Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
+			EXPECT_FLOAT_EQ(frame5Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		}
 	}
 }
@@ -267,46 +267,46 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 7u);
 
 		{
-			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1u);
-			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
-			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
+			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1u);
+			EXPECT_EQ(frame1Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
+			EXPECT_EQ(frame1Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(0));
+			EXPECT_FLOAT_EQ(frame1Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2u);
-			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2u);
+			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
+			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
+		}
+		{
+			const GameplayInput::FrameState& frame3Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3u);
+			EXPECT_EQ(frame3Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
 			EXPECT_EQ(frame3Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
+			EXPECT_FLOAT_EQ(frame3Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 3u);
+			const GameplayInput::FrameState& frame4Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4u);
 			EXPECT_EQ(frame4Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
 			EXPECT_EQ(frame4Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 			EXPECT_FLOAT_EQ(frame4Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 4u);
+			const GameplayInput::FrameState& frame5Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5u);
 			EXPECT_EQ(frame5Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
 			EXPECT_EQ(frame5Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 			EXPECT_FLOAT_EQ(frame5Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
 		}
 		{
-			const GameplayInput::FrameState& frame6Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 5u);
-			EXPECT_EQ(frame6Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Active);
-			EXPECT_EQ(frame6Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
-			EXPECT_FLOAT_EQ(frame6Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 1.0f);
+			const GameplayInput::FrameState& frame6Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 6u);
+			EXPECT_EQ(frame6Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
+			EXPECT_EQ(frame6Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(5));
+			EXPECT_FLOAT_EQ(frame6Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
 		}
 		{
-			const GameplayInput::FrameState& frame7Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 6u);
-			EXPECT_EQ(frame7Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustDeactivated);
+			const GameplayInput::FrameState& frame7Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 7u);
+			EXPECT_EQ(frame7Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
 			EXPECT_EQ(frame7Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(5));
-			EXPECT_FLOAT_EQ(frame7Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.75f);
-		}
-		{
-			const GameplayInput::FrameState& frame8Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 7u);
-			EXPECT_EQ(frame8Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::Inactive);
-			EXPECT_EQ(frame8Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(5));
-			EXPECT_FLOAT_EQ(frame8Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
+			EXPECT_FLOAT_EQ(frame7Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.25f);
 		}
 	}
 }
