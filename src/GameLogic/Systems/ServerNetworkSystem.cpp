@@ -63,7 +63,7 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& 
 		gameStateRewinder.appendExternalCommandToHistory(
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
 			Network::CreatePlayerEntityCommand::createServerSide(
-				Vector2D(50, 50),
+				Vector2D(rand() % 100 + 50, rand() % 100 + 50),
 				networkEntityIdGenerator->getGeneratorRef().generateNext(),
 				connectionId
 			)
