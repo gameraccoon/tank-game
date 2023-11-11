@@ -524,7 +524,6 @@ void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::Fr
 {
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
-	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	if (!updateData.dataState.hasClientInput)
