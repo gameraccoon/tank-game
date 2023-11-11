@@ -154,6 +154,7 @@ World& GameStateRewinder::getWorld(u32 updateIdx) const
 void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
 {
 	SCOPED_PROFILER("GameStateRewinder::advanceSimulationToNextUpdate");
+	assertNotChangingFarFuture(newUpdateIdx);
 
 	Impl::OneUpdateData& newUpdateData = mPimpl->getOrCreateRecordByUpdateIdx(newUpdateIdx);
 
@@ -220,6 +221,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)
 {
 	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -238,6 +240,7 @@ void GameStateRewinder::appendExternalCommandToHistory(u32 updateIdx, Network::G
 void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Network::GameplayCommand::Ptr>&& commands)
 {
 	assertClientOnly();
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -259,6 +262,7 @@ void GameStateRewinder::applyAuthoritativeCommands(u32 updateIdx, std::vector<Ne
 void GameStateRewinder::writeSimulatedCommands(u32 updateIdx, const Network::GameplayCommandList& updateCommands)
 {
 	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -296,6 +300,7 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 {
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
@@ -310,6 +315,7 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData)
 {
 	assertClientOnly();
+	assertNotChangingFarFuture(updateIdx);
 
 	const u32 firstRecordUpdateIdx = getFirstStoredUpdateIdx();
 
@@ -384,6 +390,7 @@ const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId 
 const GameplayInput::FrameState& GameStateRewinder::getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx)
 {
 	assertServerOnly();
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	GameplayInput::FrameState& updateInput = updateData.serverInput[connectionId];
@@ -426,6 +433,7 @@ void GameStateRewinder::addPlayerInput(ConnectionId connectionId, u32 updateIdx,
 {
 	assertServerOnly();
 	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	updateData.serverInput[connectionId] = newInput;
@@ -516,6 +524,7 @@ void GameStateRewinder::setInputForUpdate(u32 updateIdx, const GameplayInput::Fr
 {
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 	if (!updateData.dataState.hasClientInput)
@@ -562,6 +571,11 @@ void GameStateRewinder::assertClientOnly() const
 void GameStateRewinder::assertNotChangingPast(u32 changedUpdateIdx) const
 {
 	Assert(changedUpdateIdx > mCurrentTimeData.lastFixedUpdateIndex, "We are trying to make a change to an update that is in the past. changedUpdateIdx is %u and last fixed update is %u", changedUpdateIdx, mCurrentTimeData.lastFixedUpdateIndex);
+}
+
+void GameStateRewinder::assertNotChangingFarFuture(u32 changedUpdateIdx) const
+{
+	Assert(changedUpdateIdx < mCurrentTimeData.lastFixedUpdateIndex + Impl::DEBUG_MAX_FUTURE_UPDATES, "We are trying to make a change to an update that is very far in the future. This is probably a bug. changedUpdateIdx is %u and last fixed update is %u", changedUpdateIdx, mCurrentTimeData.lastFixedUpdateIndex);
 }
 
 void GameStateRewinder::Impl::OneUpdateData::clear()
