@@ -129,8 +129,8 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPostFrameSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder(), mGameStateRewinder);

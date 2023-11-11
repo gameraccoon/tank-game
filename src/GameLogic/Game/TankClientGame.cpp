@@ -158,8 +158,8 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
