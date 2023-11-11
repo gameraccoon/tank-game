@@ -70,7 +70,7 @@ public:
 	void applyAuthoritativeMoves(u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData);
 	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
 	bool hasConfirmedMovesForUpdate(u32 updateIdx) const;
-	std::vector<GameplayInput::FrameState> getLastInputs(size_t size) const;
+	std::vector<GameplayInput::FrameState> getLastInputs(size_t size, u32 lastUpdateIdx) const;
 	bool hasInputForUpdate(u32 updateIdx) const;
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);

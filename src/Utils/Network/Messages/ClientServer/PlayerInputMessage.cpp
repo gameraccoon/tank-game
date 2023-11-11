@@ -18,12 +18,15 @@ namespace Network::ClientServer
 	{
 		HAL::ConnectionManager::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
 
-		const std::vector<GameplayInput::FrameState> inputs = gameStateRewinder.getLastInputs(Input::MAX_INPUT_HISTORY_SEND_SIZE);
+		// at this point we already has input for the next frame (at least, may be more)
+		const u32 lastInputUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex + 1;
+
+		const std::vector<GameplayInput::FrameState> inputs = gameStateRewinder.getLastInputs(Input::MAX_INPUT_HISTORY_SEND_SIZE, lastInputUpdateIdx);
 		const size_t inputsToSend = std::min(inputs.size(), Input::MAX_INPUT_HISTORY_SEND_SIZE);
 
 		resultMessage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
 
-		Serialization::AppendNumber<u32>(resultMessage.data, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		Serialization::AppendNumber<u32>(resultMessage.data, lastInputUpdateIdx);
 		static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE < std::numeric_limits<u8>::max(), "u8 is too small to fit input history size");
 		Serialization::AppendNumberNarrowCast<u8>(resultMessage.data, inputsToSend);
 
