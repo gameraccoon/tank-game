@@ -40,6 +40,7 @@ void ApplyConfirmedMovesSystem::update()
 
 				if (it == entityMoves.end())
 				{
+					LogWarning("No move data for networkId while applying confirmed moves %u", networkId->getId());
 					return;
 				}
 
