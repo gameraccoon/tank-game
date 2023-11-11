@@ -477,10 +477,13 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t s
 	const size_t inputSize = std::min(size, static_cast<size_t>(mCurrentTimeData.lastFixedUpdateIndex - getFirstStoredUpdateIdx()));
 	result.reserve(inputSize);
 
-	const u32 getLastStoredUpdateIdx = mPimpl->updateHistory.getLastStoredUpdateIdx();
-	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((getLastStoredUpdateIdx > size) ? (getLastStoredUpdateIdx + 1 - size) : 1u));
+	// it may be more updates in fact if we want to simulate more updates in the current render frame,
+	// but they will be sent in the processing for the next render frame,
+	// instead we rather make it is more likely for old updates to be delivered this time
+	const u32 lastInputUpdateWithSimulatedInput = mCurrentTimeData.lastFixedUpdateIndex + 1;
+	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>((lastInputUpdateWithSimulatedInput > size) ? (lastInputUpdateWithSimulatedInput + 1 - size) : 1u));
 
-	const Impl::History::ForwardRange records = mPimpl->updateHistory.getRecordsUnsafe(firstInputUpdate, mCurrentTimeData.lastFixedUpdateIndex);
+	const Impl::History::ForwardRange records = mPimpl->updateHistory.getRecordsUnsafe(firstInputUpdate, lastInputUpdateWithSimulatedInput);
 	for (const auto [updateData, updateIdx] : records) {
 		// first update may not have input set yet
 		if (updateIdx != firstInputUpdate || hasInputForUpdate(updateIdx))
