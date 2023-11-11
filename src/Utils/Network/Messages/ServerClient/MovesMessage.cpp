@@ -6,7 +6,6 @@
 
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/MovementHistory.h"
 #include "GameData/Network/NetworkMessageIds.h"
