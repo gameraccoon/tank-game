@@ -5,19 +5,19 @@
 
 #include "Base/Types/BasicTypes.h"
 
-#include "GameData/EcsDefinitions.h"
 #include "GameData/Geometry/Vector2D.h"
+#include "GameData/Network/NetworkEntityId.h"
 #include "GameData/Time/GameplayTimestamp.h"
 
 struct EntityMoveHash
 {
-	EntityMoveHash(Entity entity, Vector2D location)
-		: entityHash(entity.getId())
+	EntityMoveHash(NetworkEntityId networkEntityId, Vector2D location)
+		: entityHash(networkEntityId)
 		, locationHashX(static_cast<s32>(location.x))
 		, locationHashY(static_cast<s32>(location.y))
 	{}
 
-	Entity::EntityId entityHash;
+	NetworkEntityId entityHash;
 	s32 locationHashX;
 	s32 locationHashY;
 
@@ -27,7 +27,7 @@ struct EntityMoveHash
 
 struct EntityMoveData
 {
-	Entity entity;
+	NetworkEntityId networkEntityId;
 	Vector2D location;
 	GameplayTimestamp timestamp;
 };
@@ -37,17 +37,17 @@ struct MovementUpdateData
 	std::vector<EntityMoveHash> updateHash;
 	std::vector<EntityMoveData> moves;
 
-	void addMove(Entity entity, Vector2D location, GameplayTimestamp timestamp)
+	void addMove(NetworkEntityId networkEntityId, Vector2D location, GameplayTimestamp timestamp)
 	{
 		AssertFatal(updateHash.size() == moves.size(), "Vector sizes mismatch in moves history, this should never happen");
-		updateHash.emplace_back(entity, location);
-		moves.emplace_back(entity, location, timestamp);
+		updateHash.emplace_back(networkEntityId, location);
+		moves.emplace_back(networkEntityId, location, timestamp);
 	}
 
-	void addHash(Entity entity, Vector2D location)
+	void addHash(NetworkEntityId networkEntityId, Vector2D location)
 	{
-		updateHash.emplace_back(entity, location);
-		AssertFatal(moves.empty(), "We should add hashes only to history records that doen't contain real moves");
+		updateHash.emplace_back(networkEntityId, location);
+		AssertFatal(moves.empty(), "We should add hashes only to history records that doesn't contain real moves");
 	}
 };
 

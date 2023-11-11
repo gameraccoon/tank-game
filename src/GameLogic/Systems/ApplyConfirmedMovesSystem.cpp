@@ -3,6 +3,7 @@
 #include "GameLogic/Systems/ApplyConfirmedMovesSystem.h"
 
 #include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/MovementHistory.h"
@@ -28,15 +29,15 @@ void ApplyConfirmedMovesSystem::update()
 	// if we have confirmed moves for this update, apply them
 	if (mGameStateRewinder.hasConfirmedMovesForUpdate(currentUpdateIndex))
 	{
-		std::unordered_map<Entity, EntityMoveData> entityMoves;
+		std::unordered_map<NetworkEntityId, EntityMoveData> entityMoves;
 		for (const auto& move : mGameStateRewinder.getMovesForUpdate(currentUpdateIndex).moves)
 		{
-			entityMoves.emplace(move.entity, move);
+			entityMoves.emplace(move.networkEntityId, move);
 		}
 
-		world.getEntityManager().forEachComponentSetWithEntity<MovementComponent, TransformComponent>(
-			[&entityMoves](Entity entity, MovementComponent* movement, TransformComponent* transform) {
-				const auto it = entityMoves.find(entity);
+		world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent, const NetworkIdComponent>(
+			[&entityMoves](MovementComponent* movement, TransformComponent* transform, const NetworkIdComponent* networkId) {
+				const auto it = entityMoves.find(networkId->getId());
 
 				if (it == entityMoves.end())
 				{

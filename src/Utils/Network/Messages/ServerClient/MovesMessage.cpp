@@ -57,7 +57,7 @@ namespace Network::ServerClient
 		};
 	}
 
-	void ApplyMovesMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
+	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
@@ -75,22 +75,18 @@ namespace Network::ServerClient
 
 		AssertFatal(lastReceivedInputUpdateIdx <= updateIdx, "We can't have input update from the future");
 
-		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-
 		MovementUpdateData currentUpdateData;
 		currentUpdateData.moves.reserve((message.data.size() - streamIndex) / (8 + 4 + 4 + 4));
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
 		{
-			const u64 serverEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
-			const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(serverEntityId);
-			Entity entity = (entityIt != networkIdMapping->getNetworkIdToEntity().end()) ? entityIt->second : Entity(0);
+			const u64 networkEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
 			Vector2D location{};
 			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 			GameplayTimestamp lastUpdateTimestamp(Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0));
 
-			currentUpdateData.addMove(entity, location, lastUpdateTimestamp);
+			currentUpdateData.addMove(networkEntityId, location, lastUpdateTimestamp);
 		}
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());

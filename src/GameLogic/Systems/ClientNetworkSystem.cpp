@@ -85,7 +85,7 @@ void ClientNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ServerClient::ApplyMovesMessage(world, mGameStateRewinder, message);
+			Network::ServerClient::ApplyMovesMessage(mGameStateRewinder, message);
 			break;
 		case NetworkMessageId::GameplayCommand:
 			Network::ServerClient::ApplyGameplayCommandsMessage(mGameStateRewinder, message);

@@ -3,6 +3,7 @@
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 
 #include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/MovementHistory.h"
@@ -41,14 +42,14 @@ void SaveMovementToHistorySystem::update()
 
 	EntityManager& entityManager = world.getEntityManager();
 	MovementUpdateData newUpdateData;
-	entityManager.forEachComponentSetWithEntity<const MovementComponent, const TransformComponent>(
-		[&newUpdateData, inputUpdateTimestamp](Entity entity, const MovementComponent* movement, const TransformComponent* transform)
+	entityManager.forEachComponentSet<const MovementComponent, const TransformComponent, const NetworkIdComponent>(
+		[&newUpdateData, inputUpdateTimestamp](const MovementComponent* movement, const TransformComponent* transform, const NetworkIdComponent* networkId)
 	{
 		// only if we moved within some agreed (between client and server) period of time
 		const GameplayTimestamp updateTimestamp = movement->getUpdateTimestamp();
 		if (updateTimestamp.isInitialized() && updateTimestamp.getIncreasedByUpdateCount(15) > inputUpdateTimestamp)
 		{
-			newUpdateData.addHash(entity, transform->getLocation());
+			newUpdateData.addHash(networkId->getId(), transform->getLocation());
 		}
 	});
 
