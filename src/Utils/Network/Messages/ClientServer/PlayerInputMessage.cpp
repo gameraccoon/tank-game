@@ -34,27 +34,12 @@ namespace Network::ClientServer
 
 	static bool hasNewInput(u32 oldFrameIndex, u32 newFrameIndex)
 	{
-		constexpr u32 WRAP_ZONE_SIZE = 1024;
-		constexpr u32 WRAP_MIN = std::numeric_limits<u32>::max() - WRAP_ZONE_SIZE;
-		constexpr u32 WRAP_MAX = WRAP_ZONE_SIZE;
+		return oldFrameIndex < newFrameIndex;
+	}
 
-		const bool oldAboutToWrap = (oldFrameIndex > WRAP_MIN);
-		const bool newAboutToWrap = (newFrameIndex > WRAP_MIN);
-		const bool oldAfterWrap = (oldFrameIndex < WRAP_MAX);
-		const bool newAfterWrap = (newFrameIndex < WRAP_MAX);
-
-		if ALMOST_NEVER (oldAboutToWrap && newAfterWrap)
-		{
-			return true;
-		}
-		else if ALMOST_NEVER (newAboutToWrap && oldAfterWrap)
-		{
-			return false;
-		}
-		else
-		{
-			return oldFrameIndex < newFrameIndex;
-		}
+	static bool inputIsNotFromFarFuture(u32 oldFrameIndex, u32 newFrameIndex)
+	{
+		return oldFrameIndex + 10 > newFrameIndex;
 	}
 
 	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
@@ -70,7 +55,7 @@ namespace Network::ClientServer
 
 		LogInfo("Received input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 
-		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
+		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx) && inputIsNotFromFarFuture(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
 		{
 			// read the input (do it inside the "if", not to waste time on reading the input if it's not needed)
 			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
