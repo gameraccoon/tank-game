@@ -30,9 +30,9 @@ void SaveMovementToHistorySystem::update()
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 
-	const u32 updateIndex = time->getValue()->lastFixedUpdateIndex;
+	const u32 nextUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 
-	if (mGameStateRewinder.hasConfirmedCommandsForUpdate(updateIndex))
+	if (mGameStateRewinder.hasConfirmedCommandsForUpdate(nextUpdateIdx))
 	{
 		// we don't want to rewrite data that was already confirmed by the server
 		return;
@@ -55,5 +55,5 @@ void SaveMovementToHistorySystem::update()
 
 	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
 
-	mGameStateRewinder.addPredictedMovementDataForUpdate(updateIndex + 1, std::move(newUpdateData));
+	mGameStateRewinder.addPredictedMovementDataForUpdate(nextUpdateIdx, std::move(newUpdateData));
 }
