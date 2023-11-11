@@ -60,7 +60,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
 		clientGame->stateRewinder.setInputForUpdate(5u, frameState);
-		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 5u;
+		// we send update before incrementing index (in-between fixed-time updates)
+		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 4u;
 	}
 
 	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
@@ -129,7 +130,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(4));
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
 		clientGame->stateRewinder.setInputForUpdate(5u, frameState);
-		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 5u;
+		// we send update before incrementing index (in-between fixed-time updates)
+		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 4u;
 	}
 
 	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
@@ -225,7 +227,8 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(6));
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.25f);
 		clientGame->stateRewinder.setInputForUpdate(7u, frameState);
-		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 7u;
+		// we send update before incrementing index (in-between fixed-time updates)
+		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6u;
 		clientGame->stateRewinder.trimOldUpdates(6u);
 	}
 
