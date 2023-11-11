@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 
 	const bool runGraphicalClient = !arguments.hasArgument("open-port") && !arguments.hasArgument("no-render");
 	const bool runServer = !arguments.hasArgument("connect");
-	const bool runSecondClient = !arguments.hasArgument("connect");
+	const bool runSecondClient = !arguments.hasArgument("connect") && !arguments.hasArgument("no-second-client");
 
 	const int additionalThreadsCount = (runServer ? 1 : 0) + (runSecondClient ? 1 : 0);
 	int extraThreadIndex = 0;
