@@ -123,7 +123,7 @@ u32 GameStateRewinder::getFirstStoredUpdateIdx() const
 void GameStateRewinder::trimOldUpdates(u32 firstUpdateToKeep)
 {
 	SCOPED_PROFILER("GameStateRewinder::trimOldUpdates");
-	LogInfo("trimOldUpdates(%u)", firstUpdateToKeep);
+	LogInfo("trimOldUpdates on %s, firstUpdateToKeep=%u", mHistoryType == HistoryType::Client ? "client" : "server", firstUpdateToKeep);
 
 	mPimpl->updateHistory.trimOldUpdates(firstUpdateToKeep, [](Impl::OneUpdateData& removedUpdateData) {
 		removedUpdateData.clear();
@@ -583,6 +583,7 @@ void GameStateRewinder::Impl::OneUpdateData::clear()
 	dataState.serverInputConfirmedPlayers.clear();
 	dataState.hasClientInput = false;
 	clientMovement.moves.clear();
+	clientMovement.updateHash.clear();
 	gameplayCommands.gameplayGeneratedCommands.list.clear();
 	gameplayCommands.externalCommands.list.clear();
 	clientInput = {};
