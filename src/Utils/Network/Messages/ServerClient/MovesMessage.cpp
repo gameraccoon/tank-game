@@ -59,8 +59,6 @@ namespace Network::ServerClient
 
 	void ApplyMovesMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message)
 	{
-		const u32 lastUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex;
-
 		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
 		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
@@ -76,16 +74,6 @@ namespace Network::ServerClient
 		lastReceivedInputUpdateIdx = hasMissingInput ? std::min(lastReceivedInputUpdateIdx, updateIdx) : updateIdx;
 
 		AssertFatal(lastReceivedInputUpdateIdx <= updateIdx, "We can't have input update from the future");
-
-		if (updateIdx > lastUpdateIdx)
-		{
-			// during debugging, we can have situations when server thread temporarily went ahead with simulating the game
-			// skip this data until client thread catches up or server thread corrects its update index shift
-			// if it visually lags because of this return then some of these doesn't work correctly:
-			// - fixed dt loop with ability to catch up after a lag (and ability to recover after staying on a breakpoint)
-			// - server ability to correct update index shift for clients due to changed RTT
-			return;
-		}
 
 		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
 
