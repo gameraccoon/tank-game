@@ -296,74 +296,6 @@ const Network::GameplayCommandHistoryRecord& GameStateRewinder::getCommandsForUp
 	return updateData.gameplayCommands;
 }
 
-void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
-{
-	assertClientOnly();
-	assertNotChangingPast(updateIdx);
-	assertNotChangingFarFuture(updateIdx);
-
-	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-
-	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
-	if (previousMovementDataState == Impl::OneUpdateData::SyncState::NoData || previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted)
-	{
-		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Predicted);
-		updateData.clientMovement = std::move(newUpdateData);
-	}
-}
-
-void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData)
-{
-	assertClientOnly();
-	assertNotChangingFarFuture(updateIdx);
-
-	const u32 firstRecordUpdateIdx = getFirstStoredUpdateIdx();
-
-	if (updateIdx < firstRecordUpdateIdx)
-	{
-		// we got an update for some old state that we don't have records for, skip it
-		return;
-	}
-
-	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-
-	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
-
-	if (previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted || previousMovementDataState == Impl::OneUpdateData::SyncState::NoData)
-	{
-		// we have predicted data for this update, check if it matches
-		if (updateData.clientMovement.updateHash != authoritativeMovementData.updateHash)
-		{
-			updateData.clientMovement = std::move(authoritativeMovementData);
-			updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
-		}
-
-		const Impl::OneUpdateData::SyncState newMovementDataState = isFinal ? Impl::OneUpdateData::SyncState::FinalAuthoritative : Impl::OneUpdateData::SyncState::NotFinalAuthoritative;
-		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, newMovementDataState);
-	}
-}
-
-const MovementUpdateData& GameStateRewinder::getMovesForUpdate(u32 updateIdx) const
-{
-	assertClientOnly();
-
-	return mPimpl->updateHistory.getRecordUnsafe(updateIdx).clientMovement;
-}
-
-bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
-{
-	assertClientOnly();
-
-	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx())
-	{
-		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
-		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
-		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
-	}
-
-	return false;
-}
-
 const GameplayInput::FrameState& GameStateRewinder::getPlayerInput(ConnectionId connectionId, u32 updateIdx) const
 {
 	assertServerOnly();
@@ -475,6 +407,74 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 	}
 
 	return std::nullopt;
+}
+
+void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
+{
+	assertClientOnly();
+	assertNotChangingPast(updateIdx);
+	assertNotChangingFarFuture(updateIdx);
+
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+
+	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+	if (previousMovementDataState == Impl::OneUpdateData::SyncState::NoData || previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted)
+	{
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Predicted);
+		updateData.clientMovement = std::move(newUpdateData);
+	}
+}
+
+void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData)
+{
+	assertClientOnly();
+	assertNotChangingFarFuture(updateIdx);
+
+	const u32 firstRecordUpdateIdx = getFirstStoredUpdateIdx();
+
+	if (updateIdx < firstRecordUpdateIdx)
+	{
+		// we got an update for some old state that we don't have records for, skip it
+		return;
+	}
+
+	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+
+	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+
+	if (previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted || previousMovementDataState == Impl::OneUpdateData::SyncState::NoData)
+	{
+		// we have predicted data for this update, check if it matches
+		if (updateData.clientMovement.updateHash != authoritativeMovementData.updateHash)
+		{
+			updateData.clientMovement = std::move(authoritativeMovementData);
+			updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
+		}
+
+		const Impl::OneUpdateData::SyncState newMovementDataState = isFinal ? Impl::OneUpdateData::SyncState::FinalAuthoritative : Impl::OneUpdateData::SyncState::NotFinalAuthoritative;
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, newMovementDataState);
+	}
+}
+
+const MovementUpdateData& GameStateRewinder::getMovesForUpdate(u32 updateIdx) const
+{
+	assertClientOnly();
+
+	return mPimpl->updateHistory.getRecordUnsafe(updateIdx).clientMovement;
+}
+
+bool GameStateRewinder::hasConfirmedMovesForUpdate(u32 updateIdx) const
+{
+	assertClientOnly();
+
+	if (updateIdx >= getFirstStoredUpdateIdx() && updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx())
+	{
+		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
+	}
+
+	return false;
 }
 
 std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(size_t size) const

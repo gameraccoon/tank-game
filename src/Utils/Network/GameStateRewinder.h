@@ -58,12 +58,6 @@ public:
 	bool hasConfirmedCommandsForUpdate(u32 updateIdx) const;
 	const Network::GameplayCommandHistoryRecord& getCommandsForUpdate(u32 updateIdx) const;
 
-	// meaningful only on client
-	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
-	void applyAuthoritativeMoves(u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData);
-	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
-	bool hasConfirmedMovesForUpdate(u32 updateIdx) const;
-
 	// meaningful only on server
 	const GameplayInput::FrameState& getPlayerInput(ConnectionId connectionId, u32 updateIdx) const;
 	const GameplayInput::FrameState& getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx);
@@ -72,6 +66,10 @@ public:
 	std::optional<u32> getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const;
 
 	// meaningful only on client
+	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
+	void applyAuthoritativeMoves(u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData);
+	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
+	bool hasConfirmedMovesForUpdate(u32 updateIdx) const;
 	std::vector<GameplayInput::FrameState> getLastInputs(size_t size) const;
 	bool hasInputForUpdate(u32 updateIdx) const;
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
