@@ -22,7 +22,7 @@ ECS pattern has been chosen here **not** for performance reasons, but to get bet
 - git with git-lfs
 - CMake (see the minimal supported version in [CMakeLists.txt](https://github.com/gameraccoon/tank-game/blob/main/CMakeLists.txt#L1=))
 - python3
-- GCC 11 (or higher) or the latest Visual Studio 2022 (VS 2019 may work but it is not automatically tested on CI)
+- GCC 13 (or higher) or the latest Visual Studio 2022 (or newer)
 - for Linux, you need to install dependencies of SLD2, also libssl, and protobuf using your packet manager  
 e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler`
 
@@ -30,7 +30,7 @@ e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfl
 - git with git-lfs
 - CMake (see the minimal supported version in [CMakeLists.txt](https://github.com/gameraccoon/tank-game/blob/main/CMakeLists.txt#L1=))
 - python3
-- GCC 11 (or higher) or the latest Visual Studio 2022 (VS 2019 may work but it is not automatically tested on CI)
+- GCC 13 (or higher) or the latest Visual Studio 2022 (or newer)
 - for Linux, you need to install libssl and protobuf using your packet manager  
 e.g. for apt: `sudo apt-get install libssl-dev libprotobuf-dev protobuf-compiler`
 
