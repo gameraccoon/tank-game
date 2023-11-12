@@ -229,7 +229,6 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		clientGame->stateRewinder.setInputForUpdate(7u, frameState);
 		// we send update before incrementing index (in-between fixed-time updates)
 		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 6u;
-		clientGame->stateRewinder.trimOldUpdates(6u);
 	}
 
 	// keep only two inputs from above
