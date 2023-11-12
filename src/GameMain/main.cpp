@@ -22,7 +22,7 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 	if (arguments.hasArgument("net-lag"))
 	{
 		HAL::ConnectionManager::DebugBehavior networkDebugBehavior;
-		const int latency = arguments.getIntArgumentValue("net-lag", 100);
+		const int latency = arguments.getIntArgumentValue("net-lag").getValueOr(100);
 		networkDebugBehavior.packetLagMs_Recv = latency/2;
 		networkDebugBehavior.packetLagMs_Send = latency/2;
 		networkDebugBehavior.packetLossPct_Recv = 5.0f;
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	int extraThreadIndex = 0;
 
 	ApplicationData applicationData(
-		arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount),
+		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		additionalThreadsCount,
 		runGraphicalClient ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);

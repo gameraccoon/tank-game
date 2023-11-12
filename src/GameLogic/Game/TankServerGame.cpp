@@ -48,7 +48,7 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port", 14436));
+	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port").getValueOr(14436));
 
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
@@ -56,8 +56,8 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	initSystems(shouldRender);
 
-	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
-	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
 	TimeComponent* timeComponent = getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());

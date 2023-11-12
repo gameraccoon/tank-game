@@ -58,7 +58,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
-	std::optional<HAL::ConnectionManager::NetworkAddress> newNetworkAddress = HAL::ConnectionManager::NetworkAddress::FromString(arguments.getArgumentValue("connect", "127.0.0.1:14436"));
+	std::optional<HAL::ConnectionManager::NetworkAddress> newNetworkAddress = HAL::ConnectionManager::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
 	if (newNetworkAddress.has_value())
 	{
 		mServerAddress = *newNetworkAddress;
@@ -66,8 +66,8 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 
 	initSystems();
 
-	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world", "test"), getComponentSerializers());
-	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData", "gameData"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
 	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
 	renderAccessorComponent->setAccessor(renderAccessor);

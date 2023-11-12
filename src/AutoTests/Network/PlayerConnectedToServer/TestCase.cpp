@@ -92,7 +92,7 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	const bool isRenderEnabled = !arguments.hasArgument("no-render");
 
 	ApplicationData applicationData(
-		arguments.getIntArgumentValue("threads-count", ApplicationData::DefaultWorkerThreadCount),
+		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		clientsCount,
 		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);

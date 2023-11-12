@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Base/Random/Random.h"
-#include "Base/Types/String/StringNumberConversion.h"
 
 #include <raccoon-ecs/error_handling.h>
 
@@ -72,14 +71,14 @@ int main(int argc, char** argv)
 	unsigned int seed = std::random_device()();
 	if (arguments.hasArgument("randseed"))
 	{
-		std::string seedStr = arguments.getArgumentValue("randseed");
-		if (std::optional<int> seedOpt = String::ParseInt(seedStr.c_str()); seedOpt.has_value())
+		auto seedResult = arguments.getIntArgumentValue("randseed");
+		if (seedResult.hasValue())
 		{
-			seed = static_cast<unsigned int>(seedOpt.value());
+			seed = seedResult.getValue();
 		}
 		else
 		{
-			std::cout << "Invalid random seed value: %s" << seedStr << "\n";
+			std::cout << seedResult.getError() << "\n";
 			return 1;
 		}
 	}
@@ -109,7 +108,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	auto caseIt = cases.find(arguments.getArgumentValue("case"));
+	auto caseIt = cases.find(arguments.getArgumentValue("case").value());
 	if (caseIt != cases.end())
 	{
 		LogInit("Random seed is %u", seed);
@@ -123,7 +122,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		std::cout << "Unknown test " + arguments.getArgumentValue("case") << "\n";
+		std::cout << "Unknown test " + arguments.getArgumentValue("case").value() << "\n";
 		return 1;
 	}
 }
