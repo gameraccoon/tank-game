@@ -6,8 +6,6 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/GameData.h"
-#include "GameData/Network/NetworkProtocolVersion.h"
-#include "GameData/Time/TimeData.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"

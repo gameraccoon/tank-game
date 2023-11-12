@@ -5,7 +5,6 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 #include "GameData/Network/NetworkProtocolVersion.h"

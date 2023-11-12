@@ -2,7 +2,6 @@
 
 #include <gtest/gtest.h>
 
-#include "Base/Types/BasicTypes.h"
 #include "Base/Types/Serialization.h"
 
 TEST(BasicTypesSerialization, WriteNumber_Position)
