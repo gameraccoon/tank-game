@@ -4,6 +4,7 @@
 
 #include "Base/Types/Serialization.h"
 
+#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/InputHistory.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -56,10 +57,9 @@ namespace Network::ClientServer
 		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex).value_or(0);
 		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex).value_or(0);
 
-		LogInfo("Received input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
-
 		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx) && inputIsNotFromFarFuture(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
 		{
+			LogInfo("Processing input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 			// read the input (do it inside the "if", not to waste time on reading the input if it's not needed)
 			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
@@ -87,8 +87,13 @@ namespace Network::ClientServer
 		}
 		else
 		{
-			// we got no new input, we may want to send a message to the client to notify about that
-			// also we may need to prepare some buffer to delay applying player input for the next frames
+			LogInfo("Ignoring input message with updateIdx %u on server frame %u", lastReceivedInputUpdateIdx, lastServerProcessedUpdateIdx);
 		}
+
+		// we would rather get 2 inputs in advance, so we have one input to lose without it being noticeable
+		const u32 idealLastInputUpdateIdx = lastServerProcessedUpdateIdx + 2;
+
+		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+		serverConnections->getClientDataRef()[connectionId].indexShift = lastReceivedInputUpdateIdx - idealLastInputUpdateIdx;
 	}
 } // namespace Network::ClientServer

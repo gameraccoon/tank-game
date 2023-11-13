@@ -30,6 +30,7 @@ public:
 
 	bool shouldQuitGame() const final { return mShouldQuitGame; }
 	void quitGame() final { mShouldQuitGame = true; }
+	std::chrono::duration<int64_t, std::milli> getFrameLengthCorrection() const final { return std::chrono::milliseconds(0); }
 
 protected:
 	TimeData& getTimeData() final;

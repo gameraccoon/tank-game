@@ -73,7 +73,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 5u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 5u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 5u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
@@ -164,7 +164,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 5u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 5u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 5u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
@@ -263,7 +263,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 7u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<ConnectionId>{connectionId}), 7u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 7u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1u);

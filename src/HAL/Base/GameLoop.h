@@ -34,20 +34,22 @@ namespace HAL
 
 			int iterationsThisFrame = 0;
 			auto passedTime = timeNow - lastFrameTime;
-			if (passedTime >= oneFrameDuration)
+
+			const auto correctedOneFrameDuration = oneFrameDuration + game.getFrameLengthCorrection();
+			if (passedTime >= correctedOneFrameDuration)
 			{
 				// if we exceeded max frame ticks last frame, that likely mean we were staying on a breakpoint
 				// so, let's readjust to normal ticking speed
 				if (passedTime > TimeConstants::MAX_FRAME_DURATION)
 				{
-					passedTime = TimeConstants::ONE_FIXED_UPDATE_DURATION;
+					passedTime = correctedOneFrameDuration;
 				}
 
 				const float lastFrameDurationSec = std::chrono::duration<float>(passedTime).count();
 
-				while (passedTime >= oneFrameDuration)
+				while (passedTime >= correctedOneFrameDuration)
 				{
-					passedTime -= oneFrameDuration;
+					passedTime -= correctedOneFrameDuration;
 					++iterationsThisFrame;
 				}
 

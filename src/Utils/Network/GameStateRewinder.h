@@ -63,7 +63,7 @@ public:
 	const GameplayInput::FrameState& getOrPredictPlayerInput(ConnectionId connectionId, u32 updateIdx);
 	void addPlayerInput(ConnectionId connectionId, u32 updateIdx, const GameplayInput::FrameState& newInput);
 	std::optional<u32> getLastKnownInputUpdateIdxForPlayer(ConnectionId connectionId) const;
-	std::optional<u32> getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const;
+	std::optional<u32> getLastKnownInputUpdateIdxForPlayers(const std::vector<std::pair<ConnectionId, s32>>& connections) const;
 
 	// meaningful only on client
 	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);

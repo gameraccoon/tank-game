@@ -12,6 +12,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+#include "Utils/Network/FrameTimeCorrector.h"
 #include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
 #include "Utils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
 #include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
@@ -24,11 +25,13 @@ ClientNetworkSystem::ClientNetworkSystem(
 	WorldHolder& worldHolder,
 	GameStateRewinder& gameStateRewinder,
 	const HAL::ConnectionManager::NetworkAddress& serverAddress,
+	FrameTimeCorrector& frameTimeCorrector,
 	bool& shouldQuitGame
 ) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 	, mServerAddress(serverAddress)
+	, mFrameTimeCorrector(frameTimeCorrector)
 	, mShouldQuitGameRef(shouldQuitGame)
 {
 }
@@ -85,7 +88,7 @@ void ClientNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ServerClient::ApplyMovesMessage(mGameStateRewinder, message);
+			Network::ServerClient::ApplyMovesMessage(mGameStateRewinder, mFrameTimeCorrector, message);
 			break;
 		case NetworkMessageId::GameplayCommand:
 			Network::ServerClient::ApplyGameplayCommandsMessage(mGameStateRewinder, message);

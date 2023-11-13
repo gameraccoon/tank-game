@@ -6,6 +6,7 @@
 
 class WorldHolder;
 class GameStateRewinder;
+class FrameTimeCorrector;
 
 /**
  * System that handles network communication on client
@@ -17,6 +18,7 @@ public:
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
 		const HAL::ConnectionManager::NetworkAddress& serverAddress,
+		FrameTimeCorrector& frameTimeCorrector,
 		bool& shouldQuitGame
 	) noexcept;
 
@@ -26,5 +28,6 @@ private:
 	WorldHolder& mWorldHolder;
 	GameStateRewinder& mGameStateRewinder;
 	HAL::ConnectionManager::NetworkAddress mServerAddress;
+	FrameTimeCorrector& mFrameTimeCorrector;
 	bool& mShouldQuitGameRef;
 };

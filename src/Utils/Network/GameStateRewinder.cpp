@@ -389,15 +389,15 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(Connec
 	return std::nullopt;
 }
 
-std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const std::vector<ConnectionId>& connections) const
+std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const std::vector<std::pair<ConnectionId, s32>>& connections) const
 {
 	assertServerOnly();
 
 	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
 
 	auto lastKnownInputUpdateIt = std::find_if(records.begin(), records.end(), [connections](const auto recordPair) {
-		return std::all_of(connections.begin(), connections.end(), [recordPair](const ConnectionId connectionId) {
-			return recordPair.record.dataState.serverInputConfirmedPlayers.contains(connectionId);
+		return std::all_of(connections.begin(), connections.end(), [recordPair](const auto& pair) {
+			return recordPair.record.dataState.serverInputConfirmedPlayers.contains(pair.first);
 		});
 	});
 

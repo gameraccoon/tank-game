@@ -154,11 +154,11 @@ void TankServerGame::updateHistory()
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-	std::vector<ConnectionId> players;
+	std::vector<std::pair<ConnectionId, s32>> players;
 	players.reserve(serverConnections->getClientData().size());
 	for (auto [connectionId, oneClientData] : serverConnections->getClientData())
 	{
-		players.push_back(connectionId);
+		players.emplace_back(connectionId, oneClientData.indexShift);
 	}
 
 	const std::optional<u32> firstUpdateToKeepOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(players);

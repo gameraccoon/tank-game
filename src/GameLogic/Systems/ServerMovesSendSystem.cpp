@@ -40,12 +40,12 @@ void ServerMovesSendSystem::update()
 
 	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
-	std::vector<ConnectionId> connections;
+	std::vector<std::pair<ConnectionId, s32>> connections;
 	for (auto [connectionId, clientData] : serverConnections->getClientData())
 	{
 		if (clientData.playerEntity.isValid())
 		{
-			connections.push_back(connectionId);
+			connections.emplace_back(connectionId, clientData.indexShift);
 		}
 	}
 
@@ -64,14 +64,14 @@ void ServerMovesSendSystem::update()
 	AssertFatal(time, "TimeComponent should be created before the game run");
 	const TimeData& timeValue = *time->getValue();
 
-	for (const ConnectionId connectionId : connections)
+	for (const auto& [connectionId, indexShift] : connections)
 	{
 		const std::optional<u32> lastPlayerInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
 		const u32 lastPlayerInputUpdateIdx = lastPlayerInputUpdateIdxOption.value_or(0);
 
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx),
+			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx, indexShift),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

@@ -116,6 +116,8 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
+
+	mFrameTimeCorrector.advanceOneUpdate();
 }
 
 void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
@@ -136,6 +138,11 @@ void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpda
 	}
 }
 
+std::chrono::duration<int64_t, std::milli> TankClientGame::getFrameLengthCorrection() const
+{
+	return mFrameTimeCorrector.getFrameLengthCorrection();
+}
+
 TimeData& TankClientGame::getTimeData()
 {
 	return mGameStateRewinder.getTimeData();
@@ -148,7 +155,7 @@ void TankClientGame::initSystems()
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
-	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mShouldQuitGameNextTick);
+	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mFrameTimeCorrector, mShouldQuitGameNextTick);
 	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchClientInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyConfirmedMovesSystem>(getWorldHolder(), mGameStateRewinder);
