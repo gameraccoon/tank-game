@@ -6,8 +6,6 @@
 
 #include <unordered_map>
 
-#include "Base/Types/TemplateHelpers.h"
-
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 

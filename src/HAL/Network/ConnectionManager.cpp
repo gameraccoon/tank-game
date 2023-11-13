@@ -10,7 +10,6 @@
 #include <mutex>
 #include <span>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
 #include "Base/Types/Serialization.h"
