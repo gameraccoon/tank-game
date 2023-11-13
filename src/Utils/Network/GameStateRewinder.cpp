@@ -449,6 +449,7 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, bool isFina
 		{
 			updateData.clientMovement = std::move(authoritativeMovementData);
 			updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
+			LogInfo("We got desynced movement data for update %u", updateIdx);
 		}
 
 		const Impl::OneUpdateData::SyncState newMovementDataState = isFinal ? Impl::OneUpdateData::SyncState::FinalAuthoritative : Impl::OneUpdateData::SyncState::NotFinalAuthoritative;
