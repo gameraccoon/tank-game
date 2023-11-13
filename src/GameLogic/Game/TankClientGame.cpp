@@ -134,7 +134,7 @@ void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpda
 	if (clientGameData != nullptr)
 	{
 		ConnectionId connectionId = clientGameData->getClientConnectionId();
-		mConnectionManager.flushMesssagesForServerConnection(connectionId);
+		mConnectionManager.flushMessagesForServerConnection(connectionId);
 	}
 }
 

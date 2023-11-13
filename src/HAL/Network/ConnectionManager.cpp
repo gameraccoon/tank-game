@@ -712,7 +712,7 @@ namespace HAL
 		it->second->broadcastMessage(message, except, reliability, (useNagle == UseNagle::No));
 	}
 
-	void ConnectionManager::flushMesssagesForAllClientConnections(u16 port)
+	void ConnectionManager::flushMessagesForAllClientConnections(u16 port)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		if (auto it = StaticImpl().openPorts.find(port); it != StaticImpl().openPorts.end())
@@ -794,7 +794,7 @@ namespace HAL
 		return it->second->sendMessage(message, reliability, (useNagle == UseNagle::No));
 	}
 
-	void ConnectionManager::flushMesssagesForServerConnection(ConnectionId connectionId)
+	void ConnectionManager::flushMessagesForServerConnection(ConnectionId connectionId)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		if (auto it = StaticImpl().clientServerConnections.find(connectionId); it != StaticImpl().clientServerConnections.end())

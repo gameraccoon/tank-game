@@ -155,7 +155,7 @@ namespace HAL
 		[[nodiscard]] bool isClientConnected(ConnectionId connectionId) const;
 		SendMessageResult sendMessageToClient(ConnectionId connectionId, const Message& message, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
 		void broadcastMessageToClients(u16 port, const Message& message, ConnectionId except = InvalidConnectionId, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
-		void flushMesssagesForAllClientConnections(u16 port);
+		void flushMessagesForAllClientConnections(u16 port);
 		std::vector<std::pair<ConnectionId, Message>> consumeReceivedServerMessages(u16 port);
 		void disconnectClient(ConnectionId connectionId);
 		void stopListeningToPort(u16 port);
@@ -164,7 +164,7 @@ namespace HAL
 		[[nodiscard]] ConnectResult connectToServer(const NetworkAddress& address);
 		[[nodiscard]] bool isServerConnectionOpen(ConnectionId connectionId) const;
 		SendMessageResult sendMessageToServer(ConnectionId connectionId, const Message& message, MessageReliability reliability = MessageReliability::Reliable, UseNagle useNagle = UseNagle::Yes);
-		void flushMesssagesForServerConnection(ConnectionId connectionId);
+		void flushMessagesForServerConnection(ConnectionId connectionId);
 		std::vector<std::pair<ConnectionId, Message>> consumeReceivedClientMessages(ConnectionId connectionId);
 		void dropServerConnection(ConnectionId connectionId);
 

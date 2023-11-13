@@ -111,7 +111,7 @@ void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTime
 
 	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
 
-	mConnectionManager.flushMesssagesForAllClientConnections(14436);
+	mConnectionManager.flushMessagesForAllClientConnections(14436);
 }
 
 TimeData& TankServerGame::getTimeData()
