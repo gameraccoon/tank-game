@@ -30,7 +30,7 @@ public:
 
 	bool shouldQuitGame() const final { return mShouldQuitGame; }
 	void quitGame() final { mShouldQuitGameNextTick = true; }
-	std::chrono::duration<int64_t, std::milli> getFrameLengthCorrection() const final;
+	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const final;
 
 protected:
 	TimeData& getTimeData() final;

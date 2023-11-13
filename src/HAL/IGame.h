@@ -15,6 +15,6 @@ namespace HAL
 
 		virtual void quitGame() = 0;
 		virtual bool shouldQuitGame() const = 0;
-		virtual std::chrono::duration<s64, std::milli> getFrameLengthCorrection() const = 0;
+		virtual std::chrono::duration<s64, std::micro> getFrameLengthCorrection() const = 0;
 	};
 }
