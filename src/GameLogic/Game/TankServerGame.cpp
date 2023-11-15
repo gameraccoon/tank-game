@@ -34,6 +34,8 @@
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 #include "GameLogic/Systems/ServerMovesSendSystem.h"
 #include "GameLogic/Systems/ServerNetworkSystem.h"
+#include "GameLogic/Systems/ShootingSystem.h"
+#include "GameLogic/Systems/TimeLimitedLifetimeSystem.h"
 
 TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool)
 	: Game(nullptr, resourceManager, threadPool)
@@ -127,9 +129,11 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	getGameLogicSystemsManager().registerSystem<FetchExternalCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<TimeLimitedLifetimeSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPostFrameSystemsManager().registerSystem<ServerMovesSendSystem>(getWorldHolder(), mGameStateRewinder);

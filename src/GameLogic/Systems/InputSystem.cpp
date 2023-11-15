@@ -67,7 +67,7 @@ static Input::InputBindings GetDebugInputBindings()
 	InputBindings result;
 
 	// yes, this is not efficient, but this is a temporary solution
-	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Mouse, SDL_BUTTON_LEFT));
+	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_SPACE));
 	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_RCTRL));
 
 	result.axisBindings[GameplayInput::InputAxis::MoveHorizontal].push_back(std::make_unique<NegativeButtonAxisBinding>(ControllerType::Keyboard, SDLK_LEFT));

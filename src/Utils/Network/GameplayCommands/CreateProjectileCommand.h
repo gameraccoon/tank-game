@@ -8,20 +8,11 @@
 
 namespace Network
 {
-	class CreatePlayerEntityCommand final : public GameplayCommand
+	class CreateProjectileCommand final : public GameplayCommand
 	{
 	public:
-		enum class IsOwner
-		{
-			Yes,
-			No,
-		};
-
-	public:
-		~CreatePlayerEntityCommand() = default;
-
-		[[nodiscard]] static GameplayCommand::Ptr createServerSide(Vector2D pos, NetworkEntityId networkEntityId, ConnectionId ownerConnectionId);
-		[[nodiscard]] static GameplayCommand::Ptr createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner);
+		CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId);
+		~CreateProjectileCommand() = default;
 
 		[[nodiscard]] GameplayCommandType getType() const final { return GetType(); }
 		void execute(GameStateRewinder& gameStateRewinder, World& world) const final;
@@ -31,19 +22,9 @@ namespace Network
 		static GameplayCommandType GetType();
 
 	private:
-		enum class NetworkSide {
-			Client,
-			Server,
-		};
-
-	private:
-		CreatePlayerEntityCommand(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner, ConnectionId ownerConnectionId, NetworkSide networkSide);
-
-	private:
-		const IsOwner mIsOwner;
-		const NetworkSide mNetworkSide;
 		const Vector2D mPos;
+		const Vector2D mDirection;
+		const float mSpeed;
 		const NetworkEntityId mNetworkEntityId;
-		const ConnectionId mOwnerConnectionId;
 	};
 } // namespace Network

@@ -41,6 +41,8 @@
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 #include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
+#include "GameLogic/Systems/ShootingSystem.h"
+#include "GameLogic/Systems/TimeLimitedLifetimeSystem.h"
 
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Systems/ImguiSystem.h"
@@ -162,9 +164,11 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<TimeLimitedLifetimeSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);

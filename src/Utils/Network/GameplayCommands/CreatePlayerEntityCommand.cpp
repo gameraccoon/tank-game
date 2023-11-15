@@ -30,10 +30,6 @@ namespace Network
 		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
 	}
 
-	CreatePlayerEntityCommand::~CreatePlayerEntityCommand()
-	{
-	}
-
 	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, World& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
@@ -42,10 +38,10 @@ namespace Network
 			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
 			transform->setLocation(mPos);
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-			movement->setOriginalSpeed(20.0f);
+			movement->setSpeed(20.0f);
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), ZERO_VECTOR}, "resources/textures/tank-enemy-level1-1.png");
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, "resources/textures/tank-enemy-level1-1.png");
 #endif // !DEDICATED_SERVER
 			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
@@ -90,9 +86,9 @@ namespace Network
 	GameplayCommand::Ptr CreatePlayerEntityCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
 	{
 		const IsOwner isOwner = (Serialization::ReadNumber<u8>(stream, inOutCursorPos) != 0) ? IsOwner::Yes : IsOwner::No;
-		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0);
-		const float playerPosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0);
-		const float playerPosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0);
+		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0.0f);
+		const float playerPosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
+		const float playerPosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 
 		return createClientSide(
 			Vector2D(playerPosX, playerPosY),
