@@ -11,7 +11,6 @@
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/WorldCachedDataComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
