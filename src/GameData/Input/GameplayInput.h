@@ -24,7 +24,11 @@ namespace GameplayInput
 
 	enum class InputKey
 	{
-		Shoot = 0,
+		MoveUp = 0,
+		MoveDown,
+		MoveLeft,
+		MoveRight,
+		Shoot,
 		// add new elements above this line
 		Count
 	};

@@ -5,7 +5,6 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/World.h"
 
@@ -30,7 +29,35 @@ void ControlSystem::update()
 
 		const bool isShootPressed = inputState.isKeyActive(GameplayInput::InputKey::Shoot);
 
-		const Vector2D movementDirection(inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical));
+		bool isMoveUpPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveUp);
+		bool isMoveDownPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveDown);
+		int verticalMovement = (isMoveDownPressed ? 1.0f : 0.0f) - (isMoveUpPressed ? 1.0f : 0.0f);
+		bool isMoveLeftPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveLeft);
+		bool isMoveRightPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveRight);
+		int horizontalMovement = (isMoveRightPressed ? 1.0f : 0.0f) - (isMoveLeftPressed ? 1.0f : 0.0f);
+
+		if (verticalMovement != 0 && horizontalMovement != 0)
+		{
+			// we can move only horizontally or vertically, not both
+			// decide on which button was pressed last
+			const GameplayTimestamp horizontalTimeFlip = inputState.getLastFlipTime(isMoveUpPressed ? GameplayInput::InputKey::MoveUp : GameplayInput::InputKey::MoveDown);
+			const GameplayTimestamp verticalTimeFlip = inputState.getLastFlipTime(isMoveLeftPressed ? GameplayInput::InputKey::MoveLeft : GameplayInput::InputKey::MoveRight);
+
+			if (horizontalTimeFlip < verticalTimeFlip)
+			{
+				verticalMovement = 0;
+			}
+			else
+			{
+				horizontalMovement = 0;
+			}
+		}
+
+		// if button is not pressed, use the axis value
+		const Vector2D movementDirection{
+			horizontalMovement != 0.0f ? horizontalMovement : inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal),
+			verticalMovement != 0.0f ? verticalMovement : inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical),
+		};
 
 		movement->setMoveDirection(movementDirection);
 

@@ -67,18 +67,17 @@ static Input::InputBindings GetDebugInputBindings()
 	InputBindings result;
 
 	// yes, this is not efficient, but this is a temporary solution
+
+	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_UP));
+	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_w));
+	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_DOWN));
+	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_s));
+	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_LEFT));
+	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_a));
+	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_RIGHT));
+	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_d));
 	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_SPACE));
 	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_RCTRL));
-
-	result.axisBindings[GameplayInput::InputAxis::MoveHorizontal].push_back(std::make_unique<NegativeButtonAxisBinding>(ControllerType::Keyboard, SDLK_LEFT));
-	result.axisBindings[GameplayInput::InputAxis::MoveHorizontal].push_back(std::make_unique<NegativeButtonAxisBinding>(ControllerType::Keyboard, SDLK_a));
-	result.axisBindings[GameplayInput::InputAxis::MoveHorizontal].push_back(std::make_unique<PositiveButtonAxisBinding>(ControllerType::Keyboard, SDLK_RIGHT));
-	result.axisBindings[GameplayInput::InputAxis::MoveHorizontal].push_back(std::make_unique<PositiveButtonAxisBinding>(ControllerType::Keyboard, SDLK_d));
-
-	result.axisBindings[GameplayInput::InputAxis::MoveVertical].push_back(std::make_unique<NegativeButtonAxisBinding>(ControllerType::Keyboard, SDLK_UP));
-	result.axisBindings[GameplayInput::InputAxis::MoveVertical].push_back(std::make_unique<NegativeButtonAxisBinding>(ControllerType::Keyboard, SDLK_w));
-	result.axisBindings[GameplayInput::InputAxis::MoveVertical].push_back(std::make_unique<PositiveButtonAxisBinding>(ControllerType::Keyboard, SDLK_DOWN));
-	result.axisBindings[GameplayInput::InputAxis::MoveVertical].push_back(std::make_unique<PositiveButtonAxisBinding>(ControllerType::Keyboard, SDLK_s));
 
 	return result;
 }
