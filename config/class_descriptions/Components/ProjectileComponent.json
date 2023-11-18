@@ -1,0 +1,17 @@
+{
+  "component": "projectile",
+  "description": "Component that defines a projectile",
+  "attributes": [
+    {
+      "name": "destroyTime",
+      "type": "GameplayTimestamp",
+      "includes": ["\"GameData/Time/GameplayTimestamp.h\""],
+      "flags": ["transient"]
+    },
+    {
+      "name": "ownerEntity",
+      "type": "RaccoonEcs::OptionalEntity",
+      "includes": ["\"GameData/Serialization/Json/Entity.h\""]
+    }
+  ]
+}

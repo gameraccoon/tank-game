@@ -12,6 +12,7 @@
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/WeaponComponent.generated.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
@@ -35,20 +36,26 @@ namespace Network
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity controlledEntity = worldEntityManager.addEntity();
 		{
+			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
+			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, controlledEntity);
+			networkIdMapping->getEntityToNetworkIdRef().emplace(controlledEntity, mNetworkEntityId);
+
 			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
 			transform->setLocation(mPos);
+
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
 			movement->setSpeed(20.0f);
+
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
 			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, "resources/textures/tank-enemy-level1-1.png");
 #endif // !DEDICATED_SERVER
-			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
+
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
 			networkId->setId(mNetworkEntityId);
-			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, controlledEntity);
-			networkIdMapping->getEntityToNetworkIdRef().emplace(controlledEntity, mNetworkEntityId);
+
+			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
+			worldEntityManager.addComponent<WeaponComponent>(controlledEntity);
 		}
 
 		if (mNetworkSide == NetworkSide::Server)

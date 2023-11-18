@@ -2,26 +2,24 @@
 
 #ifndef DEDICATED_SERVER
 
-#include "GameLogic/Game/TankClientGame.h"
-
 #include <unordered_map>
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
-
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 
+#include "HAL/Base/Engine.h"
+
 #include "Utils/Application/ArgumentsParser.h"
 #include "Utils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/World/GameDataLoader.h"
 
-#include "HAL/Base/Engine.h"
-
+#include "GameLogic/Game/TankClientGame.h"
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/ApplyConfirmedMovesSystem.h"
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
@@ -37,12 +35,12 @@
 #include "GameLogic/Systems/InputSystem.h"
 #include "GameLogic/Systems/MovementSystem.h"
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
+#include "GameLogic/Systems/ProjectileLifetimeSystem.h"
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 #include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 #include "GameLogic/Systems/ShootingSystem.h"
-#include "GameLogic/Systems/TimeLimitedLifetimeSystem.h"
 
 #ifdef IMGUI_ENABLED
 #include "GameLogic/Systems/ImguiSystem.h"
@@ -164,7 +162,7 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ControlSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<TimeLimitedLifetimeSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<ProjectileLifetimeSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());

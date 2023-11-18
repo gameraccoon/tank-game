@@ -11,8 +11,9 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
-#include "GameData/Components/TimeLimitedLifetimeComponent.generated.h"
+#include "GameData/Components/ProjectileComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/Components/WeaponComponent.generated.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"
@@ -21,11 +22,12 @@
 
 namespace Network
 {
-	CreateProjectileCommand::CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId)
+	CreateProjectileCommand::CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept
 		: mPos(pos)
 		, mDirection(direction)
 		, mSpeed(speed)
 		, mNetworkEntityId(networkEntityId)
+		, mOwnerNetworkEntityId(ownerNetworkEntityId)
 	{
 	}
 
@@ -34,22 +36,43 @@ namespace Network
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity projectileEntity = worldEntityManager.addEntity();
 		{
+			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
+			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, projectileEntity);
+			networkIdMapping->getEntityToNetworkIdRef().emplace(projectileEntity, mNetworkEntityId);
+
 			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(projectileEntity);
 			transform->setLocation(mPos);
+
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(projectileEntity);
 			movement->setSpeed(mSpeed);
 			movement->setMoveDirection(mDirection);
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(projectileEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), ZERO_VECTOR}, "resources/textures/spawn-1.png");
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D(0.5f, 0.5f)}, "resources/textures/spawn-1.png");
 #endif // !DEDICATED_SERVER
-			TimeLimitedLifetimeComponent* timeLimitedLifetime = worldEntityManager.addComponent<TimeLimitedLifetimeComponent>(projectileEntity);
-			timeLimitedLifetime->setDestroyTime(gameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(static_cast<s32>(1.0f / TimeConstants::ONE_FIXED_UPDATE_SEC)));
+
+			ProjectileComponent* projectile = worldEntityManager.addComponent<ProjectileComponent>(projectileEntity);
+			projectile->setDestroyTime(gameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(static_cast<s32>(1.0f / TimeConstants::ONE_FIXED_UPDATE_SEC)));
+			if (auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId); entityIt != networkIdMapping->getNetworkIdToEntity().end())
+			{
+				projectile->setOwnerEntity(entityIt->second);
+			}
+
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(projectileEntity);
 			networkId->setId(mNetworkEntityId);
-			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, projectileEntity);
-			networkIdMapping->getEntityToNetworkIdRef().emplace(projectileEntity, mNetworkEntityId);
+
+			if (mOwnerNetworkEntityId != InvalidNetworkEntityId)
+			{
+				const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId);
+				if (entityIt != networkIdMapping->getNetworkIdToEntity().end())
+				{
+					auto [weapon] = worldEntityManager.getEntityComponents<WeaponComponent>(entityIt->second);
+					if (weapon != nullptr)
+					{
+						weapon->setProjectileEntity(projectileEntity);
+					}
+				}
+			}
 		}
 	}
 
@@ -68,6 +91,7 @@ namespace Network
 		Serialization::AppendNumber<f32>(inOutStream, mDirection.x);
 		Serialization::AppendNumber<f32>(inOutStream, mDirection.y);
 		Serialization::AppendNumber<f32>(inOutStream, mSpeed);
+		Serialization::AppendNumber<u64>(inOutStream, mOwnerNetworkEntityId);
 	}
 
 	GameplayCommand::Ptr CreateProjectileCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
@@ -78,8 +102,9 @@ namespace Network
 		const float projectileDirX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 		const float projectileDirY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 		const float projectileSpeed = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
+		const NetworkEntityId ownerNetworkEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0);
 
-		return std::make_unique<CreateProjectileCommand>(Vector2D(projectilePosX, projectilePosY), Vector2D(projectileDirX, projectileDirY), projectileSpeed, serverEntityId);
+		return std::make_unique<CreateProjectileCommand>(Vector2D(projectilePosX, projectilePosY), Vector2D(projectileDirX, projectileDirY), projectileSpeed, serverEntityId, ownerNetworkEntityId);
 	}
 
 	GameplayCommandType CreateProjectileCommand::GetType()

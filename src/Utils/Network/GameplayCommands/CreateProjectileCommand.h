@@ -11,7 +11,7 @@ namespace Network
 	class CreateProjectileCommand final : public GameplayCommand
 	{
 	public:
-		CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId);
+		CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept;
 		~CreateProjectileCommand() = default;
 
 		[[nodiscard]] GameplayCommandType getType() const final { return GetType(); }
@@ -26,5 +26,6 @@ namespace Network
 		const Vector2D mDirection;
 		const float mSpeed;
 		const NetworkEntityId mNetworkEntityId;
+		const NetworkEntityId mOwnerNetworkEntityId;
 	};
 } // namespace Network

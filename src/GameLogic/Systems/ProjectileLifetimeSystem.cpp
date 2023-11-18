@@ -1,21 +1,20 @@
 #include "Base/precomp.h"
 
-#include "GameLogic/Systems/TimeLimitedLifetimeSystem.h"
+#include "GameLogic/Systems/ProjectileLifetimeSystem.h"
 
 #include "GameData/Components/DeathComponent.generated.h"
+#include "GameData/Components/ProjectileComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/TimeLimitedLifetimeComponent.generated.h"
 #include "GameData/World.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
-
-TimeLimitedLifetimeSystem::TimeLimitedLifetimeSystem(WorldHolder& worldHolder) noexcept
+ProjectileLifetimeSystem::ProjectileLifetimeSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
 {
 }
 
-void TimeLimitedLifetimeSystem::update()
+void ProjectileLifetimeSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
 	World& world = mWorldHolder.getWorld();
@@ -26,8 +25,8 @@ void TimeLimitedLifetimeSystem::update()
 
 	EntityManager& entityManager = world.getEntityManager();
 
-	entityManager.forEachComponentSetWithEntity<TimeLimitedLifetimeComponent>(
-		[currentTime, &entityManager](Entity entity, TimeLimitedLifetimeComponent* timeLimitedLifetime)
+	entityManager.forEachComponentSetWithEntity<ProjectileComponent>(
+		[currentTime, &entityManager](Entity entity, ProjectileComponent* timeLimitedLifetime)
 	{
 		if (currentTime > timeLimitedLifetime->getDestroyTime())
 		{
