@@ -1,5 +1,4 @@
 {
-	"component": "gameplayCommandFactory",
 	"description": "Component that stores gameplay component factory",
 	"flags": ["transient"],
 	"attributes": [

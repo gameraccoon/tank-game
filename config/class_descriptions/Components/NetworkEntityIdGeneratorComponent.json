@@ -1,5 +1,4 @@
 {
-	"component": "networkEntityIdGenerator",
 	"description": "Component that generates unique network entity id",
 	"flags": ["transient"],
 	"attributes": [

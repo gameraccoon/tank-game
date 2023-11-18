@@ -1,5 +1,4 @@
 {
-	"component": "clientGameData",
 	"description": "Game component that stores client-side info of one client",
 	"flags": ["transient"],
 	"attributes": [

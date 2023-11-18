@@ -1,5 +1,4 @@
 {
-  "component": "weapon",
   "description": "Component that manages shooting cooldowns and ammo type",
   "attributes": [
     {

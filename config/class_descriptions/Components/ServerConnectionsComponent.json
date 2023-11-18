@@ -1,5 +1,4 @@
 {
-	"component": "serverConnections",
 	"description": "Game component that stores information about clients on the server",
 	"flags": ["transient"],
 	"attributes": [

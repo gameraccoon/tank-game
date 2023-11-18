@@ -1,5 +1,4 @@
 {
-	"component": "connectionManager",
 	"description": "Component that stores a reference to a ConnectionManager",
 	"flags": ["transient"],
 	"attributes": [

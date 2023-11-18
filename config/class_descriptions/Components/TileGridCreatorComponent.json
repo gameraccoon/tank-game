@@ -1,5 +1,4 @@
 {
-	"component": "tileGridCreator",
 	"description": "Component that stores data needed to create a tile grid",
 	"attributes": [
 		{

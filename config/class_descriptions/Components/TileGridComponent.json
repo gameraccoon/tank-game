@@ -1,5 +1,4 @@
 {
-	"component": "tileGrid",
 	"description": "Component that stores info about a tiled grid",
 	"flags": ["transient"],
 	"attributes": [

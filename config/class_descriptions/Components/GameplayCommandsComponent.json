@@ -1,5 +1,4 @@
 {
-	"component": "gameplayCommands",
 	"description": "Component stores gameplay commands created during this frame",
 	"flags": ["transient"],
 	"attributes": [

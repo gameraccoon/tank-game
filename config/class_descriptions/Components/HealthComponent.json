@@ -1,5 +1,4 @@
 {
-	"component": "health",
 	"description": "Component that stores information about entity's health",
 	"attributes": [
 		{
