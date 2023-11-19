@@ -1,0 +1,4 @@
+{
+  "description": "Component flag that indicates that the entity should be prevented from going into other collisions",
+  "attributes": []
+}

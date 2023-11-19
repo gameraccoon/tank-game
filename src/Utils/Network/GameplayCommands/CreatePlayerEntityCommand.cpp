@@ -11,6 +11,7 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
+#include "GameData/Components/RollbackOnCollisionComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
@@ -61,6 +62,7 @@ namespace Network
 
 			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
 			worldEntityManager.addComponent<WeaponComponent>(controlledEntity);
+			worldEntityManager.addComponent<RollbackOnCollisionComponent>(controlledEntity);
 		}
 
 		if (mNetworkSide == NetworkSide::Server)

@@ -27,6 +27,7 @@
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
 #include "GameLogic/Systems/ClientNetworkSystem.h"
+#include "GameLogic/Systems/CollisionResolutionSystem.h"
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"
@@ -166,6 +167,7 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<DeadEntitiesDestructionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
+	getGameLogicSystemsManager().registerSystem<CollisionResolutionSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
