@@ -3,8 +3,11 @@
 	"attributes": [
 		{
 			"name": "geometry",
-			"type": "Hull",
-			"includes": ["\"GameData/Geometry/Hull.h\""],
+			"type": "std::vector<BoundingBox>",
+			"includes": [
+				"<vector>",
+				"\"GameData/Geometry/BoundingBox.h\""
+			],
 			"flags": ["get_by_ref"]
 		},
 		{
