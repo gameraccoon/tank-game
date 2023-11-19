@@ -1,16 +1,11 @@
 #pragma once
 
 #include "GameData/Geometry/Vector2D.h"
-
-class CollisionComponent;
-class BoundingBox;
+#include "GameData/Geometry/BoundingBox.h"
 
 namespace Collision
 {
-	bool DoCollide(const CollisionComponent* collisionA, const Vector2D& locationA,
-		const CollisionComponent* collisionB, const Vector2D& locationB);
-
-	void UpdateBoundingBox(CollisionComponent* collision);
+	bool DoCollide(BoundingBox boundingBoxA, Vector2D locationA, BoundingBox boundingBoxB, Vector2D locationB);
 
 	bool AreAABBsIntersect(const BoundingBox& boxA, const BoundingBox& boxB);
 	bool AreAABBsIntersectInclusive(const BoundingBox& boxA, const BoundingBox& boxB);

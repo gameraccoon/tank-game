@@ -1,15 +1,6 @@
 {
-	"description": "Component that stores information and logic about object collidable geometry",
+	"description": "Component that stores information and logic about object's collidable geometry",
 	"attributes": [
-		{
-			"name": "geometry",
-			"type": "std::vector<BoundingBox>",
-			"includes": [
-				"<vector>",
-				"\"GameData/Geometry/BoundingBox.h\""
-			],
-			"flags": ["get_by_ref"]
-		},
 		{
 			"name": "boundingBox",
 			"type": "BoundingBox",

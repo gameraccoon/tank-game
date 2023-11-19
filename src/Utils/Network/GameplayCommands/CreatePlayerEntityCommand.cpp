@@ -6,6 +6,7 @@
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
+#include "GameData/Components/CollisionComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
@@ -54,6 +55,9 @@ namespace Network
 
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
 			networkId->setId(mNetworkEntityId);
+
+			CollisionComponent* collision = worldEntityManager.addComponent<CollisionComponent>(controlledEntity);
+			collision->setBoundingBox(BoundingBox{Vector2D(-8, -8), Vector2D(8, 8)});
 
 			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
 			worldEntityManager.addComponent<WeaponComponent>(controlledEntity);
