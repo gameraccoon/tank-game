@@ -7,6 +7,8 @@ namespace Collision
 {
 	bool DoCollide(BoundingBox boundingBoxA, Vector2D locationA, BoundingBox boundingBoxB, Vector2D locationB);
 
-	bool AreAABBsIntersect(const BoundingBox& boxA, const BoundingBox& boxB);
-	bool AreAABBsIntersectInclusive(const BoundingBox& boxA, const BoundingBox& boxB);
+	bool IsPointInsideAABB(const BoundingBox& box, const Vector2D& point);
+
+	bool AreAABBsIntersecting(const BoundingBox& boxA, const BoundingBox& boxB);
+	bool AreAABBsIntersectingInclusive(const BoundingBox& boxA, const BoundingBox& boxB);
 }

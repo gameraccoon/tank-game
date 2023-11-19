@@ -5,7 +5,10 @@
 #include "Base/Types/TemplateAliases.h"
 
 #include "GameData/Components/CollisionComponent.generated.h"
+#include "GameData/Components/DeathComponent.generated.h"
+#include "GameData/Components/HitByProjectileComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
+#include "GameData/Components/ProjectileComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/RollbackOnCollisionComponent.generated.h"
 #include "GameData/World.h"
@@ -21,9 +24,14 @@ CollisionResolutionSystem::CollisionResolutionSystem(WorldHolder& worldHolder) n
 void CollisionResolutionSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
+	resolveMovingEntities();
+	resolveProjectileHits();
+}
+
+void CollisionResolutionSystem::resolveMovingEntities() const
+{
 	World& world = mWorldHolder.getWorld();
 
-	// resolve collisions between moving objects
 	TupleVector<const RollbackOnCollisionComponent*, const CollisionComponent*, const MovementComponent*, TransformComponent*> collisionComponents;
 	world.getEntityManager().getComponents<const RollbackOnCollisionComponent, const CollisionComponent, const MovementComponent, TransformComponent>(collisionComponents);
 
@@ -113,6 +121,55 @@ void CollisionResolutionSystem::update()
 					moveEntityBack(secondTransformComponent, secondMovementComponent);
 				}
 			}
+		}
+	}
+}
+
+void CollisionResolutionSystem::resolveProjectileHits() const
+{
+	World& world = mWorldHolder.getWorld();
+
+	TupleVector<Entity, const ProjectileComponent*, const TransformComponent*> projectiles;
+	world.getEntityManager().getComponentsWithEntities<const ProjectileComponent, const TransformComponent>(projectiles);
+
+	if (projectiles.empty())
+	{
+		return;
+	}
+
+	TupleVector<Entity, const CollisionComponent*, const TransformComponent*> collisionComponents;
+	world.getEntityManager().getComponentsWithEntities<const CollisionComponent, const TransformComponent>(collisionComponents);
+
+	std::vector<Entity> entitiesHitByProjectiles;
+	for (const auto& [projectileEntity, projectile, projectileTransform] : projectiles)
+	{
+		const Vector2D projectilePosition = projectileTransform->getLocation();
+
+		for (const auto& [entity, collision, entityTransform] : collisionComponents)
+		{
+			const BoundingBox collisionBoundingBox = collision->getBoundingBox();
+
+			if (Collision::IsPointInsideAABB(collisionBoundingBox + entityTransform->getLocation(), projectilePosition)
+				&& projectile->getOwnerEntity() != entity)
+			{
+				entitiesHitByProjectiles.push_back(entity);
+				world.getEntityManager().scheduleAddComponent<DeathComponent>(projectileEntity);
+				break;
+			}
+		}
+	}
+
+	world.getEntityManager().executeScheduledActions();
+
+	// make sure we process each entity only once
+	std::sort(entitiesHitByProjectiles.begin(), entitiesHitByProjectiles.end());
+	entitiesHitByProjectiles.erase(std::unique(entitiesHitByProjectiles.begin(), entitiesHitByProjectiles.end()), entitiesHitByProjectiles.end());
+
+	for (const auto& entity : entitiesHitByProjectiles)
+	{
+		if (!world.getEntityManager().doesEntityHaveComponent<HitByProjectileComponent>(entity))
+		{
+			world.getEntityManager().addComponent<HitByProjectileComponent>(entity);
 		}
 	}
 }

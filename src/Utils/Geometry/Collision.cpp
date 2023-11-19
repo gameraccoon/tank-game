@@ -8,16 +8,22 @@ namespace Collision
 		const BoundingBox boundingBoxB, const Vector2D locationB)
 	{
 		// if the actor's AABB intersects with the Man's AABB (in new Man location)
-		return AreAABBsIntersect(boundingBoxA + locationA, boundingBoxB + locationB);
+		return AreAABBsIntersecting(boundingBoxA + locationA, boundingBoxB + locationB);
 	}
 
-	bool AreAABBsIntersect(const BoundingBox& boxA, const BoundingBox& boxB)
+	bool IsPointInsideAABB(const BoundingBox& box, const Vector2D& point)
+	{
+		return (point.x >= box.minX && point.x <= box.maxX)
+			&& (point.y >= box.minY && point.y <= box.maxY);
+	}
+
+	bool AreAABBsIntersecting(const BoundingBox& boxA, const BoundingBox& boxB)
 	{
 		return (boxA.minX < boxB.maxX && boxA.maxX > boxB.minX)
 			&& (boxA.minY < boxB.maxY && boxA.maxY > boxB.minY);
 	}
 
-	bool AreAABBsIntersectInclusive(const BoundingBox& boxA, const BoundingBox& boxB)
+	bool AreAABBsIntersectingInclusive(const BoundingBox& boxA, const BoundingBox& boxB)
 	{
 		return (boxA.minX <= boxB.maxX && boxA.maxX >= boxB.minX)
 			&& (boxA.minY <= boxB.maxY && boxA.maxY >= boxB.minY);

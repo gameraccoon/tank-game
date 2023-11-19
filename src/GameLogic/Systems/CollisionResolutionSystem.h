@@ -16,4 +16,6 @@ public:
 
 private:
 	WorldHolder& mWorldHolder;
+	void resolveMovingEntities() const;
+	void resolveProjectileHits() const;
 };
