@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#include "Utils/Geometry/Collide.h"
+#include "Utils/Geometry/Collision.h"
 
 #include <cmath>
 #include <limits>

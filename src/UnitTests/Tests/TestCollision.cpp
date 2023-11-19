@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include "Utils/Geometry/Collide.h"
-
 #include "GameData/Components/CollisionComponent.generated.h"
+
+#include "Utils/Geometry/Collision.h"
 
 namespace TestCollisionInternal
 {
