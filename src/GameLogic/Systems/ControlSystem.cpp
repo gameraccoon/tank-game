@@ -31,10 +31,10 @@ void ControlSystem::update()
 
 		bool isMoveUpPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveUp);
 		bool isMoveDownPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveDown);
-		int verticalMovement = (isMoveDownPressed ? 1.0f : 0.0f) - (isMoveUpPressed ? 1.0f : 0.0f);
+		int verticalMovement = (isMoveDownPressed ? 1 : 0) - (isMoveUpPressed ? 1 : 0);
 		bool isMoveLeftPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveLeft);
 		bool isMoveRightPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveRight);
-		int horizontalMovement = (isMoveRightPressed ? 1.0f : 0.0f) - (isMoveLeftPressed ? 1.0f : 0.0f);
+		int horizontalMovement = (isMoveRightPressed ? 1 : 0) - (isMoveLeftPressed ? 1 : 0);
 
 		if (verticalMovement != 0 && horizontalMovement != 0)
 		{
@@ -53,17 +53,50 @@ void ControlSystem::update()
 			}
 		}
 
-		// if button is not pressed, use the axis value
-		const Vector2D movementDirection{
-			horizontalMovement != 0.0f ? horizontalMovement : inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal),
-			verticalMovement != 0.0f ? verticalMovement : inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical),
-		};
+		// if buttons are not pressed, use the axis values
+		if (verticalMovement == 0 && horizontalMovement == 0)
+		{
+			// find the biggest axis value
+			const float verticalAxisValue = inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical);
+			const float horizontalAxisValue = inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+
+			if (verticalAxisValue != 0 || horizontalAxisValue != 0)
+			{
+				if (std::abs(verticalAxisValue) > std::abs(horizontalAxisValue))
+				{
+					verticalMovement = verticalAxisValue > 0 ? 1 : -1;
+				}
+				else
+				{
+					horizontalMovement = horizontalAxisValue > 0 ? 1 : -1;
+				}
+			}
+		}
+
+		// map to movement direction
+		OptionalDirection4 movementDirection = OptionalDirection4::None;
+		if (verticalMovement < 0)
+		{
+			movementDirection = OptionalDirection4::Up;
+		}
+		else if (verticalMovement > 0)
+		{
+			movementDirection = OptionalDirection4::Down;
+		}
+		else if (horizontalMovement > 0)
+		{
+			movementDirection = OptionalDirection4::Right;
+		}
+		else if (horizontalMovement < 0)
+		{
+			movementDirection = OptionalDirection4::Left;
+		}
 
 		movement->setMoveDirection(movementDirection);
 
 		if (auto [characterState] = entityManager.getEntityComponents<CharacterStateComponent>(entity); characterState != nullptr)
 		{
-			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, !movementDirection.isZeroLength());
+			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, movementDirection != OptionalDirection4::None);
 			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isShootPressed);
 		}
 	});

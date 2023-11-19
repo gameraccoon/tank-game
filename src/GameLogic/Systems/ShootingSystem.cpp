@@ -47,7 +47,7 @@ void ShootingSystem::update()
 			if (auto entityIt = networkIdMapping->getEntityToNetworkId().find(entity); entityIt != networkIdMapping->getEntityToNetworkId().end())
 			{
 				const NetworkEntityId ownerNetworkId = entityIt->second;
-				gameplayCommands->getDataRef().list.emplace_back(std::make_unique<Network::CreateProjectileCommand>(transform->getLocation(), Vector2D(transform->getRotation()), 10.0f, projectileNetworkId, ownerNetworkId));
+				gameplayCommands->getDataRef().list.emplace_back(std::make_unique<Network::CreateProjectileCommand>(transform->getLocation(), transform->getDirection(), 1.0f, projectileNetworkId, ownerNetworkId));
 			}
 		}
 	});

@@ -2,7 +2,7 @@
 
 #include "GameLogic/Systems/CharacterStateSystem.h"
 
-#include "GameData/Enums/MoveDirection4.generated.h"
+#include "GameData/Enums/Direction4.generated.h"
 
 #include "GameData/Components/AnimationGroupsComponent.generated.h"
 #include "GameData/Components/CharacterStateComponent.generated.h"
@@ -51,7 +51,7 @@ void CharacterStateSystem::update()
 			CharacterState state = characterState->getState();
 			if (!CanMove(state))
 			{
-				movement->setMoveDirection(ZERO_VECTOR);
+				movement->setMoveDirection(OptionalDirection4::None);
 			}
 		});
 

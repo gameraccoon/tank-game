@@ -1,7 +1,7 @@
 {
 	"values": [
-		"Front",
-		"Back",
+		"Up",
+		"Down",
 		"Left",
 		"Right"
 	]

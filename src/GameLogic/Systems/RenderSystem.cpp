@@ -80,7 +80,24 @@ void RenderSystem::update()
 			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform)
 		{
 			Vector2D location = transform->getLocation() + drawShift;
-			float rotation = transform->getRotation().getValue();
+			Direction4 direction = transform->getDirection();
+			float rotation = 0.0f;
+			switch (direction)
+			{
+			case Direction4::Up:
+				rotation = 0.0f;
+				break;
+			case Direction4::Down:
+				rotation = PI;
+				break;
+			case Direction4::Left:
+				rotation = -HALF_PI;
+				break;
+			case Direction4::Right:
+				rotation = HALF_PI;
+				break;
+			}
+
 			for (const auto& data : spriteRender->getSpriteDatas())
 			{
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);

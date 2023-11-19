@@ -2,8 +2,6 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-#include "GameData/Enums/MoveDirection4.generated.h"
-
 namespace StateMachines
 {
 	static void RegisterCharacterSM(FSM::StateMachine<CharacterState, CharacterStateBlackboardKeys>& sm)

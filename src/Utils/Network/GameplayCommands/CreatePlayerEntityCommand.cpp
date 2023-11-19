@@ -42,9 +42,10 @@ namespace Network
 
 			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
 			transform->setLocation(mPos);
+			transform->setDirection(Direction4::Up);
 
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-			movement->setSpeed(20.0f);
+			movement->setSpeed(0.5f);
 
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);

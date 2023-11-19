@@ -8,10 +8,10 @@
 			"includes": ["\"GameData/Geometry/Vector2D.h\""]
 		},
 		{
-			"name": "rotation",
-			"type": "Rotator",
-			"default": " = Rotator(0.0f)",
-			"includes": ["\"GameData/Geometry/Rotator.h\""]
+			"name": "direction",
+			"type": "Direction4",
+			"default": " = Direction4::Up",
+			"includes": ["\"GameData/Enums/Direction4.generated.h\""]
 		}
 	]
 }

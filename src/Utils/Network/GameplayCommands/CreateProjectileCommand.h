@@ -3,6 +3,7 @@
 #include "Base/Types/BasicTypes.h"
 
 #include "GameData/Geometry/Vector2D.h"
+#include "GameData/Enums/Direction4.generated.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/Network/NetworkEntityId.h"
 
@@ -11,8 +12,8 @@ namespace Network
 	class CreateProjectileCommand final : public GameplayCommand
 	{
 	public:
-		CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept;
-		~CreateProjectileCommand() = default;
+		CreateProjectileCommand(Vector2D pos, Direction4 direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept;
+		~CreateProjectileCommand() override = default;
 
 		[[nodiscard]] GameplayCommandType getType() const final { return GetType(); }
 		void execute(GameStateRewinder& gameStateRewinder, World& world) const final;
@@ -23,7 +24,7 @@ namespace Network
 
 	private:
 		const Vector2D mPos;
-		const Vector2D mDirection;
+		const Direction4 mDirection;
 		const float mSpeed;
 		const NetworkEntityId mNetworkEntityId;
 		const NetworkEntityId mOwnerNetworkEntityId;
