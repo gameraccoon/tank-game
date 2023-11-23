@@ -2,7 +2,6 @@
 
 #include "GameData/World.h"
 
-#include <algorithm>
 #include <nlohmann/json.hpp>
 
 #include "GameData/Serialization/Json/ComponentSetHolder.h"
