@@ -8,6 +8,8 @@
 
 #include "HAL/Base/Types.h"
 
+class RelativeResourcePath;
+
 namespace Graphics
 {
 	class Surface;
@@ -25,7 +27,7 @@ namespace Graphics
 
 		bool isValid() const override;
 
-		static std::string GetUniqueId(const std::string& filename);
+		static std::string GetUniqueId(const RelativeResourcePath& filename);
 		static InitSteps GetInitSteps();
 		DeinitSteps getDeinitSteps() const override;
 

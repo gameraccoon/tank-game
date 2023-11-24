@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Base/Types/String/ResourcePath.h"
+
 #include "Utils/Multithreading/ThreadPool.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 
@@ -40,7 +42,7 @@ public:
 	bool renderEnabled = true;
 
 public:
-	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, Render render = Render::Enabled);
+	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& executableFolderPath, Render render = Render::Enabled);
 
 #ifndef DEDICATED_SERVER
 	void startRenderThread();

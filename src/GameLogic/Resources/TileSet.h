@@ -3,6 +3,8 @@
 #include "GameData/Resources/Resource.h"
 #include "GameData/Resources/TileSetParams.h"
 
+class RelativeResourcePath;
+
 namespace Graphics
 {
 	class TileSet : public Resource
@@ -14,7 +16,7 @@ namespace Graphics
 		bool isValid() const override;
 		const TileSetParams& getTileSetParams() const;
 
-		static std::string GetUniqueId(const std::string& filename);
+		static std::string GetUniqueId(const RelativeResourcePath& filename);
 		static InitSteps GetInitSteps();
 		DeinitSteps getDeinitSteps() const override;
 

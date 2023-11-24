@@ -51,7 +51,7 @@ namespace Network
 
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, "resources/textures/tank-enemy-level1-1.png");
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, RelativeResourcePath("resources/textures/tank-enemy-level1-1.png"));
 #endif // !DEDICATED_SERVER
 
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);

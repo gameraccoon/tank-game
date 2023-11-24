@@ -3,6 +3,8 @@
 #include "GameData/Resources/Resource.h"
 #include "GameData/Resources/TileGridParams.h"
 
+class AbsoluteResourcePath;
+
 namespace Graphics
 {
 	class TileGrid : public Resource
@@ -14,7 +16,7 @@ namespace Graphics
 		bool isValid() const override;
 		const TileGridParams& getTileGridParams() const;
 
-		static std::string GetUniqueId(const std::string& filename);
+		static std::string GetUniqueId(const AbsoluteResourcePath& filename);
 		static InitSteps GetInitSteps();
 		DeinitSteps getDeinitSteps() const override;
 

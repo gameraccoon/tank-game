@@ -2,7 +2,7 @@
 
 #ifndef DEDICATED_SERVER
 
-#include "Base/Types/String/Path.h"
+#include "Base/Types/String/ResourcePath.h"
 
 #include "GameData/Resources/Resource.h"
 
@@ -15,7 +15,7 @@ namespace Audio
 	{
 	public:
 		Music() = default;
-		explicit Music(const ResourcePath& path);
+		explicit Music(const AbsoluteResourcePath& path);
 
 		Music(const Music&) = delete;
 		Music& operator=(const Music&) = delete;

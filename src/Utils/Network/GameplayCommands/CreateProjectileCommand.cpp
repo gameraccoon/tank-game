@@ -48,7 +48,7 @@ namespace Network
 			movement->setMoveDirection(static_cast<OptionalDirection4>(mDirection));
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(projectileEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D(0.5f, 0.5f)}, "resources/textures/spawn-1.png");
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D(0.5f, 0.5f)}, RelativeResourcePath("resources/textures/spawn-1.png"));
 #endif // !DEDICATED_SERVER
 
 			ProjectileComponent* projectile = worldEntityManager.addComponent<ProjectileComponent>(projectileEntity);

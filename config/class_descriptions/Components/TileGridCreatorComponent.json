@@ -3,9 +3,9 @@
 	"attributes": [
 		{
 			"name": "gridPath",
-			"type": "std::string",
+			"type": "RelativeResourcePath",
 			"includes": [
-				"<string>"
+				"\"Base/Types/String/ResourcePath.h\""
 			],
 			"flags": ["get_by_ref"]
 		},

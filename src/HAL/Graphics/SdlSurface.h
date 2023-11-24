@@ -8,13 +8,14 @@
 #include "GameData/Resources/Resource.h"
 
 struct SDL_Surface;
+class AbsoluteResourcePath;
 
 namespace Graphics
 {
 	class Surface : public Resource
 	{
 	public:
-		explicit Surface(const std::string& filename);
+		explicit Surface(const AbsoluteResourcePath& filename);
 
 		Surface(const Surface&) = delete;
 		Surface& operator=(const Surface&) = delete;
@@ -34,7 +35,7 @@ namespace Graphics
 		void bind() const;
 		const SDL_Surface* getRawSurface() const { return mSurface; }
 
-		static std::string GetUniqueId(const std::string& filename);
+		static std::string GetUniqueId(const AbsoluteResourcePath& filename);
 		static InitSteps GetInitSteps();
 		DeinitSteps getDeinitSteps() const override;
 

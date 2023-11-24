@@ -57,8 +57,8 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	initSystems(shouldRender);
 
-	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
-	GameDataLoader::LoadGameData(getGameData(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadGameData(getGameData(), arguments.getExecutablePath(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
 	TimeComponent* timeComponent = getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());
@@ -80,7 +80,7 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 void TankServerGame::initResources()
 {
 	SCOPED_PROFILER("TankServerGame::initResources");
-	getResourceManager().loadAtlasesData("resources/atlas/atlas-list.json");
+	getResourceManager().loadAtlasesData(RelativeResourcePath("resources/atlas/atlas-list.json"));
 	Game::initResources();
 }
 

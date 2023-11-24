@@ -2,11 +2,9 @@
 
 #include "GameLogic/Resources/TileGrid.h"
 
-#include <filesystem>
-
 #include <nlohmann/json.hpp>
 
-#include "Base/Types/String/Path.h"
+#include "Base/Types/String/ResourcePath.h"
 
 #include "GameData/Resources/TileGridParams.h"
 
@@ -23,18 +21,15 @@ namespace Graphics
 		size_t firstTileId;
 	};
 
-	static TileGridLoadData LoadTileGridFromJson(const ResourcePath& path, ResourceManager& resourceManager)
+	static TileGridLoadData LoadTileGridFromJson(const AbsoluteResourcePath& path, ResourceManager& resourceManager)
 	{
 		SCOPED_PROFILER("LoadTileGridFromJson");
-		namespace fs = std::filesystem;
-		fs::path tileGridPath(static_cast<std::string>(path));
-
 		TileGridLoadData result;
-		ResourcePath pathBase;
+		AbsoluteResourcePath pathBase;
 
 		try
 		{
-			std::ifstream tileGridFile(tileGridPath);
+			std::ifstream tileGridFile(path.getAbsolutePath());
 			nlohmann::json tileGridJson;
 			tileGridFile >> tileGridJson;
 
@@ -53,13 +48,13 @@ namespace Graphics
 			for (auto& tileset : tileGridJson.at("tilesets"))
 			{
 				const std::string sourcePath = tileset.at("source").get<std::string>();
-				result.tileSetHandle = resourceManager.lockResource<TileSet>(ResourcePath(std::string("resources/tilesets/") + sourcePath));
+				result.tileSetHandle = resourceManager.lockResource<TileSet>(RelativeResourcePath("resources/tilesets/" + sourcePath));
 				result.firstTileId = tileset.at("firstgid").get<size_t>();
 			}
 		}
 		catch(const std::exception& e)
 		{
-			LogError("Can't open tile grid data '%s': %s", path.c_str(), e.what());
+			LogError("Can't open tile grid data '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
 
 		return result;
@@ -69,7 +64,7 @@ namespace Graphics
 	{
 		SCOPED_PROFILER("LoadTileGridJsonAndRequestDependencies");
 
-		const ResourcePath* pathPtr = resource.cast<ResourcePath>();
+		const AbsoluteResourcePath* pathPtr = resource.cast<AbsoluteResourcePath>();
 
 		if (!pathPtr)
 		{
@@ -77,7 +72,7 @@ namespace Graphics
 			return {};
 		}
 
-		const ResourcePath& path = *pathPtr;
+		const AbsoluteResourcePath& path = *pathPtr;
 
 		return UniqueAny::Create<TileGridLoadData>(LoadTileGridFromJson(path, resourceManager));
 	}
@@ -144,9 +139,9 @@ namespace Graphics
 		return true;
 	}
 
-	std::string TileGrid::GetUniqueId(const std::string& filename)
+	std::string TileGrid::GetUniqueId(const AbsoluteResourcePath& filename)
 	{
-		return filename;
+		return filename.getAbsolutePathStr();
 	}
 
 	Resource::InitSteps TileGrid::GetInitSteps()

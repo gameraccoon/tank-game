@@ -66,6 +66,7 @@ int main(int argc, char** argv)
 	ApplicationData applicationData(
 		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		additionalThreadsCount,
+		arguments.getExecutablePath(),
 		runGraphicalClient ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 

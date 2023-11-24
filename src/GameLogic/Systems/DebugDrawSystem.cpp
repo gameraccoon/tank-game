@@ -214,15 +214,15 @@ void DebugDrawSystem::update()
 void DebugDrawSystem::init()
 {
 	SCOPED_PROFILER("DebugDrawSystem::initResources");
-	mCollisionSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/protection-field-2.png"));
-	mNavmeshSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
-	mPointTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/protection-field-2.png"));
-	mLineTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/explosive-small-2.png"));
-	mArrowUpTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-up.png"));
-	mArrowDownTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-down.png"));
-	mArrowLeftTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-left.png"));
-	mArrowRightTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(ResourcePath("resources/textures/debug/arrow-right.png"));
-	mFontHandle = mResourceManager.lockResource<Graphics::Font>(ResourcePath("resources/fonts/prstart.ttf"), 16);
+	mCollisionSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/protection-field-2.png"));
+	mNavmeshSpriteHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/explosive-small-2.png"));
+	mPointTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/protection-field-2.png"));
+	mLineTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/explosive-small-2.png"));
+	mArrowUpTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/debug/arrow-up.png"));
+	mArrowDownTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/debug/arrow-down.png"));
+	mArrowLeftTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/debug/arrow-left.png"));
+	mArrowRightTextureHandle = mResourceManager.lockResource<Graphics::Sprite>(RelativeResourcePath("resources/textures/debug/arrow-right.png"));
+	mFontHandle = mResourceManager.lockResource<Graphics::Font>(mResourceManager.getAbsoluteResourcePath(RelativeResourcePath("resources/fonts/prstart.ttf")), 16);
 }
 
 #endif // !DEDICATED_SERVER

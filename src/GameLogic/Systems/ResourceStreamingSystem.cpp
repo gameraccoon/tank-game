@@ -85,7 +85,7 @@ void ResourceStreamingSystem::update()
 			animations[i].params = descriptions[i].params;
 			animations[i].sprites = mResourceManager.tryGetResource<Graphics::SpriteAnimationClip>(animations[i].animation)->getSprites();
 
-			AssertFatal(!animations[i].sprites.empty(), "Empty SpriteAnimation '%s'", descriptions[i].path.c_str());
+			AssertFatal(!animations[i].sprites.empty(), "Empty SpriteAnimation '%s'", descriptions[i].path.getRelativePath().c_str());
 			spriteDatas.emplace_back(descriptions[i].spriteParams, animations[i].sprites.front());
 			int id = spriteRender->getMaxSpriteId();
 			animations[i].spriteId = id;
@@ -160,7 +160,7 @@ void ResourceStreamingSystem::update()
 	{
 		TileGridComponent* tileGrid = entityManager.scheduleAddComponent<TileGridComponent>(entity);
 
-		ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(ResourcePath(tileGridCreator->getGridPath()));
+		ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
 		const Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<Graphics::TileGrid>(tileGridHandle);
 		if (tileGridResource == nullptr) {
 			return;

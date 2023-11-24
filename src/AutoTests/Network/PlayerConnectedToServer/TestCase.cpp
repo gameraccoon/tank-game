@@ -94,6 +94,7 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 	ApplicationData applicationData(
 		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		clientsCount,
+		arguments.getExecutablePath(),
 		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 

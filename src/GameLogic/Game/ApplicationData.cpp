@@ -9,11 +9,12 @@
 #include "GameLogic/Game/TankServerGame.h"
 #include "GameLogic/Render/RenderAccessor.h"
 
-ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, Render render)
+ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& executableFolderPath, Render render)
 	: WorkerThreadsCount(workerThreadsCount)
 	, ExtraThreadsCount(extraThreadsCount)
 	, RenderThreadId(ResourceLoadingThreadId + 1 + workerThreadsCount + extraThreadsCount)
 	, threadPool(workerThreadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); }, ResourceLoadingThreadId + 1)
+	, resourceManager(executableFolderPath)
 	, renderEnabled(render == Render::Enabled)
 {
 	if (renderEnabled)
