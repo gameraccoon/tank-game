@@ -14,6 +14,6 @@ namespace Network::ClientServer
 		u64 forwardedTimestamp;
 	};
 
-	HAL::ConnectionManager::Message CreateConnectMessage(u64 timestampNow);
-	ConnectMessageResult ApplyConnectMessage(GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId);
+	HAL::Network::Message CreateConnectMessage(u64 timestampNow);
+	ConnectMessageResult ApplyConnectMessage(GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId);
 } // namespace Network::ClientServer

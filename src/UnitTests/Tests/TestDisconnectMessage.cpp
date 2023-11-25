@@ -7,7 +7,7 @@
 
 TEST(DisconnectMessage, DisconnectMessageReceived_CarriesTheProvidedReason)
 {
-	HAL::ConnectionManager::Message message = Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(20u, 10u));
+	HAL::Network::Message message = Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(20u, 10u));
 
 	Network::ServerClient::DisconnectReason::Value receivedReason = Network::ServerClient::ApplyDisconnectMessage(message);
 	Network::ServerClient::DisconnectReason::Value expectedReason = Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(20u, 10u);

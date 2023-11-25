@@ -36,7 +36,7 @@ TEST(ConnectMessage, ReceiveConnectMessage_ConnectionIsAdded)
 {
 	using namespace TestConnectMessageInternal;
 
-	HAL::ConnectionManager::Message message = Network::ClientServer::CreateConnectMessage(500u);
+	HAL::Network::Message message = Network::ClientServer::CreateConnectMessage(500u);
 
 	auto serverGame = CreateServerGameInstance();
 	const ConnectionId connectionId = 1;

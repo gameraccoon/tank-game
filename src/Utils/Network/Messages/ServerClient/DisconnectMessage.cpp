@@ -46,7 +46,7 @@ namespace Network::ServerClient
 		}, reason);
 	}
 
-	HAL::ConnectionManager::Message CreateDisconnectMessage(DisconnectReason::Value reason)
+	HAL::Network::Message CreateDisconnectMessage(DisconnectReason::Value reason)
 	{
 		using namespace DisconnectMessageInternal;
 
@@ -64,13 +64,13 @@ namespace Network::ServerClient
 			[](auto){},
 		}, reason);
 
-		return HAL::ConnectionManager::Message{
+		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::Disconnect),
 			connectMessageData
 		};
 	}
 
-	DisconnectReason::Value ApplyDisconnectMessage(const HAL::ConnectionManager::Message& message)
+	DisconnectReason::Value ApplyDisconnectMessage(const HAL::Network::Message& message)
 	{
 		using namespace DisconnectMessageInternal;
 

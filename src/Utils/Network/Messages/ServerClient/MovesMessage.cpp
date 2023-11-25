@@ -32,7 +32,7 @@ namespace Network::ServerClient
 		return (bitset & (1 << bitIndex)) != 0;
 	}
 
-	HAL::ConnectionManager::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, u32 updateIdx, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx, s32 indexShift)
+	HAL::Network::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, u32 updateIdx, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx, s32 indexShift)
 	{
 		std::vector<std::byte> movesMessageData;
 
@@ -61,15 +61,15 @@ namespace Network::ServerClient
 			Serialization::AppendNumber<f32>(movesMessageData, location.y);
 		}
 
-		return HAL::ConnectionManager::Message{
+		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::EntityMove),
 			movesMessageData
 		};
 	}
 
-	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, const HAL::ConnectionManager::Message& message)
+	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, const HAL::Network::Message& message)
 	{
-		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
+		size_t streamIndex = HAL::Network::Message::payloadStartPos;
 		u32 lastReceivedInputUpdateIdx = 0;
 		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
 		const bool hasMissingInput = isBitSet<u8, 0>(bitset);

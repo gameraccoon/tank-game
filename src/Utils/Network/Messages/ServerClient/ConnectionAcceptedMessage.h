@@ -8,6 +8,6 @@ class GameStateRewinder;
 
 namespace Network::ServerClient
 {
-	HAL::ConnectionManager::Message CreateConnectionAcceptedMessage(u32 updateIdx, u64 forwardedTimestamp);
-	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, u64 timestampNow, const HAL::ConnectionManager::Message& message);
+	HAL::Network::Message CreateConnectionAcceptedMessage(u32 updateIdx, u64 forwardedTimestamp);
+	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, u64 timestampNow, const HAL::Network::Message& message);
 } // namespace Network::ServerClient

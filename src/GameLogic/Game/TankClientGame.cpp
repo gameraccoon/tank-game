@@ -57,7 +57,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 
 	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
-	std::optional<HAL::ConnectionManager::NetworkAddress> newNetworkAddress = HAL::ConnectionManager::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
+	std::optional<HAL::Network::NetworkAddress> newNetworkAddress = HAL::Network::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
 	if (newNetworkAddress.has_value())
 	{
 		mServerAddress = *newNetworkAddress;

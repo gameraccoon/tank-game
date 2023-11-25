@@ -13,7 +13,7 @@
 
 namespace Network::ServerClient
 {
-	HAL::ConnectionManager::Message CreateGameplayCommandsMessage(World& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
+	HAL::Network::Message CreateGameplayCommandsMessage(World& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
 	{
 		std::vector<std::byte> messageData;
 
@@ -33,13 +33,13 @@ namespace Network::ServerClient
 			gameplayCommand->serverSerialize(world, messageData, connectionId);
 		}
 
-		return HAL::ConnectionManager::Message{
+		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::GameplayCommand),
 			std::move(messageData)
 		};
 	}
 
-	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const HAL::ConnectionManager::Message& message)
+	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const HAL::Network::Message& message)
 	{
 		size_t streamIndex = message.payloadStartPos;
 

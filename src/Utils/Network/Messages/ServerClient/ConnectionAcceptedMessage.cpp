@@ -15,22 +15,22 @@
 
 namespace Network::ServerClient
 {
-	HAL::ConnectionManager::Message CreateConnectionAcceptedMessage(u32 updateIdx, u64 forwardedTimestamp)
+	HAL::Network::Message CreateConnectionAcceptedMessage(u32 updateIdx, u64 forwardedTimestamp)
 	{
 		std::vector<std::byte> connectMessageData;
 
 		Serialization::AppendNumber<u32>(connectMessageData, updateIdx);
 		Serialization::AppendNumber<u64>(connectMessageData, forwardedTimestamp);
 
-		return HAL::ConnectionManager::Message{
+		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::ConnectionAccepted),
 			connectMessageData
 		};
 	}
 
-	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, u64 timestampNow, const HAL::ConnectionManager::Message& message)
+	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, u64 timestampNow, const HAL::Network::Message& message)
 	{
-		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
+		size_t streamIndex = HAL::Network::Message::payloadStartPos;
 		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 		const u64 sentTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
 		// time in microseconds

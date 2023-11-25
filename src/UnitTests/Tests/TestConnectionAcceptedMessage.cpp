@@ -35,7 +35,7 @@ TEST(ConnectionAcceptedMessage, HistoryWithSingleRecord_ConnectionAcceptedMessag
 {
 	using namespace TestConnectionAcceptedMessageInternal;
 
-	HAL::ConnectionManager::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
+	HAL::Network::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
 
 	auto clientGame = CreateClientGameInstance();
 
@@ -50,7 +50,7 @@ TEST(ConnectionAcceptedMessage, HistoryWithEnoughOldRecords_ConnectionAcceptedMe
 {
 	using namespace TestConnectionAcceptedMessageInternal;
 
-	HAL::ConnectionManager::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
+	HAL::Network::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
 
 	auto clientGame = CreateClientGameInstance();
 	for (u32 i = 0; i < 19; ++i)

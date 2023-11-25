@@ -28,6 +28,6 @@ namespace Network::ServerClient
 
 	[[nodiscard]] std::string ReasonToString(const DisconnectReason::Value& reason);
 
-	HAL::ConnectionManager::Message CreateDisconnectMessage(DisconnectReason::Value reason);
-	DisconnectReason::Value ApplyDisconnectMessage(const HAL::ConnectionManager::Message& message);
+	HAL::Network::Message CreateDisconnectMessage(DisconnectReason::Value reason);
+	DisconnectReason::Value ApplyDisconnectMessage(const HAL::Network::Message& message);
 } // namespace Network::ServerClient

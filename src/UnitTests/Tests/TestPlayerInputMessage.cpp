@@ -64,7 +64,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 4u;
 	}
 
-	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
+	HAL::Network::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance(GameStateRewinder::HistoryType::Server);
@@ -134,7 +134,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 		clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 4u;
 	}
 
-	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
+	HAL::Network::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance(GameStateRewinder::HistoryType::Server);
@@ -233,7 +233,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 
 	// keep only two inputs from above
 	clientGame->stateRewinder.trimOldUpdates(6u);
-	HAL::ConnectionManager::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
+	HAL::Network::Message message = Network::ClientServer::CreatePlayerInputMessage(clientGame->stateRewinder);
 
 	{
 		auto serverGame = CreateGameInstance(GameStateRewinder::HistoryType::Server);

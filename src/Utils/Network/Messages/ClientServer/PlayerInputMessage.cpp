@@ -15,9 +15,9 @@
 
 namespace Network::ClientServer
 {
-	HAL::ConnectionManager::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
+	HAL::Network::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
-		HAL::ConnectionManager::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
+		HAL::Network::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
 
 		// at this point we already has input for the next frame (at least, may be more)
 		const u32 lastInputUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex + 1;
@@ -46,9 +46,9 @@ namespace Network::ClientServer
 		return oldFrameIndex + 10 > newFrameIndex;
 	}
 
-	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 	{
-		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
+		size_t streamIndex = HAL::Network::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();

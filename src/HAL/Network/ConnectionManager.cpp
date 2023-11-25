@@ -12,7 +12,6 @@
 #include <unordered_map>
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
-#include "Base/Types/Serialization.h"
 
 namespace HAL
 {
@@ -43,7 +42,7 @@ namespace HAL
 			}
 		}
 
-		static ConnectionManager::SendMessageResult SendMessage(HSteamNetConnection connection, const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		static ConnectionManager::SendMessageResult SendMessage(HSteamNetConnection connection, const Network::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			int sendFlags;
 			switch (reliability)
@@ -146,7 +145,7 @@ namespace HAL
 			mPollGroup = k_HSteamNetPollGroup_Invalid;
 		}
 
-		ConnectionManager::SendMessageResult sendMessage(ConnectionId connectionId, const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		ConnectionManager::SendMessageResult sendMessage(ConnectionId connectionId, const Network::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			const auto clientIt = mClientsByConnectionId.find(connectionId);
 			if (clientIt == mClientsByConnectionId.end())
@@ -158,7 +157,7 @@ namespace HAL
 			return ConnectionManagerInternal::SendMessage(clientIt->second, message, reliability, noNagle);
 		}
 
-		void broadcastMessage(const ConnectionManager::Message& message, ConnectionId except, ConnectionManager::MessageReliability reliability, bool noNagle)
+		void broadcastMessage(const Network::Message& message, ConnectionId except, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			for (auto [connection, connectionId] : mClients)
 			{
@@ -177,7 +176,7 @@ namespace HAL
 			}
 		}
 
-		void pollIncomingMessages(std::vector<std::pair<ConnectionId, ConnectionManager::Message>>& inOutMessages)
+		void pollIncomingMessages(std::vector<std::pair<ConnectionId, Network::Message>>& inOutMessages)
 		{
 			const int FETCH_TRIES = 20;
 			const int MAX_MSGS_PER_FETCH = 50;
@@ -373,7 +372,7 @@ namespace HAL
 			mOnDisconnected(mConnectionId);
 		}
 
-		ConnectionManager::SendMessageResult sendMessage(const ConnectionManager::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
+		ConnectionManager::SendMessageResult sendMessage(const Network::Message& message, ConnectionManager::MessageReliability reliability, bool noNagle)
 		{
 			return ConnectionManagerInternal::SendMessage(mConnection, message, reliability, noNagle);
 		}
@@ -383,7 +382,7 @@ namespace HAL
 			mSteamNetworkingSockets->FlushMessagesOnConnection(mConnection);
 		}
 
-		void pollIncomingMessages(std::vector<std::pair<ConnectionId, ConnectionManager::Message>>& inOutMessages)
+		void pollIncomingMessages(std::vector<std::pair<ConnectionId, Network::Message>>& inOutMessages)
 		{
 			const int FETCH_TRIES = 20;
 			const int MAX_MSGS_PER_FETCH = 50;
@@ -534,100 +533,6 @@ namespace HAL
 		}
 	};
 
-	struct ConnectionManager::NetworkAddress::Impl
-	{
-		SteamNetworkingIPAddr addr;
-	};
-
-	ConnectionManager::NetworkAddress::NetworkAddress(std::unique_ptr<Impl>&& pimpl)
-		: mPimpl(std::move(pimpl))
-	{
-	}
-
-	ConnectionManager::NetworkAddress::NetworkAddress(const NetworkAddress& other)
-		: mPimpl(std::make_unique<ConnectionManager::NetworkAddress::Impl>(other.mPimpl->addr))
-	{
-	}
-
-	ConnectionManager::NetworkAddress& ConnectionManager::NetworkAddress::operator=(const NetworkAddress& other)
-	{
-		mPimpl->addr = other.mPimpl->addr;
-		return *this;
-	}
-
-	ConnectionManager::NetworkAddress::~NetworkAddress() = default;
-
-	std::optional<ConnectionManager::NetworkAddress> ConnectionManager::NetworkAddress::FromString(const std::string& str)
-	{
-		SteamNetworkingIPAddr addr;
-		if (SteamNetworkingIPAddr_ParseString(&addr, str.c_str()))
-		{
-			return ConnectionManager::NetworkAddress(std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr));
-		}
-
-		return std::nullopt;
-	}
-
-	ConnectionManager::NetworkAddress ConnectionManager::NetworkAddress::Ipv4(std::array<u8, 4> address, u16 port)
-	{
-		SteamNetworkingIPAddr addr;
-		const uint32 ipAddressNumber = (address[0] << (3*8)) + (address[1] << (2*8)) + (address[2] << 8) + (address[3]);
-		addr.SetIPv4(ipAddressNumber, port);
-		return ConnectionManager::NetworkAddress{ std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr) };
-	}
-
-	ConnectionManager::NetworkAddress ConnectionManager::NetworkAddress::Ipv6(std::array<u8, 16> address, u16 port)
-	{
-		SteamNetworkingIPAddr addr;
-		addr.SetIPv6(address.data(), port);
-		return ConnectionManager::NetworkAddress{ std::make_unique<ConnectionManager::NetworkAddress::Impl>(addr) };
-	}
-
-	ConnectionManager::Message::Message(u32 type)
-	{
-		setMessageType(type);
-	}
-
-	ConnectionManager::Message::Message(std::byte* rawData, size_t rawDataSize)
-		: data(rawData, rawData + rawDataSize)
-		, cursorPos(rawDataSize)
-	{
-	}
-
-	ConnectionManager::Message::Message(u32 type, const std::vector<std::byte>& payload)
-	{
-		resize(payload.size());
-		setMessageType(type);
-		std::copy(payload.begin(), payload.end(), data.begin() + payloadStartPos);
-	}
-
-	void ConnectionManager::Message::resize(size_t payloadSize)
-	{
-		data.resize(headerSize + payloadSize);
-	}
-
-	void ConnectionManager::Message::reserve(size_t payloadSize)
-	{
-		data.reserve(headerSize + payloadSize);
-	}
-
-	void ConnectionManager::Message::setMessageType(u32 type)
-	{
-		if (data.size() < headerSize)
-		{
-			resize(0);
-		}
-
-		size_t headerCursorPos = 0;
-		Serialization::WriteNumber<u32>(data, type, headerCursorPos);
-	}
-
-	u32 ConnectionManager::Message::readMessageType() const
-	{
-		size_t headerCursorPos = 0;
-		return Serialization::ReadNumber<u32>(data, headerCursorPos).value_or(0);
-	}
-
 	ConnectionManager::ConnectionManager() = default;
 
 	ConnectionManager::~ConnectionManager()
@@ -686,7 +591,7 @@ namespace HAL
 		return StaticImpl().serverClientConnections.contains(connectionId);
 	}
 
-	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, const Message& message, MessageReliability reliability, UseNagle useNagle)
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		auto it = StaticImpl().serverClientConnections.find(connectionId);
@@ -698,7 +603,7 @@ namespace HAL
 		return it->second->sendMessage(connectionId, message, reliability, (useNagle == UseNagle::No));
 	}
 
-	void ConnectionManager::broadcastMessageToClients(u16 port, const Message& message, ConnectionId except, MessageReliability reliability, UseNagle useNagle)
+	void ConnectionManager::broadcastMessageToClients(u16 port, const Network::Message& message, ConnectionId except, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 
@@ -720,9 +625,9 @@ namespace HAL
 		}
 	}
 
-	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedServerMessages(u16 port)
+	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedServerMessages(u16 port)
 	{
-		std::vector<std::pair<ConnectionId, ConnectionManager::Message>> result;
+		std::vector<std::pair<ConnectionId, Network::Message>> result;
 		std::lock_guard l(StaticImpl().dataMutex);
 		if (auto it = StaticImpl().openPorts.find(port); it != StaticImpl().openPorts.end())
 		{
@@ -757,16 +662,16 @@ namespace HAL
 		mOpenedPorts.erase(port);
 	}
 
-	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const NetworkAddress& address)
+	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const Network::NetworkAddress& address)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 
-		const ConnectionManager::ConnectResult connectionResult = StaticImpl().addClientToServerConnection(address.mPimpl->addr);
+		const ConnectionManager::ConnectResult connectionResult = StaticImpl().addClientToServerConnection(address.getInternalAddress());
 
 		if (connectionResult.status != ConnectionManager::ConnectResult::Status::Success)
 		{
 			char buf[50];
-			SteamNetworkingIPAddr_ToString(&address.mPimpl->addr, buf, 50, true);
+			SteamNetworkingIPAddr_ToString(&address.getInternalAddress(), buf, 50, true);
 			ReportError("Can't connect to %s", buf);
 		}
 
@@ -781,7 +686,7 @@ namespace HAL
 		return StaticImpl().clientServerConnections.contains(connectionId);
 	}
 
-	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, const Message& message, MessageReliability reliability, UseNagle useNagle)
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle useNagle)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		auto it = StaticImpl().clientServerConnections.find(connectionId);
@@ -802,10 +707,10 @@ namespace HAL
 		}
 	}
 
-	std::vector<std::pair<ConnectionId, ConnectionManager::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
+	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
-		std::vector<std::pair<ConnectionId, ConnectionManager::Message>> result;
+		std::vector<std::pair<ConnectionId, Network::Message>> result;
 		if (auto connectionPairIt = StaticImpl().clientServerConnections.find(connectionId); connectionPairIt != StaticImpl().clientServerConnections.end())
 		{
 			connectionPairIt->second->pollIncomingMessages(result);
@@ -856,7 +761,7 @@ namespace HAL
 		StaticImpl().closeAllConnections();
 	}
 
-	void ConnectionManager::SetDebugBehavior(const DebugBehavior& debugBehavior)
+	void ConnectionManager::SetDebugBehavior(const Network::DebugBehavior& debugBehavior)
 	{
 		std::lock_guard l(StaticImpl().dataMutex);
 		SteamNetworkingUtils()->SetGlobalConfigValueFloat(k_ESteamNetworkingConfig_FakePacketLoss_Send, debugBehavior.packetLossPct_Send);

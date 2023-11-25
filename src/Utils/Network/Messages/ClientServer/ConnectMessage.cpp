@@ -14,24 +14,24 @@
 
 namespace Network::ClientServer
 {
-	HAL::ConnectionManager::Message CreateConnectMessage(u64 timestampNow)
+	HAL::Network::Message CreateConnectMessage(u64 timestampNow)
 	{
 		std::vector<std::byte> connectMessageData;
 
 		Serialization::AppendNumber<u32>(connectMessageData, Network::NetworkProtocolVersion);
 		Serialization::AppendNumber<u64>(connectMessageData, timestampNow);
 
-		return HAL::ConnectionManager::Message{
+		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::Connect),
 			connectMessageData
 		};
 	}
 
-	ConnectMessageResult ApplyConnectMessage(GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+	ConnectMessageResult ApplyConnectMessage(GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 	{
 		ConnectMessageResult result;
 
-		size_t streamIndex = HAL::ConnectionManager::Message::payloadStartPos;
+		size_t streamIndex = HAL::Network::Message::payloadStartPos;
 		result.clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
 		result.forwardedTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
 

@@ -21,7 +21,7 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 {
 	if (arguments.hasArgument("net-lag"))
 	{
-		HAL::ConnectionManager::DebugBehavior networkDebugBehavior;
+		HAL::Network::DebugBehavior networkDebugBehavior;
 		const int latency = arguments.getIntArgumentValue("net-lag").getValueOr(100);
 		networkDebugBehavior.packetLagMs_Recv = latency/2;
 		networkDebugBehavior.packetLagMs_Send = latency/2;

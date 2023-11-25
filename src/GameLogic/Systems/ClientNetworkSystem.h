@@ -17,7 +17,7 @@ public:
 	ClientNetworkSystem(
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
-		const HAL::ConnectionManager::NetworkAddress& serverAddress,
+		const HAL::Network::NetworkAddress& serverAddress,
 		FrameTimeCorrector& frameTimeCorrector,
 		bool& shouldQuitGame
 	) noexcept;
@@ -27,7 +27,7 @@ public:
 private:
 	WorldHolder& mWorldHolder;
 	GameStateRewinder& mGameStateRewinder;
-	HAL::ConnectionManager::NetworkAddress mServerAddress;
+	HAL::Network::NetworkAddress mServerAddress;
 	FrameTimeCorrector& mFrameTimeCorrector;
 	bool& mShouldQuitGameRef;
 };

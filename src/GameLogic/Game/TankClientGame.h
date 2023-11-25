@@ -48,7 +48,7 @@ private:
 	bool mShouldQuitGame = false;
 	FrameTimeCorrector mFrameTimeCorrector;
 
-	HAL::ConnectionManager::NetworkAddress mServerAddress{HAL::ConnectionManager::NetworkAddress::Ipv4({127, 0, 0, 1}, 14436)};
+	HAL::Network::NetworkAddress mServerAddress{HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, 14436)};
 
 #ifdef IMGUI_ENABLED
 	ImguiDebugData mImguiDebugData{getWorldHolder(), getComponentFactory(), {}, {}};

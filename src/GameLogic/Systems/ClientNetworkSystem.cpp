@@ -24,7 +24,7 @@
 ClientNetworkSystem::ClientNetworkSystem(
 	WorldHolder& worldHolder,
 	GameStateRewinder& gameStateRewinder,
-	const HAL::ConnectionManager::NetworkAddress& serverAddress,
+	const HAL::Network::NetworkAddress& serverAddress,
 	FrameTimeCorrector& frameTimeCorrector,
 	bool& shouldQuitGame
 ) noexcept

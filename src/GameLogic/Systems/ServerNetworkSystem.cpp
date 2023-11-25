@@ -43,7 +43,7 @@ static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewind
 	);
 }
 
-static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& world, GameStateRewinder& gameStateRewinder, const HAL::ConnectionManager::Message& message, ConnectionId connectionId)
+static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 {
 	const Network::ClientServer::ConnectMessageResult result = Network::ClientServer::ApplyConnectMessage(gameStateRewinder, message, connectionId);
 	if (result.clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
