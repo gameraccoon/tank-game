@@ -7,7 +7,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 # parameters
 option(DEBUG_CHECKS "Enable debug checks and assertions" ON)
-option(ENABLE_SCOPED_PROFILER "Enable pfofiler that records time of execution of scopes across threads" OFF)
+option(ENABLE_SCOPED_PROFILER "Enable profiler that records time of execution of scopes across threads" OFF)
 option(MEMLEAK_DETECTION "Enable memory leaks detection code (slow)" OFF)
 option(MEMLEAK_REDEFINE_NEW "Redefine default new (provide more detailed info but can conflict with some libs)" OFF)
 option(CONCURRENT_ACCESS_DETECTION "Enable concurrent access detection" ON)
@@ -15,6 +15,7 @@ option(IMGUI_ENABLED "Enable imgui in the build" ON)
 option(DEDICATED_SERVER "Are we building dedicated server" OFF)
 option(BUILD_UNIT_TESTS "Build unit-tests with normal build" ON)
 option(ENABLE_UNITY_BUILD "Should the sources be built with unity build" ON)
+option(FAKE_NETWORK "Should faked network be used instead of real networking" OFF)
 CMAKE_DEPENDENT_OPTION(BUILD_AUTO_TESTS "Build AutoTests project with normal build" ON "NOT DEDICATED_SERVER" OFF)
 CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DEDICATED_SERVER" OFF)
 
@@ -76,6 +77,10 @@ endif()
 if (CONCURRENT_ACCESS_DETECTION)
 	add_definitions(-DCONCURRENT_ACCESS_DETECTION)
 endif(CONCURRENT_ACCESS_DETECTION)
+
+if (FAKE_NETWORK)
+	add_definitions(-DFAKE_NETWORK)
+endif()
 
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
@@ -179,27 +184,29 @@ if (IMGUI_ENABLED)
 endif()
 
 # GameNetworkingSockets
-include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
-if (NOT WIN32)
-	set(BUILD_STATIC_LIB OFF)
-	add_subdirectory(${EXTERNALS_DIR}/sources/GameNetworkingSockets)
-	# hide options of GameNetworkingSockets from project Cmake GUI
-	mark_option_internal(BUILD_STATIC_LIB)
-	mark_option_internal(BUILD_SHARED_LIB)
-	mark_option_internal(BUILD_EXAMPLES)
-	mark_option_internal(BUILD_TESTS)
-	mark_option_internal(BUILD_TOOLS)
-	mark_option_internal(LTO)
-	mark_option_internal(ENABLE_ICE)
-	mark_option_internal(USE_STEAMWEBRTC)
-	mark_option_internal(Protobuf_USE_STATIC_LIBS)
-	mark_option_internal(MSVC_CRT_STATIC)
-	mark_option_internal(USE_CRYPTO)
-	mark_option_internal(SANITIZE_ADDRESS)
-	mark_option_internal(SANITIZE_MEMORY)
-	mark_option_internal(SANITIZE_LINK_STATIC)
-	mark_option_internal(SANITIZE_THREAD)
-	mark_option_internal(SANITIZE_UNDEFINED)
+if (NOT FAKE_NETWORK)
+	include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
+	if (NOT WIN32)
+		set(BUILD_STATIC_LIB OFF)
+		add_subdirectory(${EXTERNALS_DIR}/sources/GameNetworkingSockets)
+		# hide options of GameNetworkingSockets from project Cmake GUI
+		mark_option_internal(BUILD_STATIC_LIB)
+		mark_option_internal(BUILD_SHARED_LIB)
+		mark_option_internal(BUILD_EXAMPLES)
+		mark_option_internal(BUILD_TESTS)
+		mark_option_internal(BUILD_TOOLS)
+		mark_option_internal(LTO)
+		mark_option_internal(ENABLE_ICE)
+		mark_option_internal(USE_STEAMWEBRTC)
+		mark_option_internal(Protobuf_USE_STATIC_LIBS)
+		mark_option_internal(MSVC_CRT_STATIC)
+		mark_option_internal(USE_CRYPTO)
+		mark_option_internal(SANITIZE_ADDRESS)
+		mark_option_internal(SANITIZE_MEMORY)
+		mark_option_internal(SANITIZE_LINK_STATIC)
+		mark_option_internal(SANITIZE_THREAD)
+		mark_option_internal(SANITIZE_UNDEFINED)
+	endif()
 endif()
 
 set(GENERAL_PROJECT_LIBS
@@ -208,9 +215,14 @@ set(GENERAL_PROJECT_LIBS
 	Utils
 	GameData
 	Base
-
-	GameNetworkingSockets
 )
+
+if (NOT FAKE_NETWORK)
+	set(GENERAL_PROJECT_LIBS
+		${GENERAL_PROJECT_LIBS}
+		GameNetworkingSockets
+	)
+endif()
 
 if (NOT DEDICATED_SERVER)
 	set(GENERAL_PROJECT_LIBS

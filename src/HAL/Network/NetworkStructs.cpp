@@ -10,6 +10,7 @@ namespace HAL
 {
 	namespace Network
 	{
+#ifndef FAKE_NETWORK
 		struct NetworkAddress::Impl
 		{
 			SteamNetworkingIPAddr addr;
@@ -58,10 +59,93 @@ namespace HAL
 			addr.SetIPv6(address.data(), port);
 			return NetworkAddress{ std::make_unique<NetworkAddress::Impl>(addr) };
 		}
+
 		const SteamNetworkingIPAddr& NetworkAddress::getInternalAddress() const
 		{
 			return mPimpl->addr;
 		}
+#else
+		struct NetworkAddress::Impl
+		{
+			std::vector<std::byte> addr;
+		};
+
+		NetworkAddress::NetworkAddress(const NetworkAddress& other)
+			: mPimpl(std::make_unique<NetworkAddress::Impl>(*other.mPimpl))
+		{
+		}
+
+		NetworkAddress& NetworkAddress::operator=(const NetworkAddress& other)
+		{
+			mPimpl->addr = other.mPimpl->addr;
+			return *this;
+		}
+
+		NetworkAddress::~NetworkAddress() = default;
+
+		std::optional<NetworkAddress> NetworkAddress::FromString(const std::string& str)
+		{
+			NetworkAddress result{std::make_unique<NetworkAddress::Impl>()};
+			// split string by ':'
+			auto colonPos = str.find(':');
+			std::string ipStr = str.substr(0, colonPos);
+			std::string portStr = str.substr(colonPos + 1);
+			std::string::size_type pos = 0;
+			std::string::size_type prev = 0;
+			while ((pos = ipStr.find('.', prev)) != std::string::npos)
+			{
+				result.mPimpl->addr.push_back(static_cast<std::byte>(atoi(ipStr.substr(prev, pos - prev).c_str())));
+				prev = pos + 1;
+			}
+			result.mPimpl->addr.push_back(static_cast<std::byte>(atoi(ipStr.substr(prev, pos - prev).c_str())));
+
+			result.mPimpl->addr.push_back(static_cast<std::byte>(atoi(portStr.c_str()) & 0xFF));
+			result.mPimpl->addr.push_back(static_cast<std::byte>((atoi(portStr.c_str()) >> 8) & 0xFF));
+
+			return result;
+		}
+
+		NetworkAddress NetworkAddress::Ipv4(std::array<u8, 4> address, u16 port)
+		{
+			std::vector<std::byte> data;
+			data.reserve(4 + 2);
+			std::transform(address.begin(), address.end(), std::back_inserter(data), [](u8 byte) { return static_cast<std::byte>(byte); });
+			data.push_back(static_cast<std::byte>(port & 0xFF));
+			data.push_back(static_cast<std::byte>((port >> 8) & 0xFF));
+			return NetworkAddress{ std::make_unique<NetworkAddress::Impl>(std::move(data)) };
+		}
+
+		NetworkAddress NetworkAddress::Ipv6(std::array<u8, 16> /*address*/, u16 /*port*/)
+		{
+			ReportFatalError("Not implemented");
+			return NetworkAddress({});
+		}
+
+		NetworkAddress::NetworkAddress(std::unique_ptr<Impl>&& pimpl)
+			: mPimpl(std::move(pimpl))
+		{
+		}
+
+		bool NetworkAddress::isLocalhost() const
+		{
+			if (mPimpl->addr.size() == 6)
+			{
+				return mPimpl->addr[0] == std::byte{ 127 } && mPimpl->addr[1] == std::byte{ 0 } && mPimpl->addr[2] == std::byte{ 0 } && mPimpl->addr[3] == std::byte{ 1 };
+			}
+			// ToDo: IPv6
+			return false;
+		}
+
+		u16 NetworkAddress::getPort() const
+		{
+			if (mPimpl->addr.size() < 6)
+			{
+				return 0;
+			}
+			return static_cast<u16>(mPimpl->addr[4]) + (static_cast<u16>(mPimpl->addr[5]) << 8);
+		}
+
+#endif // FAKE_NETWORK
 
 		Message::Message(u32 type)
 		{

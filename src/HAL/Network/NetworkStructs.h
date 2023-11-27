@@ -19,7 +19,12 @@ namespace HAL
 			static NetworkAddress Ipv4(std::array<u8, 4> addr, u16 port);
 			static NetworkAddress Ipv6(std::array<u8, 16> addr, u16 port);
 
+#ifndef FAKE_NETWORK
 			const SteamNetworkingIPAddr& getInternalAddress() const;
+#else
+			bool isLocalhost() const;
+			u16 getPort() const;
+#endif // FAKE_NETWORK
 
 		private:
 			struct Impl;
@@ -45,7 +50,7 @@ namespace HAL
 			// cursorPos will be used to determine the size of the data that we want to send
 			// if cursorPos == 0, then we send all the data
 			// if cursorPos == payloadStartPos or cursorPos == headerSize then only header with the empty data will be sent
-			// otherwise the the data before cursorPos is sent
+			// otherwise the data before cursorPos is sent
 			size_t cursorPos = 0;
 
 			Message() = default;

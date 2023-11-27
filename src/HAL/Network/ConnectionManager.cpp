@@ -2,6 +2,8 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+#ifndef FAKE_NETWORK
+
 #include <steam/steamnetworkingsockets.h>
 #include <steam/isteamnetworkingutils.h>
 
@@ -792,3 +794,203 @@ namespace HAL
 		return instance;
 	}
 }
+
+#else // FAKE_NETWORK
+
+#include "HAL/Network/Debug/FakeNetwork.h"
+
+#include <chrono>
+
+namespace HAL
+{
+	struct ConnectionManager::Impl
+	{
+		FakeNetworkManager fakeNetworkManager;
+	};
+
+	ConnectionManager::ConnectionManager() = default;
+	ConnectionManager::~ConnectionManager() = default;
+
+	ConnectionManager::OpenPortResult ConnectionManager::startListeningToPort(u16 port)
+	{
+		const FakeNetworkManager::OpenPortResult result = StaticImpl().fakeNetworkManager.startListeningToPort(port);
+
+		switch (result.status)
+		{
+			case FakeNetworkManager::OpenPortResult::Status::Success:
+				return { ConnectionManager::OpenPortResult::Status::Success };
+			case FakeNetworkManager::OpenPortResult::Status::AlreadyOpened:
+				return { ConnectionManager::OpenPortResult::Status::AlreadyOpened };
+			default:
+				return { ConnectionManager::OpenPortResult::Status::UnknownFailure };
+		}
+	}
+
+	bool ConnectionManager::isPortOpen(u16 port) const
+	{
+		return StaticImpl().fakeNetworkManager.isPortOpen(port);
+	}
+
+	bool ConnectionManager::isClientConnected(ConnectionId connectionId) const
+	{
+		return StaticImpl().fakeNetworkManager.isConnectionOpen(connectionId);
+	}
+
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle /*useNagle*/)
+	{
+		const FakeNetworkManager::MessageReliability fakeReliability = [reliability]()
+		{
+			switch (reliability)
+			{
+				case ConnectionManager::MessageReliability::Reliable:
+					return FakeNetworkManager::MessageReliability::Reliable;
+				case ConnectionManager::MessageReliability::Unreliable:
+					return FakeNetworkManager::MessageReliability::Unreliable;
+				case ConnectionManager::MessageReliability::UnreliableAllowSkip:
+					return FakeNetworkManager::MessageReliability::UnreliableAllowSkip;
+				default:
+					ReportFatalError("Unsupported message reliability %u:", static_cast<unsigned int>(reliability));
+					return FakeNetworkManager::MessageReliability::Reliable;
+			}
+		}();
+
+		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager.sendMessage(connectionId, message, fakeReliability);
+
+		switch (result.status)
+		{
+			case FakeNetworkManager::SendMessageResult::Status::Success:
+				return { ConnectionManager::SendMessageResult::Status::Success };
+			case FakeNetworkManager::SendMessageResult::Status::ConnectionClosed:
+				return { ConnectionManager::SendMessageResult::Status::ConnectionClosed };
+			default:
+				return { ConnectionManager::SendMessageResult::Status::UnknownFailure };
+		}
+	}
+
+	void ConnectionManager::broadcastMessageToClients(u16 /*port*/, const Network::Message& /*message*/, ConnectionId /*except*/, MessageReliability /*reliability*/, UseNagle /*useNagle*/)
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	void ConnectionManager::flushMessagesForAllClientConnections(u16 /*port*/)
+	{
+		// we don't need to do anything here
+	}
+
+	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedServerMessages(u16 port)
+	{
+		return StaticImpl().fakeNetworkManager.consumeReceivedMessages(port);
+	}
+
+	void ConnectionManager::disconnectClient(ConnectionId /*connectionId*/)
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	void ConnectionManager::stopListeningToPort(u16 /*port*/)
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const Network::NetworkAddress& address)
+	{
+		const FakeNetworkManager::ConnectResult result = StaticImpl().fakeNetworkManager.connectToServer(address);
+
+		switch (result.status)
+		{
+			case FakeNetworkManager::ConnectResult::Status::Success:
+				return { ConnectionManager::ConnectResult::Status::Success, result.connectionId };
+			case FakeNetworkManager::ConnectResult::Status::Failure:
+				return { ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId };
+		}
+
+		ReportFatalError("Unknown connection status");
+		return { ConnectionManager::ConnectResult::Status::Failure, InvalidConnectionId };
+	}
+
+	bool ConnectionManager::isServerConnectionOpen(ConnectionId connectionId) const
+	{
+		return StaticImpl().fakeNetworkManager.isConnectionOpen(connectionId);
+	}
+
+	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle /*useNagle*/)
+	{
+		const auto actualReliability = [reliability]()
+		{
+			switch (reliability)
+			{
+				case ConnectionManager::MessageReliability::Reliable:
+					return FakeNetworkManager::MessageReliability::Reliable;
+				case ConnectionManager::MessageReliability::Unreliable:
+					return FakeNetworkManager::MessageReliability::Unreliable;
+				case ConnectionManager::MessageReliability::UnreliableAllowSkip:
+					return FakeNetworkManager::MessageReliability::UnreliableAllowSkip;
+				default:
+					ReportFatalError("Unsupported message reliability %u:", static_cast<unsigned int>(reliability));
+					return FakeNetworkManager::MessageReliability::Reliable;
+			}
+		}();
+
+		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager.sendMessage(connectionId, message, actualReliability);
+
+		switch (result.status)
+		{
+			case FakeNetworkManager::SendMessageResult::Status::Success:
+				return { ConnectionManager::SendMessageResult::Status::Success };
+			case FakeNetworkManager::SendMessageResult::Status::ConnectionClosed:
+				return { ConnectionManager::SendMessageResult::Status::ConnectionClosed };
+			default:
+				return { ConnectionManager::SendMessageResult::Status::UnknownFailure };
+		}
+	}
+
+	void ConnectionManager::flushMessagesForServerConnection(ConnectionId /*connectionId*/)
+	{
+		// we don't need to do anything here
+	}
+
+	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
+	{
+		return StaticImpl().fakeNetworkManager.consumeReceivedClientMessages(connectionId);
+	}
+
+	void ConnectionManager::dropServerConnection(ConnectionId /*connectionId*/)
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	void ConnectionManager::processNetworkEvents()
+	{
+		// we don't need to do anything here
+	}
+
+	void ConnectionManager::closeConnectionsOpenFromThisManager()
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	void ConnectionManager::closeAllConnections()
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	void ConnectionManager::SetDebugBehavior(const Network::DebugBehavior& /*debugBehavior*/)
+	{
+		ReportFatalError("Not implemented");
+	}
+
+	u64 ConnectionManager::GetTimestampNow()
+	{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	}
+
+	ConnectionManager::Impl& ConnectionManager::StaticImpl()
+	{
+		// we need this for thread-safe lazy initialization
+		static Impl instance;
+		return instance;
+	}
+}
+
+
+#endif // FAKE_NETWORK
