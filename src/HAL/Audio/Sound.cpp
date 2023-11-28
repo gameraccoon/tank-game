@@ -11,7 +11,7 @@
 namespace Audio
 {
 	Sound::Sound(const AbsoluteResourcePath& path)
-		: mSound(Mix_LoadWAV(path.getAbsolutePath().c_str()))
+		: mSound(Mix_LoadWAV(path.getAbsolutePathStr().c_str()))
 	{
 	}
 	
