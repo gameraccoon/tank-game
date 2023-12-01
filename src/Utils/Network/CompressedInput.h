@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameData/Input/GameplayInput.h"
+#include "GameData/Input/GameplayInputFrameState.h"
 
 namespace Utils
 {

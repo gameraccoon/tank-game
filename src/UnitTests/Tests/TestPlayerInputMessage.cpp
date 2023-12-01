@@ -6,7 +6,7 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/Input/GameplayInput.h"
+#include "GameData/Input/GameplayInputFrameState.h"
 #include "GameData/World.h"
 
 #include "Utils/Network/GameStateRewinder.h"

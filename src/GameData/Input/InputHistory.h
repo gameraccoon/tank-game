@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Base/Types/BasicTypes.h"
-#include "GameData/Input/GameplayInput.h"
+#include "GameData/Input/GameplayInputFrameState.h"
 
 namespace Input
 {

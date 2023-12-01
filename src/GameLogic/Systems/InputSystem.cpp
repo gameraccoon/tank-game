@@ -2,7 +2,7 @@
 
 #include "GameLogic/Systems/InputSystem.h"
 
-#include <SDL_keycode.h>
+#include <SDL_scancode.h>
 #include <SDL_mouse.h>
 
 #include "GameData/Components/GameplayInputComponent.generated.h"
@@ -10,6 +10,7 @@
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
+#include "GameData/Input/ControllerState.h"
 #include "GameData/Input/InputBindings.h"
 #include "GameData/World.h"
 
@@ -24,7 +25,7 @@ InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersDa
 {
 }
 
-static void UpdateRenderStateOnPressed(const Input::ControllerState& keyboardState, int button, bool& value)
+static void UpdateRenderStateOnPressed(const Input::PlayerControllerStates::KeyboardState keyboardState, int button, bool& value)
 {
 	if (keyboardState.isButtonJustPressed(button))
 	{
@@ -38,19 +39,13 @@ void InputSystem::update()
 
 #ifdef IMGUI_ENABLED
 	GameData& gameData = mWorldHolder.getGameData();
-	const auto it = mInputData.controllerStates.find(Input::ControllerType::Keyboard);
-	if (it != mInputData.controllerStates.end())
+	if (auto [imgui] = gameData.getGameComponents().getComponents<ImguiComponent>(); imgui)
 	{
-		const Input::ControllerState& keyboardState = it->second;
-
-		if (auto [imgui] = gameData.getGameComponents().getComponents<ImguiComponent>(); imgui)
+		UpdateRenderStateOnPressed(mInputData.controllerStates.keyboardState, SDL_SCANCODE_F1, imgui->getIsImguiVisibleRef());
+		if (imgui->getIsImguiVisible())
 		{
-			UpdateRenderStateOnPressed(keyboardState, SDLK_F1, imgui->getIsImguiVisibleRef());
-			if (imgui->getIsImguiVisible())
-			{
-				// stop processing input if imgui is shown
-				return;
-			}
+			// stop processing input if imgui is shown
+			return;
 		}
 	}
 #endif // IMGUI_ENABLED
@@ -68,16 +63,16 @@ static Input::InputBindings GetDebugInputBindings()
 
 	// yes, this is not efficient, but this is a temporary solution
 
-	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_UP));
-	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_w));
-	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_DOWN));
-	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_s));
-	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_LEFT));
-	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_a));
-	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_RIGHT));
-	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_d));
-	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_SPACE));
-	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDLK_RCTRL));
+	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_UP));
+	result.keyBindings[GameplayInput::InputKey::MoveUp].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_W));
+	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_DOWN));
+	result.keyBindings[GameplayInput::InputKey::MoveDown].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_S));
+	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_LEFT));
+	result.keyBindings[GameplayInput::InputKey::MoveLeft].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_A));
+	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_RIGHT));
+	result.keyBindings[GameplayInput::InputKey::MoveRight].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_D));
+	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_SPACE));
+	result.keyBindings[GameplayInput::InputKey::Shoot].push_back(std::make_unique<PressSingleButtonKeyBinding>(ControllerType::Keyboard, SDL_SCANCODE_RCTRL));
 
 	return result;
 }
@@ -117,21 +112,15 @@ void InputSystem::processDebugInput()
 	SCOPED_PROFILER("InputSystem::processDebugInput");
 
 	GameData& gameData = mWorldHolder.getGameData();
-	const auto it = mInputData.controllerStates.find(Input::ControllerType::Keyboard);
-	if (it == mInputData.controllerStates.end())
-	{
-		return;
-	}
-
-	const Input::ControllerState& keyboardState = it->second;
+	const Input::PlayerControllerStates::KeyboardState& keyboardState = mInputData.controllerStates.keyboardState;
 
 	if (auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>(); renderMode)
 	{
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F2, renderMode->getIsDrawDebugCollisionsEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F3, renderMode->getIsDrawBackgroundEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F4, renderMode->getIsDrawDebugInputEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F5, renderMode->getIsDrawVisibleEntitiesEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F7, renderMode->getIsDrawDebugCharacterInfoEnabledRef());
-		UpdateRenderStateOnPressed(keyboardState, SDLK_F8, renderMode->getIsDrawDebugPrimitivesEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F2, renderMode->getIsDrawDebugCollisionsEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F3, renderMode->getIsDrawBackgroundEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F4, renderMode->getIsDrawDebugInputEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F5, renderMode->getIsDrawVisibleEntitiesEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F7, renderMode->getIsDrawDebugCharacterInfoEnabledRef());
+		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F8, renderMode->getIsDrawDebugPrimitivesEnabledRef());
 	}
 }

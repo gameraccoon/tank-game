@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "GameData/Input/GameplayInput.h"
+#include "GameData/Input/GameplayInputFrameState.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/Time/TimeData.h"
 
