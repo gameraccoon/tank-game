@@ -2,6 +2,8 @@
 
 #include "GameLogic/Imgui/ImguiMainMenu.h"
 
+#ifdef IMGUI_ENABLED
+
 #include "imgui/imgui.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -45,3 +47,5 @@ void ImguiMainMenu::update(ImguiDebugData& debugData)
 		ImGui::ShowDemoWindow(&mShowImguiDemoWindow);
 	}
 }
+
+#endif // IMGUI_ENABLED
