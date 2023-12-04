@@ -83,6 +83,15 @@ std::filesystem::path ArgumentsParser::getExecutablePath() const
 	return mExecutablePath;
 }
 
+void ArgumentsParser::manuallySetArgument(const std::string& argument, const std::string& value)
+{
+	mTokens.emplace_back(mArgumentSwitch + argument);
+	if (!value.empty())
+	{
+		mTokens.emplace_back(value);
+	}
+}
+
 std::filesystem::path ArgumentsParser::getExecutablePath(const char* firstArgument)
 {
 	namespace fs = std::filesystem;

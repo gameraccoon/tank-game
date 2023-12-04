@@ -10,6 +10,7 @@
 
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
+#include "AutoTests/SimulateGameWithRecordedInput/TestCase.h"
 #include "AutoTests/TestCheckList.h"
 
 using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCase>()>>;
@@ -22,6 +23,12 @@ static CasesMap GetCases()
 			"PlayerConnectedToServer",
 			[](){
 				return std::make_unique<PlayerConnectedToServerTestCase>();
+			}
+		},
+		{
+			"Shoot",
+			[](){
+				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 220);
 			}
 		}
 	});

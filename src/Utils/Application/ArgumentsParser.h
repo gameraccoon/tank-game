@@ -21,6 +21,8 @@ public:
 
 	std::filesystem::path getExecutablePath() const;
 
+	void manuallySetArgument(const std::string& argument, const std::string& value = "");
+
 private:
 	static std::filesystem::path getExecutablePath(const char* firstArgument);
 
