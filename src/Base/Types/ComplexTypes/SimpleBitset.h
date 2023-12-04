@@ -80,7 +80,11 @@ public:
 private:
 	void setInner(size_t index, bool isSet)
 	{
-		AssertFatal(index < BitCount, "Invalid index %d, max is %d", index, BitCount);
+		if (index >= BitCount)
+		{
+			ReportFatalError("Invalid index %d, max is %d", index, BitCount);
+			return;
+		}
 		const size_t byteIndex = index / 8;
 		const size_t bitIndex = index % 8;
 		if (isSet)
@@ -95,7 +99,11 @@ private:
 
 	bool getInner(size_t index) const noexcept
 	{
-		AssertFatal(index < BitCount, "Invalid index %d, max is %d", index, BitCount);
+		if (index >= BitCount)
+		{
+			ReportFatalError("Invalid index %d, max is %d", index, BitCount);
+			return false;
+		}
 		const size_t byteIndex = index / 8;
 		const size_t bitIndex = index % 8;
 		return (mBitset[byteIndex] & std::byte(1 << bitIndex)) != std::byte(0);
