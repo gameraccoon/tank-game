@@ -787,7 +787,7 @@ namespace HAL
 		return SteamNetworkingUtils()->GetLocalTimestamp();
 	}
 
-	void TEST_reset()
+	void ConnectionManager::TEST_reset()
 	{
 		// do nothing for real network
 	}
