@@ -2,6 +2,8 @@
 
 #include "GameLogic/Debug/DebugRecordedInput.h"
 
+#include <format>
+
 #include "Base/Types/Serialization.h"
 
 #include "Utils/Application/ArgumentsParser.h"
