@@ -110,12 +110,12 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 
 	renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
 
-	TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
+	TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, 0);
 	serverGame.preStart(arguments, renderAccessor);
 	serverGame.initResources();
 
 	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
-	TankClientGame clientGame(enginePtr, applicationData.resourceManager, applicationData.threadPool);
+	TankClientGame clientGame(enginePtr, applicationData.resourceManager, applicationData.threadPool, 1);
 	clientGame.preStart(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1));
 	clientGame.initResources();
 

@@ -7,8 +7,8 @@
 #include "GameLogic/Game/ApplicationData.h"
 
 
-GraphicalClient::GraphicalClient(ApplicationData& applicationData)
-	: game(&applicationData.engine.value(), applicationData.resourceManager, applicationData.threadPool)
+GraphicalClient::GraphicalClient(ApplicationData& applicationData, int instanceIndex)
+	: game(&applicationData.engine.value(), applicationData.resourceManager, applicationData.threadPool, instanceIndex)
 	, engine(applicationData.engine.value())
 {
 }

@@ -37,8 +37,8 @@
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 #include "GameLogic/Systems/ShootingSystem.h"
 
-TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool)
-	: Game(nullptr, resourceManager, threadPool)
+TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex) noexcept
+	: Game(nullptr, resourceManager, threadPool, instanceIndex)
 {
 }
 

@@ -21,9 +21,10 @@
 #include "GameLogic/Initialization/StateMachines.h"
 #include "GameLogic/Render/RenderAccessor.h"
 
-Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool)
+Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex)
 	: HAL::GameBase(engine, resourceManager)
 	, mThreadPool(threadPool)
+	, mDebugBehavior(instanceIndex)
 {
 }
 

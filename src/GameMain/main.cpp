@@ -91,8 +91,8 @@ int main(int argc, char** argv)
 		const int serverThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
 #endif // !DEDICATED_SERVER
-		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, serverThreadId] {
-			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool);
+		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, serverThreadId, serverGraphicalInstance] {
+			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, serverGraphicalInstance);
 			serverGame.preStart(arguments, renderAccessor);
 			serverGame.initResources();
 			HAL::RunGameLoop(serverGame, [&shouldStopExtraThreads] { return shouldStopExtraThreads.load(std::memory_order_acquire); });
@@ -113,8 +113,8 @@ int main(int argc, char** argv)
 			const int client2GraphicalInstance = graphicalInstanceIndex++;
 			const int client2ThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
-			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, client2ThreadId] {
-				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool);
+			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, client2ThreadId, client2GraphicalInstance] {
+				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool, client2GraphicalInstance);
 				clientGame.preStart(arguments, renderAccessor);
 				clientGame.initResources();
 				HAL::RunGameLoop(clientGame, [&shouldStopExtraThreads] { return shouldStopExtraThreads.load(std::memory_order_acquire); });
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 			});
 		}
 
-		client = std::make_unique<GraphicalClient>(applicationData);
+		client = std::make_unique<GraphicalClient>(applicationData, client1GraphicalInstance);
 		client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance)); // blocking call
 	}
 	else

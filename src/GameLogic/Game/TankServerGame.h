@@ -20,7 +20,7 @@ class ArgumentsParser;
 class TankServerGame final : public Game
 {
 public:
-	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool);
+	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex) noexcept;
 
 	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 	void initResources() final;
