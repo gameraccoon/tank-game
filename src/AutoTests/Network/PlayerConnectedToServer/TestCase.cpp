@@ -23,9 +23,9 @@ namespace PlayerConnectedToServerTestCaseInternal
 	{
 	public:
 		ServerCheckSystem(WorldHolder &worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
-				: mWorldHolder(worldHolder)
-				, mConnectionCheck(connectionCheck)
-				, mKeepConnectedCheck(keepConnectedCheck)
+			: mWorldHolder(worldHolder)
+			, mConnectionCheck(connectionCheck)
+			, mKeepConnectedCheck(keepConnectedCheck)
 		{}
 
 		void update() final {
@@ -75,6 +75,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 				mKeepConnectedCheck.checkAsFailed();
 			}
 		}
+
 	private:
 		WorldHolder& mWorldHolder;
 		SimpleTestCheck& mConnectionCheck;
@@ -120,7 +121,7 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 
 	std::optional<RenderAccessorGameRef> clientRenderAccessor;
 #ifndef DISABLE_SDL
-	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1);
+	clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1);
 	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
 #else
 	HAL::Engine* enginePtr = nullptr;
