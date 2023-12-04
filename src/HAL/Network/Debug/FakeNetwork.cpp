@@ -34,7 +34,7 @@ namespace HAL
 		static inline std::mutex dataMutex;
 
 		static inline std::unordered_map<ConnectionId, std::vector<DelayedMessage>> messagesOnTheWay;
-		static inline std::chrono::system_clock::duration messageDelay = std::chrono::milliseconds(100);
+		static inline std::chrono::system_clock::duration messageDelay = std::chrono::milliseconds(0);
 
 		static void removeMessagesForConnection(std::vector<std::pair<ConnectionId, Network::Message>>& messages, ConnectionId connection)
 		{
