@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <algorithm>
+
 #include "Base/Types/ComplexTypes/SimpleBitset.h"
 
 TEST(BitsetTraits, BitsetTraits_ByteCount_ReasonableAmountOfBytes)
