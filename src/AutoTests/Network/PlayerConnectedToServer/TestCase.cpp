@@ -98,25 +98,35 @@ TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& argu
 		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 
+#ifndef DISABLE_SDL
 	if (isRenderEnabled)
 	{
 		applicationData.startRenderThread();
 		applicationData.renderThread.setAmountOfRenderedGameInstances(clientsCount + 1);
 	}
+#endif // !DISABLE_SDL
 
 	std::unique_ptr<std::thread> serverThread;
 
-	std::optional<RenderAccessorGameRef> renderAccessor;
+	std::optional<RenderAccessorGameRef> serverRenderAccessor;
 
-	renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
+#ifndef DISABLE_SDL
+	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
+#endif // !DISABLE_SDL
 
 	TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, 0);
-	serverGame.preStart(arguments, renderAccessor);
+	serverGame.preStart(arguments, serverRenderAccessor);
 	serverGame.initResources();
 
+	std::optional<RenderAccessorGameRef> clientRenderAccessor;
+#ifndef DISABLE_SDL
+	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1);
 	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
+#else
+	HAL::Engine* enginePtr = nullptr;
+#endif // !DISABLE_SDL
 	TankClientGame clientGame(enginePtr, applicationData.resourceManager, applicationData.threadPool, 1);
-	clientGame.preStart(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1));
+	clientGame.preStart(arguments, clientRenderAccessor);
 	clientGame.initResources();
 
 	TestChecklist checklist;

@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "GameLogic/Game/GraphicalClient.h"
 
@@ -21,4 +21,4 @@ void GraphicalClient::run(const ArgumentsParser& arguments, const RenderAccessor
 	game.onGameShutdown();
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

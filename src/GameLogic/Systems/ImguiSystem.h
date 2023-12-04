@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef IMGUI_ENABLED
+#ifndef DISABLE_SDL
 
 #include <mutex>
 #include <raccoon-ecs/system.h>
@@ -36,4 +37,5 @@ private:
 	std::mutex mRenderDataMutex;
 };
 
+#endif // !DISABLE_SDL
 #endif // IMGUI_ENABLED

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef DISABLE_SDL
+
 #include <raccoon-ecs/system.h>
 
 class WorldHolder;
@@ -27,3 +29,5 @@ private:
 	WorldHolder& mWorldHolder;
 	const HAL::InputControllersData& mInputData;
 };
+
+#endif // !DISABLE_SDL

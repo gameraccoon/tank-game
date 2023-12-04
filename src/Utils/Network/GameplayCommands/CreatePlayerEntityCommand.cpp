@@ -49,10 +49,10 @@ namespace Network
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
 			movement->setSpeed(0.5f);
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
 			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, RelativeResourcePath("resources/textures/tank-enemy-level1-1.png"));
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
 			networkId->setId(mNetworkEntityId);

@@ -141,12 +141,12 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	getPostFrameSystemsManager().registerSystem<ServerCommandsSendSystem>(getWorldHolder(), mGameStateRewinder);
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	if (shouldRender)
 	{
 		getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
 	}
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 }
 
 void TankServerGame::updateHistory()

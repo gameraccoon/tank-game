@@ -53,13 +53,13 @@ namespace Graphics
 			{
 				const int id = tileJson.at("id").get<int>();
 				result.indexesConversion[id] = result.tiles.size();
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 				std::string imagePath = tileJson.at("image").get<std::string>();
 				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(RelativeResourcePath{ std::string("resources") + imagePath.substr(2)});
 				result.tiles.emplace_back(spriteHandle, GetTileSetMaterialFromProperties(tileJson.at("properties")));
 #else
 				result.tiles.emplace_back(ResourceHandle(), GetTileSetMaterialFromProperties(tileJson.at("properties")));
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 			}
 		}
 		catch(const std::exception& e)

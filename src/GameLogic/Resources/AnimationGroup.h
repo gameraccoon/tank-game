@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include <memory>
 #include <vector>
@@ -39,4 +39,4 @@ namespace Graphics
 	};
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include <raccoon-ecs/system.h>
 
@@ -35,4 +35,4 @@ private:
 	ThreadPool& mThreadPool;
 };
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

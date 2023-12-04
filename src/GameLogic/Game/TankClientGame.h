@@ -22,7 +22,7 @@ class TankClientGame final : public Game
 public:
 	using Game::Game;
 
-	void preStart(const ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor);
+	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 	void initResources() override;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
 	void fixedTimeUpdate(float dt) final;
@@ -42,7 +42,7 @@ private:
 	void processCorrections();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client , getComponentFactory(), getEntityGenerator()};
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client, getComponentFactory(), getEntityGenerator()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;

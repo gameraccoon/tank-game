@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "GameLogic/Systems/RenderSystem.h"
 
@@ -185,4 +185,4 @@ void RenderSystem::drawTileGridLayer(RenderData& renderData, World& world, const
 	});
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

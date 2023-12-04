@@ -51,12 +51,12 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 	timeData.lastUpdateDt = dt;
 	timeData.countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	if (HAL::Engine* engine = getEngine())
 	{
 		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
 	}
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 
 	mDebugBehavior.preInnerUpdate(*this);
 

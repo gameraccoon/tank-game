@@ -17,27 +17,29 @@ ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, 
 	, resourceManager(executableFolderPath)
 	, renderEnabled(render == Render::Enabled)
 {
+#ifndef DISABLE_SDL
 	if (renderEnabled)
 	{
 		engine.emplace(800, 600);
 		resourceManager.startLoadingThread([this] { threadSaveProfileData(ResourceLoadingThreadId); });
 	}
+#endif // !DISABLE_SDL
 }
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 void ApplicationData::startRenderThread()
 {
 	engine->releaseRenderContext();
 	renderThread.startThread(resourceManager, engine.value(), [&engineRef = *engine]{ engineRef.acquireRenderContext(); });
 }
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 
 void ApplicationData::writeProfilingData()
 {
 #ifdef ENABLE_SCOPED_PROFILER
 	{
 		ProfileDataWriter::ProfileData data;
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 		if (renderEnabled)
 		{
 			data.scopedProfilerDatas.emplace_back();
@@ -45,7 +47,7 @@ void ApplicationData::writeProfilingData()
 			renderScopedProfilerData.records = renderThread.getAccessor().consumeScopedProfilerRecordsUnsafe();
 			renderScopedProfilerData.threadId = RenderThreadId;
 		}
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 		{
 			data.scopedProfilerDatas.emplace_back();
 			ProfileDataWriter::ScopedProfilerData& mainScopedProfilerData = data.scopedProfilerDatas.back();
@@ -90,9 +92,9 @@ void ApplicationData::threadSaveProfileData([[maybe_unused]] size_t threadIndex)
 
 void ApplicationData::shutdownThreads()
 {
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	renderThread.shutdownThread();
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 	threadPool.shutdown();
 	resourceManager.stopLoadingThread();
 }

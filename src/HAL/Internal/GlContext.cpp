@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "GlContext.h"
 
@@ -43,4 +43,4 @@ namespace HAL
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

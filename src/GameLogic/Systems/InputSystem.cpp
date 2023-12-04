@@ -2,6 +2,8 @@
 
 #include "GameLogic/Systems/InputSystem.h"
 
+#ifndef DISABLE_SDL
+
 #include <SDL_scancode.h>
 #include <SDL_mouse.h>
 
@@ -124,3 +126,5 @@ void InputSystem::processDebugInput()
 		UpdateRenderStateOnPressed(keyboardState, SDL_SCANCODE_F8, renderMode->getIsDrawDebugPrimitivesEnabledRef());
 	}
 }
+
+#endif // !DISABLE_SDL

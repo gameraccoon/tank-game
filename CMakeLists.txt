@@ -11,13 +11,13 @@ option(ENABLE_SCOPED_PROFILER "Enable profiler that records time of execution of
 option(MEMLEAK_DETECTION "Enable memory leaks detection code (slow)" OFF)
 option(MEMLEAK_REDEFINE_NEW "Redefine default new (provide more detailed info but can conflict with some libs)" OFF)
 option(CONCURRENT_ACCESS_DETECTION "Enable concurrent access detection" ON)
-option(IMGUI_ENABLED "Enable imgui in the build" ON)
 option(DEDICATED_SERVER "Are we building dedicated server" OFF)
 option(BUILD_UNIT_TESTS "Build unit-tests with normal build" ON)
 option(ENABLE_UNITY_BUILD "Should the sources be built with unity build" ON)
 option(FAKE_NETWORK "Should faked network be used instead of real networking" OFF)
 CMAKE_DEPENDENT_OPTION(BUILD_AUTO_TESTS "Build AutoTests project with normal build" ON "NOT DEDICATED_SERVER" OFF)
-CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DEDICATED_SERVER" OFF)
+CMAKE_DEPENDENT_OPTION(DISABLE_SDL "Are we building version without graphics, e.g. for dedicated server" OFF "NOT DEDICATED_SERVER" ON)
+CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DISABLE_SDL" OFF)
 
 if (DEDICATED_SERVER)
 	set(APP_NAME DedicatedServer)
@@ -68,6 +68,10 @@ endif()
 
 if (DEDICATED_SERVER)
 	add_definitions(-DDEDICATED_SERVER)
+endif()
+
+if (DISABLE_SDL)
+	add_definitions(-DDISABLE_SDL)
 endif()
 
 if (IMGUI_ENABLED)
@@ -156,17 +160,19 @@ if (MSVC)
 	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 endif()
 
-# SDL2
-add_subdirectory(${EXTERNALS_DIR}/sources/SDL EXCLUDE_FROM_ALL)
-include_directories(${EXTERNALS_DIR}/sources/SDL/include)
+if (NOT DISABLE_SDL)
+	# SDL2
+	add_subdirectory(${EXTERNALS_DIR}/sources/SDL EXCLUDE_FROM_ALL)
+	include_directories(${EXTERNALS_DIR}/sources/SDL/include)
 
-#SDL_image
-add_subdirectory(${EXTERNALS_DIR}/sources/SDL_image EXCLUDE_FROM_ALL)
-include_directories(${EXTERNALS_DIR}/sources/SDL_image)
+	#SDL_image
+	add_subdirectory(${EXTERNALS_DIR}/sources/SDL_image EXCLUDE_FROM_ALL)
+	include_directories(${EXTERNALS_DIR}/sources/SDL_image)
 
-#SDL_mixer
-add_subdirectory(${EXTERNALS_DIR}/sources/SDL_mixer EXCLUDE_FROM_ALL)
-include_directories(${EXTERNALS_DIR}/sources/SDL_mixer/include)
+	#SDL_mixer
+	add_subdirectory(${EXTERNALS_DIR}/sources/SDL_mixer EXCLUDE_FROM_ALL)
+	include_directories(${EXTERNALS_DIR}/sources/SDL_mixer/include)
+endif()
 
 # ImGui
 if (IMGUI_ENABLED)
@@ -224,7 +230,7 @@ if (NOT FAKE_NETWORK)
 	)
 endif()
 
-if (NOT DEDICATED_SERVER)
+if (NOT DISABLE_SDL)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		SDL2::SDL2-static
@@ -241,7 +247,7 @@ if (IMGUI_ENABLED)
 	)
 endif()
 
-if (NOT DEDICATED_SERVER)
+if (NOT DISABLE_SDL)
 	if (WIN32)
 		set(GENERAL_PROJECT_LIBS
 			${GENERAL_PROJECT_LIBS}

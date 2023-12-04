@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include <cstring> // should be before SDL.h to suppress undifined memcpy error
 #include <SDL.h>
@@ -31,4 +31,4 @@ namespace HAL
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

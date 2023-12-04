@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "HAL/Audio/Music.h"
 
@@ -31,4 +31,4 @@ namespace Audio
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

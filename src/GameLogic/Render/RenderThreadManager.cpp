@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "GameLogic/Render/RenderThreadManager.h"
 
@@ -384,4 +384,4 @@ void RenderThreadManager::RenderThreadFunction(RenderAccessor& renderAccessor, R
 #endif // ENABLE_SCOPED_PROFILER
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 namespace HAL
 {
@@ -21,4 +21,4 @@ namespace HAL
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

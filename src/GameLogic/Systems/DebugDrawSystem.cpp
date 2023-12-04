@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "GameLogic/Systems/DebugDrawSystem.h"
 
@@ -225,4 +225,4 @@ void DebugDrawSystem::init()
 	mFontHandle = mResourceManager.lockResource<Graphics::Font>(mResourceManager.getAbsoluteResourcePath(RelativeResourcePath("resources/fonts/prstart.ttf")), 16);
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

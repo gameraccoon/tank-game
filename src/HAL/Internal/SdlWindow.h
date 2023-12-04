@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 struct SDL_Window;
 
@@ -28,4 +28,4 @@ namespace HAL
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

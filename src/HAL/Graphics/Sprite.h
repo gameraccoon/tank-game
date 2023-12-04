@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "HAL/EngineFwd.h"
 
@@ -37,4 +37,4 @@ namespace Graphics
 	};
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

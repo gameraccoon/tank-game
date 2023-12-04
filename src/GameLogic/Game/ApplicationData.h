@@ -34,19 +34,19 @@ public:
 
 	ThreadPool threadPool;
 	ResourceManager resourceManager;
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	RenderThreadManager renderThread;
 	std::optional<HAL::Engine> engine;
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 
 	bool renderEnabled = true;
 
 public:
 	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& executableFolderPath, Render render = Render::Enabled);
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	void startRenderThread();
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 	void writeProfilingData();
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();

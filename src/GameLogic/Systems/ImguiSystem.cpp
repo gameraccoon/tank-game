@@ -3,6 +3,7 @@
 #include "GameLogic/Systems/ImguiSystem.h"
 
 #ifdef IMGUI_ENABLED
+#ifndef DISABLE_SDL
 
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_sdl.h"
@@ -121,4 +122,5 @@ void ImguiSystem::shutdown()
 	ImGui::DestroyContext();
 }
 
+#endif // !DISABLE_SDL
 #endif // IMGUI_ENABLED

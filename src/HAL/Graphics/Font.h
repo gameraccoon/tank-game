@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "Base/Types/String/ResourcePath.h"
 
@@ -36,4 +36,4 @@ namespace Graphics
 	};
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

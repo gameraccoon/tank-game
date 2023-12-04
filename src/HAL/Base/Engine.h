@@ -13,7 +13,7 @@ namespace HAL
 {
 	class IGame;
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 	class Engine
 	{
 	public:
@@ -44,6 +44,6 @@ namespace HAL
 		struct Impl;
 		std::unique_ptr<Impl> mPimpl;
 	};
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 }
 

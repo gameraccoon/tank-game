@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "HAL/Base/Engine.h"
 
@@ -198,4 +198,4 @@ namespace HAL
 	}
 }
 
-#endif // DEDICATED_SERVER
+#endif // !DISABLE_SDL

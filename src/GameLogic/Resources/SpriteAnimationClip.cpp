@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include <algorithm>
 #include <filesystem>
@@ -114,4 +114,4 @@ namespace Graphics
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

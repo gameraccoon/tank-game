@@ -48,7 +48,7 @@
 #endif // IMGUI_ENABLED
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGameRef renderAccessor)
+void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
 {
 	SCOPED_PROFILER("TankClientGame::preStart");
 
@@ -84,10 +84,12 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, RenderAccessorGa
 
 	Game::preStart(arguments);
 
+#ifndef DISABLE_SDL
 	if (HAL::Engine* engine = getEngine())
 	{
 		engine->init(this, &getInputData());
 	}
+#endif // !DISABLE_SDL
 }
 
 void TankClientGame::initResources()
@@ -152,8 +154,9 @@ TimeData& TankClientGame::getTimeData()
 void TankClientGame::initSystems()
 {
 	SCOPED_PROFILER("TankClientGame::initSystems");
-
+#ifndef DISABLE_SDL
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
+#endif // !DISABLE_SDL
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mFrameTimeCorrector, mShouldQuitGameNextTick);
@@ -173,15 +176,17 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
+#ifndef DISABLE_SDL
 	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
 	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
+#endif // !DISABLE_SDL
 
-#ifdef IMGUI_ENABLED
+#if defined(IMGUI_ENABLED) && !defined(DISABLE_SDL)
 	if (HAL::Engine* engine = getEngine())
 	{
 		getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
 	}
-#endif // IMGUI_ENABLED
+#endif // IMGUI_ENABLED && !DISABLE_SDL
 }
 
 void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 namespace Audio
 {
@@ -27,4 +27,4 @@ namespace Audio
 		float GetMusicVolume();
 	}
 }
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

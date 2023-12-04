@@ -1,6 +1,6 @@
 #include "Base/precomp.h"
 
-#ifndef DEDICATED_SERVER
+#ifndef DISABLE_SDL
 
 #include "HAL/Graphics/Font.h"
 
@@ -37,4 +37,4 @@ namespace Graphics
 	}
 }
 
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL

@@ -56,7 +56,11 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+#ifndef DISABLE_SDL
 	const bool isRenderingEnabled = !arguments.hasArgument("no-render");
+#else
+	const bool isRenderingEnabled = false;
+#endif // !DISABLE_SDL
 
 	const bool runFirstClient = !arguments.hasArgument("open-port");
 	const bool runServer = !arguments.hasArgument("connect");
@@ -76,26 +80,26 @@ int main(int argc, char** argv)
 
 	AssertFatal(runFirstClient || runServer, "Can't specify --connect and --open-port at the same time");
 
-#ifndef DEDICATED_SERVER
+	int graphicalInstanceIndex = 0;
+#ifndef DISABLE_SDL
 	if (isRenderingEnabled)
 	{
 		applicationData.startRenderThread();
 	}
 
-	int graphicalInstanceIndex = 0;
 	applicationData.renderThread.setAmountOfRenderedGameInstances(static_cast<int>(runFirstClient) + static_cast<int>(runServer) + static_cast<int>(runSecondClient));
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 
 	std::unique_ptr<std::thread> serverThread;
 	std::atomic_bool shouldStopExtraThreads = false;
 	if (runServer)
 	{
 		std::optional<RenderAccessorGameRef> renderAccessor;
-#ifndef DEDICATED_SERVER
 		const int serverGraphicalInstance = graphicalInstanceIndex++;
 		const int serverThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
+#ifndef DISABLE_SDL
 		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
-#endif // !DEDICATED_SERVER
+#endif // !DISABLE_SDL
 		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, serverThreadId, serverGraphicalInstance] {
 			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, serverGraphicalInstance);
 			serverGame.preStart(arguments, renderAccessor);
@@ -117,7 +121,10 @@ int main(int argc, char** argv)
 		{
 			const int client2GraphicalInstance = graphicalInstanceIndex++;
 			const int client2ThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
-			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
+			std::optional<RenderAccessorGameRef> renderAccessor;
+#ifndef DISABLE_SDL
+			renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
+#endif // !DISABLE_SDL
 			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, client2ThreadId, client2GraphicalInstance] {
 				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool, client2GraphicalInstance);
 				clientGame.preStart(arguments, renderAccessor);
@@ -128,14 +135,19 @@ int main(int argc, char** argv)
 			});
 		}
 
+#ifndef DISABLE_SDL
 		if (isRenderingEnabled)
 		{
 			client = std::make_unique<GraphicalClient>(applicationData, client1GraphicalInstance);
 			client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance)); // blocking call
 		}
 		else
+#endif // !DISABLE_SDL
 		{
-			RenderAccessorGameRef renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance);
+			std::optional<RenderAccessorGameRef> renderAccessor;
+#ifndef DISABLE_SDL
+			renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance);
+#endif // !DISABLE_SDL
 			TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool, client1GraphicalInstance);
 			clientGame.preStart(arguments, renderAccessor);
 			clientGame.initResources();
