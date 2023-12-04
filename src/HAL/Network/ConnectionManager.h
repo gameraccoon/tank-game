@@ -108,6 +108,8 @@ namespace HAL
 		static void SetDebugBehavior(const Network::DebugBehavior& debugBehavior);
 		static u64 GetTimestampNow();
 
+		static void TEST_reset();
+
 	private:
 		struct Impl;
 		static Impl& StaticImpl();

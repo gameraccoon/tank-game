@@ -787,6 +787,11 @@ namespace HAL
 		return SteamNetworkingUtils()->GetLocalTimestamp();
 	}
 
+	void TEST_reset()
+	{
+		// do nothing for real network
+	}
+
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()
 	{
 		// we need this for thread-safe lazy initialization
@@ -805,7 +810,7 @@ namespace HAL
 {
 	struct ConnectionManager::Impl
 	{
-		FakeNetworkManager fakeNetworkManager;
+		std::unique_ptr<FakeNetworkManager> fakeNetworkManager = std::make_unique<FakeNetworkManager>();
 	};
 
 	ConnectionManager::ConnectionManager() = default;
@@ -813,7 +818,7 @@ namespace HAL
 
 	ConnectionManager::OpenPortResult ConnectionManager::startListeningToPort(u16 port)
 	{
-		const FakeNetworkManager::OpenPortResult result = StaticImpl().fakeNetworkManager.startListeningToPort(port);
+		const FakeNetworkManager::OpenPortResult result = StaticImpl().fakeNetworkManager->startListeningToPort(port);
 
 		switch (result.status)
 		{
@@ -828,12 +833,12 @@ namespace HAL
 
 	bool ConnectionManager::isPortOpen(u16 port) const
 	{
-		return StaticImpl().fakeNetworkManager.isPortOpen(port);
+		return StaticImpl().fakeNetworkManager->isPortOpen(port);
 	}
 
 	bool ConnectionManager::isClientConnected(ConnectionId connectionId) const
 	{
-		return StaticImpl().fakeNetworkManager.isConnectionOpen(connectionId);
+		return StaticImpl().fakeNetworkManager->isConnectionOpen(connectionId);
 	}
 
 	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToClient(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle /*useNagle*/)
@@ -854,7 +859,7 @@ namespace HAL
 			}
 		}();
 
-		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager.sendMessage(connectionId, message, fakeReliability);
+		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager->sendMessage(connectionId, message, fakeReliability);
 
 		switch (result.status)
 		{
@@ -879,7 +884,7 @@ namespace HAL
 
 	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedServerMessages(u16 port)
 	{
-		return StaticImpl().fakeNetworkManager.consumeReceivedMessages(port);
+		return StaticImpl().fakeNetworkManager->consumeReceivedMessages(port);
 	}
 
 	void ConnectionManager::disconnectClient(ConnectionId /*connectionId*/)
@@ -887,14 +892,14 @@ namespace HAL
 		ReportFatalError("Not implemented");
 	}
 
-	void ConnectionManager::stopListeningToPort(u16 /*port*/)
+	void ConnectionManager::stopListeningToPort(u16 port)
 	{
-		ReportFatalError("Not implemented");
+		StaticImpl().fakeNetworkManager->stopListeningToPort(port);
 	}
 
 	ConnectionManager::ConnectResult ConnectionManager::connectToServer(const Network::NetworkAddress& address)
 	{
-		const FakeNetworkManager::ConnectResult result = StaticImpl().fakeNetworkManager.connectToServer(address);
+		const FakeNetworkManager::ConnectResult result = StaticImpl().fakeNetworkManager->connectToServer(address);
 
 		switch (result.status)
 		{
@@ -910,7 +915,7 @@ namespace HAL
 
 	bool ConnectionManager::isServerConnectionOpen(ConnectionId connectionId) const
 	{
-		return StaticImpl().fakeNetworkManager.isConnectionOpen(connectionId);
+		return StaticImpl().fakeNetworkManager->isConnectionOpen(connectionId);
 	}
 
 	ConnectionManager::SendMessageResult ConnectionManager::sendMessageToServer(ConnectionId connectionId, const Network::Message& message, MessageReliability reliability, UseNagle /*useNagle*/)
@@ -931,7 +936,7 @@ namespace HAL
 			}
 		}();
 
-		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager.sendMessage(connectionId, message, actualReliability);
+		const FakeNetworkManager::SendMessageResult result = StaticImpl().fakeNetworkManager->sendMessage(connectionId, message, actualReliability);
 
 		switch (result.status)
 		{
@@ -951,12 +956,12 @@ namespace HAL
 
 	std::vector<std::pair<ConnectionId, Network::Message>> ConnectionManager::consumeReceivedClientMessages(ConnectionId connectionId)
 	{
-		return StaticImpl().fakeNetworkManager.consumeReceivedClientMessages(connectionId);
+		return StaticImpl().fakeNetworkManager->consumeReceivedClientMessages(connectionId);
 	}
 
-	void ConnectionManager::dropServerConnection(ConnectionId /*connectionId*/)
+	void ConnectionManager::dropServerConnection(ConnectionId connectionId)
 	{
-		ReportFatalError("Not implemented");
+		StaticImpl().fakeNetworkManager->dropConnection(connectionId);
 	}
 
 	void ConnectionManager::processNetworkEvents()
@@ -982,6 +987,11 @@ namespace HAL
 	u64 ConnectionManager::GetTimestampNow()
 	{
 		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+	}
+
+	void ConnectionManager::TEST_reset()
+	{
+		StaticImpl().fakeNetworkManager = std::make_unique<FakeNetworkManager>();
 	}
 
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()

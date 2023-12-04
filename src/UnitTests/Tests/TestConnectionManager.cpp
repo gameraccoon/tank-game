@@ -7,13 +7,27 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+#include "Utils/Functional/ScopeFinalizer.h"
+
 // These tests are flaky and contaminate other tests
 // (the testing framework may flag some random tests as
 // failed when these tests are being run and assert)
 // it's better to run them manually when needed
+#ifndef CONNECTION_MANAGER_TESTS_ENABLED
+	#define CONNECTION_MANAGER_TESTS_ENABLED 0
+#endif
 
-TEST(ConnectionManager, DISABLED_OpenAndClosePort)
+// if fake network is enabled, we want to test it, otherwise we want to skip these tests by default
+#if defined(FAKE_NETWORK) || CONNECTION_MANAGER_TESTS_ENABLED
+	#define CONNECTION_MANAGER_TEST(name) TEST(ConnectionManager, name)
+#else
+	#define CONNECTION_MANAGER_TEST(name) TEST(ConnectionManager, DISABLED_##name)
+#endif
+
+CONNECTION_MANAGER_TEST(OpenAndClosePort)
 {
+	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
+
 	const u16 port = 48630;
 	const u16 incorrectPort = 48629;
 	HAL::ConnectionManager connectionManager;
@@ -25,8 +39,10 @@ TEST(ConnectionManager, DISABLED_OpenAndClosePort)
 	EXPECT_FALSE(connectionManager.isPortOpen(port));
 }
 
-TEST(ConnectionManager, DISABLED_OpenAndCloseTwoPorts)
+CONNECTION_MANAGER_TEST(OpenAndCloseTwoPorts)
 {
+	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
+
 	HAL::ConnectionManager connectionManager;
 	const u16 port1 = 48631;
 	const u16 port2 = 48632;
@@ -44,8 +60,10 @@ TEST(ConnectionManager, DISABLED_OpenAndCloseTwoPorts)
 	EXPECT_FALSE(connectionManager.isPortOpen(port2));
 }
 
-TEST(ConnectionManager, DISABLED_ConnectAndDisconnectToOpenPort)
+CONNECTION_MANAGER_TEST(ConnectAndDisconnectToOpenPort)
 {
+	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
+
 	HAL::ConnectionManager connectionManagerServer;
 	static const u16 port = 48633;
 	connectionManagerServer.startListeningToPort(port);
@@ -70,8 +88,10 @@ TEST(ConnectionManager, DISABLED_ConnectAndDisconnectToOpenPort)
 	clientThread.join();
 }
 
-TEST(ConnectionManager, DISABLED_SendMessageToOpenPortAndRecieve)
+CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 {
+	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
+
 	static const std::vector<std::byte> testMessageData = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	static const u16 port = 48634;
 
@@ -108,8 +128,10 @@ TEST(ConnectionManager, DISABLED_SendMessageToOpenPortAndRecieve)
 	serverThread.join();
 }
 
-TEST(ConnectionManager, DISABLED_SendMessageBackFromServerAndRecieve)
+CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 {
+	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
+
 	static const std::vector<std::byte> testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	static const std::vector<std::byte> testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
 	static const u16 port = 48635;
