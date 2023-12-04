@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <thread>
+#include <future>
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -82,10 +83,9 @@ CONNECTION_MANAGER_TEST(ConnectAndDisconnectToOpenPort)
 	};
 
 	std::thread clientThread(threadFn);
+	ScopeFinalizer clientThreadFinalizer([&clientThread] { clientThread.join(); });
 
 	connectionManagerServer.processNetworkEvents();
-
-	clientThread.join();
 }
 
 CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
@@ -95,10 +95,14 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 	static const std::vector<std::byte> testMessageData = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
 	static const u16 port = 48634;
 
-	std::thread serverThread([]
+	std::promise<bool> serverStartedPromise;
+	std::future<bool> serverStartedFuture = serverStartedPromise.get_future();
+
+	std::thread serverThread([&serverStartedPromise]
 	{
 		HAL::ConnectionManager connectionManagerServer;
 		connectionManagerServer.startListeningToPort(port);
+		serverStartedPromise.set_value(true);
 
 		using namespace std::chrono;
 		steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
@@ -115,6 +119,12 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 		}
 		FAIL();
 	});
+	ScopeFinalizer serverThreadFinalizer([&serverThread] { serverThread.join(); });
+
+	while (serverStartedFuture.wait_for(std::chrono::microseconds(30)) != std::future_status::ready)
+	{
+		std::this_thread::yield();
+	}
 
 	HAL::ConnectionManager connectionManagerClient;
 	connectionManagerClient.processNetworkEvents();
@@ -123,9 +133,7 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 	EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
 	auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData});
-	ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
-
-	serverThread.join();
+	EXPECT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
 }
 
 CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
@@ -167,6 +175,7 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 		}
 		FAIL();
 	});
+	ScopeFinalizer clientThreadFinalizer([&clientThread] { clientThread.join(); });
 
 	{
 		using namespace std::chrono;
@@ -188,6 +197,4 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 		}
 		EXPECT_TRUE(receivedMessageFromClient);
 	}
-
-	clientThread.join();
 }
