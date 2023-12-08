@@ -15,8 +15,6 @@
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/TankServerGame.h"
 
-#include "AutoTests/BasicTestChecks.h"
-
 namespace PlayerConnectedToServerTestCaseInternal
 {
 	class ServerCheckSystem final : public RaccoonEcs::System
@@ -84,80 +82,40 @@ namespace PlayerConnectedToServerTestCaseInternal
 	};
 }
 
-TestChecklist PlayerConnectedToServerTestCase::start(const ArgumentsParser& arguments)
+PlayerConnectedToServerTestCase::PlayerConnectedToServerTestCase()
+	: BaseNetworkingTestCase(1)
+{
+}
+
+TestChecklist PlayerConnectedToServerTestCase::prepareChecklist()
+{
+	TestChecklist checklist;
+	mTimeoutCheck = &checklist.addCheck<TimeoutCheck>(1000);
+	mServerConnectionCheck = &checklist.addCheck<SimpleTestCheck>("Server didn't record player connection");
+	mServerKeepConnectedCheck = &checklist.addCheck<SimpleTestCheck>("Player didn't keep connection for 50 frames on server");
+	mClientConnectionCheck = &checklist.addCheck<SimpleTestCheck>("Client didn't get controlled player");
+	mClientKeepConnectionCheck = &checklist.addCheck<SimpleTestCheck>("Client didn't keep controlled player for 50 frames");
+	return checklist;
+}
+
+void PlayerConnectedToServerTestCase::prepareServerGame(TankServerGame& serverGame, const ArgumentsParser& /*arguments*/)
 {
 	using namespace PlayerConnectedToServerTestCaseInternal;
 
-	const int clientsCount = 1;
+	serverGame.injectSystem<ServerCheckSystem>(*mServerConnectionCheck, *mServerKeepConnectedCheck);
+}
 
-	const bool isRenderEnabled = !arguments.hasArgument("no-render");
+void PlayerConnectedToServerTestCase::prepareClientGame(TankClientGame& clientGame, const ArgumentsParser& /*arguments*/, size_t /*clientIndex*/)
+{
+	using namespace PlayerConnectedToServerTestCaseInternal;
 
-	ApplicationData applicationData(
-		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
-		clientsCount,
-		arguments.getExecutablePath(),
-		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
-	);
+	clientGame.injectSystem<ClientCheckSystem>(*mClientConnectionCheck, *mClientKeepConnectionCheck);
+}
 
-#ifndef DISABLE_SDL
-	if (isRenderEnabled)
-	{
-		applicationData.startRenderThread();
-		applicationData.renderThread.setAmountOfRenderedGameInstances(clientsCount + 1);
-	}
-#endif // !DISABLE_SDL
+void PlayerConnectedToServerTestCase::updateLoop()
+{
+	updateServer();
+	updateClient(0);
 
-	std::unique_ptr<std::thread> serverThread;
-
-	std::optional<RenderAccessorGameRef> serverRenderAccessor;
-
-#ifndef DISABLE_SDL
-	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
-#endif // !DISABLE_SDL
-
-	TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, 0);
-	serverGame.preStart(arguments, serverRenderAccessor);
-	serverGame.initResources();
-
-	std::optional<RenderAccessorGameRef> clientRenderAccessor;
-#ifndef DISABLE_SDL
-	clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1);
-	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
-#else
-	HAL::Engine* enginePtr = nullptr;
-#endif // !DISABLE_SDL
-	TankClientGame clientGame(enginePtr, applicationData.resourceManager, applicationData.threadPool, 1);
-	clientGame.preStart(arguments, clientRenderAccessor);
-	clientGame.initResources();
-
-	TestChecklist checklist;
-	TimeoutCheck& timeoutCheck = checklist.addCheck<TimeoutCheck>(1000);
-	SimpleTestCheck& serverConnectionCheck = checklist.addCheck<SimpleTestCheck>("Server didn't record player connection");
-	SimpleTestCheck& serverKeepConnectedCheck = checklist.addCheck<SimpleTestCheck>("Player didn't keep connection for 50 frames on server");
-	SimpleTestCheck& clientConnectionCheck = checklist.addCheck<SimpleTestCheck>("Client didn't get controlled player");
-	SimpleTestCheck& clientKeepConnectionCheck = checklist.addCheck<SimpleTestCheck>("Client didn't keep controlled player for 50 frames");
-	serverGame.injectSystem<ServerCheckSystem>(serverConnectionCheck, serverKeepConnectedCheck);
-	clientGame.injectSystem<ClientCheckSystem>(clientConnectionCheck, clientKeepConnectionCheck);
-
-	while (!checklist.areAllChecksValidated() && !checklist.hasAnyCheckFailed())
-	{
-		serverGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-		serverGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
-		serverGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-
-		clientGame.dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-		clientGame.fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
-		clientGame.dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-
-		timeoutCheck.update();
-	}
-
-	clientGame.onGameShutdown();
-	serverGame.onGameShutdown();
-
-	applicationData.shutdownThreads(); // this call waits for the threads to be joined
-
-	applicationData.writeProfilingData(); // this call waits for the data to be written to the files
-
-	return checklist;
+	mTimeoutCheck->update();
 }
