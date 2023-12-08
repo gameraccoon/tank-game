@@ -67,12 +67,12 @@ bool ValidateChecklist(const TestChecklist& checklist)
 
 	if (failedChecksCount > 0)
 	{
-		LogInfo("Failed %u checks out of %u", failedChecksCount, totalChecksCount);
+		LogInfo("Checks failed: %u out of %u", failedChecksCount, totalChecksCount);
 		return false;
 	}
 	else
 	{
-		LogInfo("Passed %d checks out of %d", totalChecksCount, totalChecksCount);
+		LogInfo("Passed all checks out of %d", totalChecksCount, totalChecksCount);
 		return true;
 	}
 }
