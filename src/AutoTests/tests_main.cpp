@@ -31,6 +31,11 @@ static CasesMap GetCases()
 				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 1, 220);
 			}
 		},
+		{
+			"Shoot2Players",
+			[](){
+				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 2, 220);
+			}
 		}
 	});
 }
