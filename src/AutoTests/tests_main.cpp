@@ -10,6 +10,7 @@
 
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
+#include "AutoTests/Network/TwoPlayersSeeEachOther/TestCase.h"
 #include "AutoTests/SimulateGameWithRecordedInput/TestCase.h"
 #include "AutoTests/TestCheckList.h"
 
@@ -36,7 +37,13 @@ static CasesMap GetCases()
 			[](){
 				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 2, 220);
 			}
-		}
+		},
+		{
+			"TwoPlayersSeeEachOther",
+			[](){
+				return std::make_unique<TwoPlayersSeeEachOtherTestCase>();
+			}
+		},
 	});
 }
 
