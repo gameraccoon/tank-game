@@ -28,8 +28,9 @@ static CasesMap GetCases()
 		{
 			"Shoot",
 			[](){
-				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 220);
+				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 1, 220);
 			}
+		},
 		}
 	});
 }

@@ -26,8 +26,14 @@ protected:
 	// override if we should have an external stop condition that is not part of the test checklist
 	virtual bool shouldStop() const { return false; }
 
+	// override if you want to override the arguments for the server or client
+	virtual ArgumentsParser overrideServerArguments(const ArgumentsParser& arguments);
+	virtual ArgumentsParser overrideClientArguments(const ArgumentsParser& arguments, size_t clientIndex);
+
 	void updateServer();
 	void updateClient(size_t clientIndex);
+
+	size_t getClientCount() const { return mClientsCount; }
 
 private:
 	const size_t mClientsCount;

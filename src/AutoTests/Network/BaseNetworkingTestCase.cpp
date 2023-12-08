@@ -48,22 +48,31 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
 #endif // !DISABLE_SDL
 
+	ArgumentsParser serverArguments = overrideServerArguments(arguments);
+	std::vector<ArgumentsParser> clientArguments;
+	clientArguments.reserve(mClientsCount);
+	for (size_t i = 0; i < mClientsCount; ++i)
+	{
+		clientArguments.push_back(overrideClientArguments(arguments, i));
+	}
+
 	mServerGame = std::make_unique<TankServerGame>(applicationData.resourceManager, applicationData.threadPool, 0);
-	mServerGame->preStart(arguments, serverRenderAccessor);
+	mServerGame->preStart(serverArguments, serverRenderAccessor);
 	mServerGame->initResources();
 
-	std::optional<RenderAccessorGameRef> clientRenderAccessor;
-#ifndef DISABLE_SDL
-	clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 1);
-	HAL::Engine* enginePtr = applicationData.engine ? &applicationData.engine.value() : nullptr;
-#else
-	HAL::Engine* enginePtr = nullptr;
-#endif // !DISABLE_SDL
 	mClientGames.resize(mClientsCount);
 	for (size_t i = 0; i < mClientsCount; ++i)
 	{
-		mClientGames[i] = std::make_unique<TankClientGame>(enginePtr, applicationData.resourceManager, applicationData.threadPool, 1);
-		mClientGames[i]->preStart(arguments, clientRenderAccessor);
+		std::optional<RenderAccessorGameRef> clientRenderAccessor;
+#ifndef DISABLE_SDL
+		clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), i + 1);
+		HAL::Engine* enginePtr = (applicationData.engine && i == 0) ? &applicationData.engine.value() : nullptr;
+#else
+		HAL::Engine* enginePtr = nullptr;
+#endif // !DISABLE_SDL
+
+		mClientGames[i] = std::make_unique<TankClientGame>(enginePtr, applicationData.resourceManager, applicationData.threadPool, i + 1);
+		mClientGames[i]->preStart(clientArguments[i], clientRenderAccessor);
 		mClientGames[i]->initResources();
 	}
 
@@ -71,10 +80,10 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	TestChecklist checklist = prepareChecklist();
 
 	// configure the server and client instances
-	prepareServerGame(*mServerGame, arguments);
+	prepareServerGame(*mServerGame, serverArguments);
 	for (size_t i = 0; i < mClientsCount; ++i)
 	{
-		prepareClientGame(*mClientGames[i], arguments, i);
+		prepareClientGame(*mClientGames[i], clientArguments[i], i);
 	}
 
 	// while not all checks are validated, or if there are no checks
@@ -112,6 +121,16 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	applicationData.writeProfilingData(); // this call waits for the data to be written to the files
 
 	return checklist;
+}
+
+ArgumentsParser BaseNetworkingTestCase::overrideServerArguments(const ArgumentsParser& arguments)
+{
+	return arguments;
+}
+
+ArgumentsParser BaseNetworkingTestCase::overrideClientArguments(const ArgumentsParser& arguments, size_t /*clientIndex*/)
+{
+	return arguments;
 }
 
 void BaseNetworkingTestCase::updateServer()
