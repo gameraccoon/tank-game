@@ -82,9 +82,9 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 			{
 				mGotOtherPlayerReplicatedCheck.checkAsPassed();
 			}
-			if (weaponComponentsCount > 2)
+			else if (weaponComponentsCount > 2)
 			{
-				ReportFatalError("There are more entities with WeaponComponent than expected");
+				ReportFatalError("There are more entities with WeaponComponent than expected, got %u, expected 2", weaponComponentsCount);
 				mGotOtherPlayerReplicatedCheck.checkAsFailed();
 			}
 		}
@@ -96,16 +96,29 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 		SimpleTestCheck& mGotOtherPlayerReplicatedCheck;
 		size_t mConnectedFramesCount = 0;
 	};
-
-
 }
 
 TwoPlayersSeeEachOtherTestCase::TwoPlayersSeeEachOtherTestCase()
 	: BaseNetworkingTestCase(2)
 	// set these values to imitate laggging and set up scenarios to reproduce issues
-	, server0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-	, client1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-	, client2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+
+	// this repros trying to correct first update
+//	, mServer0FramePauses({ 3, 8, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient1FramePauses({ 3, 3, 3, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient2FramePauses({ 7, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+
+	// this repros writing to a far future
+//	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient1FramePauses({ 7, 3, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+
+	// this repros duplicating entities
+//	, mServer0FramePauses({ 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
 }
 
@@ -147,42 +160,20 @@ void TwoPlayersSeeEachOtherTestCase::prepareClientGame(TankClientGame& clientGam
 
 void TwoPlayersSeeEachOtherTestCase::updateLoop()
 {
-	if (server0FramePauses.shouldUpdate())
+	if (mServer0FramePauses.shouldUpdate())
 	{
 		updateServer();
 	}
 
-	if (client1FramePauses.shouldUpdate())
+	if (mClient1FramePauses.shouldUpdate())
 	{
 		updateClient(0);
 	}
 
-	if (client2FramePauses.shouldUpdate())
+	if (mClient2FramePauses.shouldUpdate())
 	{
 		updateClient(1);
 	}
 
 	mTimeoutCheck->update();
-}
-
-TwoPlayersSeeEachOtherTestCase::UpdateLagger::UpdateLagger(std::vector<int>&& framePauses)
-	: mFramePauses(framePauses)
-{}
-
-bool TwoPlayersSeeEachOtherTestCase::UpdateLagger::shouldUpdate()
-{
-	if (mPauseIdx < mFramePauses.size())
-	{
-		if (mPauseProgress < mFramePauses[mPauseIdx])
-		{
-			++mPauseProgress;
-			return false;
-		}
-		else
-		{
-			mPauseProgress = 0;
-			++mPauseIdx;
-		}
-	}
-	return true;
 }

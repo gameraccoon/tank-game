@@ -2,6 +2,7 @@
 
 #include "AutoTests/BasicTestChecks.h"
 #include "AutoTests/Network/BaseNetworkingTestCase.h"
+#include "AutoTests/Utils/UpdateLagger.h"
 
 class ArgumentsParser;
 
@@ -23,4 +24,8 @@ private:
 	SimpleTestCheck* mServerKeepConnectedCheck = nullptr;
 	SimpleTestCheck* mClientConnectionCheck = nullptr;
 	SimpleTestCheck* mClientKeepConnectionCheck = nullptr;
+	SimpleTestCheck* mClientGotItsEntityReplicated = nullptr;
+
+	UpdateLagger mServer0FramePauses;
+	UpdateLagger mClient1FramePauses;
 };

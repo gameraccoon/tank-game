@@ -6,6 +6,7 @@
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/WeaponComponent.generated.h"
 
 #include "Utils/Application/ArgumentsParser.h"
 
@@ -51,10 +52,11 @@ namespace PlayerConnectedToServerTestCaseInternal
 	class ClientCheckSystem final : public RaccoonEcs::System
 	{
 	public:
-		ClientCheckSystem(WorldHolder& worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
+		ClientCheckSystem(WorldHolder& worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck, SimpleTestCheck& gotSelfEntityReplicatedCheck)
 			: mWorldHolder(worldHolder)
 			, mConnectionCheck(connectionCheck)
 			, mKeepConnectedCheck(keepConnectedCheck)
+			, mGotSelfEntityReplicatedCheck(gotSelfEntityReplicatedCheck)
 		{}
 
 		void update() final {
@@ -72,18 +74,44 @@ namespace PlayerConnectedToServerTestCaseInternal
 			{
 				mKeepConnectedCheck.checkAsFailed();
 			}
+
+			std::vector<std::tuple<WeaponComponent*>> weaponComponents;
+			world.getEntityManager().getComponents<WeaponComponent>(weaponComponents);
+			const size_t weaponComponentsCount = weaponComponents.size();
+			if (weaponComponentsCount == 1)
+			{
+				mGotSelfEntityReplicatedCheck.checkAsPassed();
+			}
+			else if (weaponComponentsCount > 1)
+			{
+				ReportFatalError("There are more entities with WeaponComponent than expected, got %u, expected 1", weaponComponentsCount);
+				mGotSelfEntityReplicatedCheck.checkAsFailed();
+			}
 		}
 
 	private:
 		WorldHolder& mWorldHolder;
 		SimpleTestCheck& mConnectionCheck;
 		SimpleTestCheck& mKeepConnectedCheck;
+		SimpleTestCheck& mGotSelfEntityReplicatedCheck;
 		size_t mConnectedFramesCount = 0;
 	};
 }
 
 PlayerConnectedToServerTestCase::PlayerConnectedToServerTestCase()
 	: BaseNetworkingTestCase(1)
+
+	// set these values to imitate laggging and set up scenarios to reproduce issues
+	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+
+// this repros writing to a far future
+//	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient1FramePauses({ 7, 3, 0, 0, 0, 0, 0, 0, 0, 0 })
+
+	// this repros duplicating entities
+//	, mServer0FramePauses({ 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+//	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
 }
 
@@ -95,6 +123,7 @@ TestChecklist PlayerConnectedToServerTestCase::prepareChecklist()
 	mServerKeepConnectedCheck = &checklist.addCheck<SimpleTestCheck>("Player didn't keep connection for 50 frames on server");
 	mClientConnectionCheck = &checklist.addCheck<SimpleTestCheck>("Client didn't get controlled player");
 	mClientKeepConnectionCheck = &checklist.addCheck<SimpleTestCheck>("Client didn't keep controlled player for 50 frames");
+	mClientGotItsEntityReplicated = &checklist.addCheck<SimpleTestCheck>("Client didn't get its entity replicated");
 	return checklist;
 }
 
@@ -109,13 +138,20 @@ void PlayerConnectedToServerTestCase::prepareClientGame(TankClientGame& clientGa
 {
 	using namespace PlayerConnectedToServerTestCaseInternal;
 
-	clientGame.injectSystem<ClientCheckSystem>(*mClientConnectionCheck, *mClientKeepConnectionCheck);
+	clientGame.injectSystem<ClientCheckSystem>(*mClientConnectionCheck, *mClientKeepConnectionCheck, *mClientGotItsEntityReplicated);
 }
 
 void PlayerConnectedToServerTestCase::updateLoop()
 {
-	updateServer();
-	updateClient(0);
+	if (mServer0FramePauses.shouldUpdate())
+	{
+		updateServer();
+	}
+
+	if (mClient1FramePauses.shouldUpdate())
+	{
+		updateClient(0);
+	}
 
 	mTimeoutCheck->update();
 }

@@ -2,6 +2,7 @@
 
 #include "AutoTests/BasicTestChecks.h"
 #include "AutoTests/Network/BaseNetworkingTestCase.h"
+#include "AutoTests/Utils/UpdateLagger.h"
 
 class ArgumentsParser;
 
@@ -18,19 +19,6 @@ protected:
 	void updateLoop() override;
 
 private:
-	class UpdateLagger
-	{
-	public:
-		explicit UpdateLagger(std::vector<int>&& framePauses);
-		bool shouldUpdate();
-
-	private:
-		const std::vector<int> mFramePauses;
-		size_t mPauseIdx = 0;
-		int mPauseProgress = 0;
-	};
-
-private:
 	TimeoutCheck* mTimeoutCheck = nullptr;
 	SimpleTestCheck* mServerConnectionCheck = nullptr;
 	SimpleTestCheck* mServerKeepConnectedCheck = nullptr;
@@ -41,7 +29,7 @@ private:
 	SimpleTestCheck* mClient1GotReplicatedPlayer2Check = nullptr;
 	SimpleTestCheck* mClient2GotReplicatedPlayer1Check = nullptr;
 
-	UpdateLagger server0FramePauses;
-	UpdateLagger client1FramePauses;
-	UpdateLagger client2FramePauses;
+	UpdateLagger mServer0FramePauses;
+	UpdateLagger mClient1FramePauses;
+	UpdateLagger mClient2FramePauses;
 };
