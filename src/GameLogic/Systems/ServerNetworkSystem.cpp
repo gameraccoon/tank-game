@@ -4,6 +4,7 @@
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/NetworkEntityIdGeneratorComponent.generated.h"
+#include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -60,10 +61,14 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& 
 
 		SynchronizeServerStateToNewPlayer(gameStateRewinder, world, connectionId, connectionManager);
 
+		// figuring out if this is the first or the second player
+		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+		const bool isFirstPlayer = serverConnections->getClientDataRef().size() == 1;
+
 		gameStateRewinder.appendExternalCommandToHistory(
 			timeValue.lastFixedUpdateIndex + 1, // schedule for the next frame
 			Network::CreatePlayerEntityCommand::createServerSide(
-				Vector2D(rand() % 100 + 50, rand() % 100 + 50),
+				Vector2D(isFirstPlayer ? 80.0f : 130.0f, 202.0f),
 				networkEntityIdGenerator->getGeneratorRef().generateNext(),
 				connectionId
 			)
