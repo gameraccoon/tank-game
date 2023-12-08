@@ -188,7 +188,6 @@ namespace HAL
 			return FakeNetworkManager::ConnectResult{FakeNetworkManager::ConnectResult::Status::Success, clientConnectionId};
 		}
 
-		ReportError("Port %u is closed", port);
 		return FakeNetworkManager::ConnectResult{FakeNetworkManager::ConnectResult::Status::Failure, InvalidConnectionId};
 	}
 
