@@ -32,7 +32,6 @@ ServerNetworkSystem::ServerNetworkSystem(
 	, mGameStateRewinder(gameStateRewinder)
 	, mServerPort(serverPort)
 	, mShouldQuitGame(shouldQuitGame)
-	, mLastClientInteractionTime(std::chrono::system_clock::now())
 {
 }
 
@@ -88,6 +87,7 @@ void ServerNetworkSystem::update()
 
 	World& world = mWorldHolder.getWorld();
 	GameData& gameData = mWorldHolder.getGameData();
+	const TimeData& timeData = mGameStateRewinder.getTimeData();
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
 
@@ -123,10 +123,10 @@ void ServerNetworkSystem::update()
 			ReportError("Unhandled message");
 		}
 
-		mLastClientInteractionTime = std::chrono::system_clock::now();
+		mLastClientInteractionUpdateIdx = timeData.lastFixedUpdateIndex;
 	}
 
-	if (mLastClientInteractionTime + SERVER_IDLE_TIMEOUT < std::chrono::system_clock::now())
+	if (mLastClientInteractionUpdateIdx + SERVER_IDLE_TIMEOUT_UPDATES < timeData.lastFixedUpdateIndex)
 	{
 		LogInfo("No connections or messages from clients during quite some time. Shutting down the server");
 		mShouldQuitGame = true;

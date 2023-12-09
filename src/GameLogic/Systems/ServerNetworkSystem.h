@@ -29,7 +29,8 @@ private:
 	WorldHolder& mWorldHolder;
 	GameStateRewinder& mGameStateRewinder;
 	const u16 mServerPort;
+	u32 mLastClientInteractionUpdateIdx = 0;
 	bool& mShouldQuitGame;
-	std::chrono::time_point<std::chrono::system_clock> mLastClientInteractionTime;
-	static constexpr std::chrono::seconds SERVER_IDLE_TIMEOUT = std::chrono::seconds(60);
+	// about a minute without any network activity will cause the server to shut down
+	static constexpr u32 SERVER_IDLE_TIMEOUT_UPDATES = 60*60;
 };
