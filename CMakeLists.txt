@@ -116,7 +116,7 @@ execute_process(
 )
 
 # requirements
-find_package(PythonInterp 3.5 REQUIRED)
+find_package(Python3 3.5)
 
 include_directories(include)
 
