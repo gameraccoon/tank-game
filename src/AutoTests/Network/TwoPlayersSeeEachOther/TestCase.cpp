@@ -104,21 +104,6 @@ TwoPlayersSeeEachOtherTestCase::TwoPlayersSeeEachOtherTestCase()
 	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-
-	// this repros trying to correct first update
-//	, mServer0FramePauses({ 3, 8, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient1FramePauses({ 3, 3, 3, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient2FramePauses({ 7, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-
-	// this repros writing to a far future
-//	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient1FramePauses({ 7, 3, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-
-	// this repros duplicating entities
-//	, mServer0FramePauses({ 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
 }
 

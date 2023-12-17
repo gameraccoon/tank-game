@@ -104,14 +104,6 @@ PlayerConnectedToServerTestCase::PlayerConnectedToServerTestCase()
 	// set these values to imitate laggging and set up scenarios to reproduce issues
 	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-
-// this repros writing to a far future
-//	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient1FramePauses({ 7, 3, 0, 0, 0, 0, 0, 0, 0, 0 })
-
-	// this repros duplicating entities
-//	, mServer0FramePauses({ 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
-//	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {
 }
 
