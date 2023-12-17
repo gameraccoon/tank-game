@@ -119,7 +119,7 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 		}
 		FAIL();
 	});
-	ScopeFinalizer serverThreadFinalizer([&serverThread] { serverThread.join(); });
+	ScopeFinalizer serverThreadFinalizer([&serverThread] { if (serverThread.joinable()) { serverThread.join(); } });
 
 	while (serverStartedFuture.wait_for(std::chrono::microseconds(30)) != std::future_status::ready)
 	{
@@ -134,6 +134,8 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 
 	auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData});
 	EXPECT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
+
+	serverThread.join();
 }
 
 CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
