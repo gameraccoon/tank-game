@@ -71,7 +71,7 @@ namespace HAL
 		{
 			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[connectionId];
 			std::chrono::system_clock::time_point deliveryTime = std::chrono::system_clock::now() + messageDelay;
-			auto it = std::lower_bound(delayedMessages.begin(), delayedMessages.end(), deliveryTime, [](const DelayedMessage& message, std::chrono::system_clock::time_point deliveryTime)
+			auto it = std::upper_bound(delayedMessages.begin(), delayedMessages.end(), deliveryTime, [](std::chrono::system_clock::time_point deliveryTime, const DelayedMessage& message)
 			{
 				return deliveryTime < message.deliveryTime;
 			});
@@ -106,18 +106,17 @@ namespace HAL
 
 			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[sendingSideConnectionId];
 			const std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
-			auto firstMatchedIt = std::lower_bound(delayedMessages.begin(), delayedMessages.end(), timeNow, [](const DelayedMessage& message, std::chrono::system_clock::time_point timeNow)
+			auto receivedMessagesEnd = std::upper_bound(delayedMessages.begin(), delayedMessages.end(), timeNow, [](std::chrono::system_clock::time_point timeNow, const DelayedMessage& message)
 			{
-				// Fixme: this sorting predicate should be the same as the one in the function above
 				return timeNow < message.deliveryTime;
 			});
 
-			for (auto it = firstMatchedIt; it != delayedMessages.end(); ++it)
+			for (auto it = delayedMessages.begin(); it != receivedMessagesEnd; ++it)
 			{
 				GetMessageVectorRefFromSenderConnectionId(sendingSideConnectionId).emplace_back(receivingConnectionId, std::move(it->message));
 			}
 
-			delayedMessages.erase(firstMatchedIt, delayedMessages.end());
+			delayedMessages.erase(delayedMessages.begin(), receivedMessagesEnd);
 		}
 	};
 
