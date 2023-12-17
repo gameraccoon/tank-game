@@ -28,7 +28,7 @@ void ProjectileLifetimeSystem::update()
 	entityManager.forEachComponentSetWithEntity<ProjectileComponent>(
 		[currentTime, &entityManager](Entity entity, ProjectileComponent* timeLimitedLifetime)
 	{
-		if (currentTime > timeLimitedLifetime->getDestroyTime())
+		if (currentTime > timeLimitedLifetime->getDestroyTime() && !entityManager.doesEntityHaveComponent<DeathComponent>(entity))
 		{
 			entityManager.scheduleAddComponent<DeathComponent>(entity);
 		}
