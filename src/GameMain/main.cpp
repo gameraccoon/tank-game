@@ -98,7 +98,10 @@ int main(int argc, char** argv)
 		const int serverGraphicalInstance = graphicalInstanceIndex++;
 		const int serverThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 #ifndef DISABLE_SDL
-		renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
+		if (isRenderingEnabled)
+		{
+			renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), serverGraphicalInstance);
+		}
 #endif // !DISABLE_SDL
 		serverThread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, serverThreadId, serverGraphicalInstance] {
 			TankServerGame serverGame(applicationData.resourceManager, applicationData.threadPool, serverGraphicalInstance);
@@ -123,7 +126,10 @@ int main(int argc, char** argv)
 			const int client2ThreadId = applicationData.getAdditionalThreadIdByIndex(extraThreadIndex++);
 			std::optional<RenderAccessorGameRef> renderAccessor;
 #ifndef DISABLE_SDL
-			renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
+			if (isRenderingEnabled)
+			{
+				renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client2GraphicalInstance);
+			}
 #endif // !DISABLE_SDL
 			client2Thread = std::make_unique<std::thread>([&applicationData, &arguments, renderAccessor, &shouldStopExtraThreads, client2ThreadId, client2GraphicalInstance] {
 				TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool, client2GraphicalInstance);
@@ -146,7 +152,10 @@ int main(int argc, char** argv)
 		{
 			std::optional<RenderAccessorGameRef> renderAccessor;
 #ifndef DISABLE_SDL
-			renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance);
+			if (isRenderingEnabled)
+			{
+				renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance);
+			}
 #endif // !DISABLE_SDL
 			TankClientGame clientGame(nullptr, applicationData.resourceManager, applicationData.threadPool, client1GraphicalInstance);
 			clientGame.preStart(arguments, renderAccessor);

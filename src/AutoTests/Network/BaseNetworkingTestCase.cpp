@@ -45,7 +45,10 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	std::optional<RenderAccessorGameRef> serverRenderAccessor;
 
 #ifndef DISABLE_SDL
-	serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
+	if (isRenderEnabled)
+	{
+		serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
+	}
 #endif // !DISABLE_SDL
 
 	ArgumentsParser serverArguments = overrideServerArguments(arguments);
@@ -65,7 +68,10 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	{
 		std::optional<RenderAccessorGameRef> clientRenderAccessor;
 #ifndef DISABLE_SDL
-		clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), i + 1);
+		if (isRenderEnabled)
+		{
+			clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), i + 1);
+		}
 		HAL::Engine* enginePtr = (applicationData.engine && i == 0) ? &applicationData.engine.value() : nullptr;
 #else
 		HAL::Engine* enginePtr = nullptr;
