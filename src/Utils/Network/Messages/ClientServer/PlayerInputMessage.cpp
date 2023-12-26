@@ -8,7 +8,7 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/InputHistory.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/CompressedInput.h"
 #include "Utils/Network/GameStateRewinder.h"
@@ -46,7 +46,7 @@ namespace Network::ClientServer
 		return oldFrameIndex + 10 > newFrameIndex;
 	}
 
-	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
+	void ApplyPlayerInputMessage(WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 	{
 		size_t streamIndex = HAL::Network::Message::payloadStartPos;
 		const std::vector<std::byte>& data = message.data;

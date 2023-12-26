@@ -2,27 +2,32 @@
 
 #include "Base/Debug/Assert.h"
 
-class World;
+#include "GameData/EcsDefinitions.h"
+
+class WorldLayer;
 class GameData;
 
 class WorldHolder
 {
 public:
-	WorldHolder(World* world, GameData& gameData)
-		: mWorld(world)
-		, mGameData(gameData)
+	WorldHolder(WorldLayer& staticWorld, GameData& gameData) noexcept;
+
+	void setDynamicWorld(WorldLayer& newDynamicWorld);
+
+	WorldLayer& getDynamicWorldLayer()
 	{
+		AssertFatal(mDynamicWorld, "Dunamic world is not set");
+		return *mDynamicWorld;
 	}
 
-	void setWorld(World& newWorld)
+	CombinedEntityManagerView& getFullWorld()
 	{
-		mWorld = &newWorld;
+		return mEntityManagerView;
 	}
 
-	World& getWorld()
+	WorldLayer& getStaticWorldLayer()
 	{
-		AssertFatal(mWorld, "World is not set");
-		return *mWorld;
+		return mStaticWorld;
 	}
 
 	GameData& getGameData()
@@ -31,6 +36,8 @@ public:
 	}
 
 private:
-	World* mWorld;
+	WorldLayer* mDynamicWorld;
+	WorldLayer& mStaticWorld;
 	GameData& mGameData;
+	CombinedEntityManagerView mEntityManagerView;
 };

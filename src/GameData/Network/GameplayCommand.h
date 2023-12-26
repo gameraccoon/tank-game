@@ -5,7 +5,7 @@
 
 #include "GameData/Network/ConnectionId.h"
 
-class World;
+class WorldLayer;
 class GameStateRewinder;
 
 namespace Network
@@ -27,9 +27,9 @@ namespace Network
 		GameplayCommand& operator=(GameplayCommand&&) noexcept = default;
 		virtual ~GameplayCommand() = default;
 		[[nodiscard]] virtual GameplayCommandType getType() const = 0;
-		virtual void execute(GameStateRewinder& gameStateRewinder, World& world) const = 0;
+		virtual void execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const = 0;
 		[[nodiscard]] virtual Ptr clone() const = 0;
-		virtual void serverSerialize(World& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const = 0;
+		virtual void serverSerialize(WorldLayer& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const = 0;
 	};
 
 	struct GameplayCommandList

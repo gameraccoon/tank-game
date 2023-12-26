@@ -9,7 +9,7 @@
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/Network/NetworkProtocolVersion.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -35,7 +35,7 @@ ServerNetworkSystem::ServerNetworkSystem(
 {
 }
 
-static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, World& world, ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
+static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
 {
 	connectionManager.sendMessageToClient(
 		newPlayerConnectionId,
@@ -43,7 +43,7 @@ static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewind
 	);
 }
 
-static void OnClientConnected(HAL::ConnectionManager& connectionManager, World& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
+static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 {
 	const Network::ClientServer::ConnectMessageResult result = Network::ClientServer::ApplyConnectMessage(gameStateRewinder, message, connectionId);
 	if (result.clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
@@ -85,7 +85,7 @@ void ServerNetworkSystem::update()
 {
 	SCOPED_PROFILER("ServerNetworkSystem::update");
 
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 	const TimeData& timeData = mGameStateRewinder.getTimeData();
 

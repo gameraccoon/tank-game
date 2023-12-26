@@ -4,7 +4,7 @@
 
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -17,7 +17,7 @@ MovementSystem::MovementSystem(WorldHolder& worldHolder) noexcept
 void MovementSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
 		[](MovementComponent* movement, TransformComponent* transform)

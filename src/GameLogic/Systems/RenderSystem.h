@@ -2,13 +2,13 @@
 
 #ifndef DISABLE_SDL
 
-#include <raccoon-ecs/system.h>
+#include <raccoon-ecs/utils/system.h>
 
 #include "GameData/Geometry/Vector2D.h"
 
 class ResourceManager;
 class ThreadPool;
-class World;
+class WorldLayer;
 class WorldHolder;
 struct RenderData;
 
@@ -26,8 +26,8 @@ public:
 	void update() override;
 
 private:
-	void drawBackground(RenderData& renderData, World& world, Vector2D drawShift, Vector2D windowSize);
-	void drawTileGridLayer(RenderData& renderData, World& world, Vector2D drawShift, size_t layerIdx);
+	void drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize);
+	void drawTileGridLayer(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, size_t layerIdx);
 
 private:
 	WorldHolder& mWorldHolder;

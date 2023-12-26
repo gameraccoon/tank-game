@@ -4,11 +4,11 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-class World;
+class WorldLayer;
 class GameStateRewinder;
 
 namespace Network::ClientServer
 {
 	HAL::Network::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder);
-	void ApplyPlayerInputMessage(World& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId);
+	void ApplyPlayerInputMessage(WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId);
 } // namespace Network::ClientServer

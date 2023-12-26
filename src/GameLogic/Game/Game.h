@@ -2,16 +2,16 @@
 
 #include <thread>
 
-#include <raccoon-ecs/systems_manager.h>
+#include <raccoon-ecs/utils/systems_manager.h>
 
-#include "GameData/World.h"
 #include "GameData/GameData.h"
 #include "GameData/Serialization/Json/JsonComponentSerializer.h"
-
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameData/WorldLayer.h"
 
 #include "HAL/GameBase.h"
 #include "HAL/InputControllersData.h"
+
+#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Debug/DebugGameBehavior.h"
 
@@ -56,7 +56,8 @@ private:
 	ComponentFactory mComponentFactory;
 	RaccoonEcs::IncrementalEntityGenerator mEntityGenerator;
 	GameData mGameData{mComponentFactory};
-	WorldHolder mWorldHolder{nullptr, mGameData};
+	WorldLayer mStaticWorld{mComponentFactory, mEntityGenerator};
+	WorldHolder mWorldHolder{mStaticWorld, mGameData};
 
 	HAL::InputControllersData mInputControllersData;
 

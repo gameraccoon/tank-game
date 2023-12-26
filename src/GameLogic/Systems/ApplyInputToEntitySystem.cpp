@@ -4,7 +4,7 @@
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/GameplayInputComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -18,7 +18,7 @@ void ApplyInputToEntitySystem::update()
 {
 	SCOPED_PROFILER("InputSystem::update");
 
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	EntityManager& entityManager = world.getEntityManager();
 
 	const GameplayInputComponent* worldGameplayInput = world.getWorldComponents().getOrAddComponent<const GameplayInputComponent>();

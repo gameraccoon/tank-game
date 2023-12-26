@@ -51,16 +51,16 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port").getValueOr(14436));
 
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
 	const bool shouldRender = renderAccessor.has_value();
 
 	initSystems(shouldRender);
 
-	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getExecutablePath(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
-	TimeComponent* timeComponent = getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
+	TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());
 
 	// if we do debug rendering of server state
@@ -98,10 +98,10 @@ void TankServerGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
 
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	const auto [time] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 }
@@ -153,7 +153,7 @@ void TankServerGame::updateHistory()
 {
 	SCOPED_PROFILER("TankServerGame::updateHistory");
 
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	const auto [time] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 

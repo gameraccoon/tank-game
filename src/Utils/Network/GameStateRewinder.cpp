@@ -9,7 +9,7 @@
 
 #include "GameData/EcsDefinitions.h"
 #include "GameData/Network/MovementHistory.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/BoundCheckedHistory.h"
 
@@ -68,7 +68,7 @@ public:
 		GameplayInput::FrameState clientInput;
 		std::unordered_map<ConnectionId, GameplayInput::FrameState> serverInput;
 		// game state produced this update
-		std::unique_ptr<World> gameState;
+		std::unique_ptr<WorldLayer> gameState;
 
 		OneUpdateData() = default;
 		~OneUpdateData() = default;
@@ -88,7 +88,7 @@ public:
 	{
 		OneUpdateData& updateDataZero = updateHistory.getOrCreateRecordByUpdateIdx(0);
 		// set some data for the state of the 0th update to avoid special-case checks
-		updateDataZero.gameState = std::make_unique<World>(componentFactory, entityGenerator);
+		updateDataZero.gameState = std::make_unique<WorldLayer>(componentFactory, entityGenerator);
 	}
 
 	OneUpdateData& getOrCreateRecordByUpdateIdx(u32 updateIdx)
@@ -146,7 +146,7 @@ void GameStateRewinder::unwindBackInHistory(u32 firstUpdateToResimulate)
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
 }
 
-World& GameStateRewinder::getWorld(u32 updateIdx) const
+WorldLayer& GameStateRewinder::getDynamicWorld(u32 updateIdx) const
 {
 	return *mPimpl->updateHistory.getRecordUnsafe(updateIdx).gameState;
 }
@@ -167,7 +167,7 @@ void GameStateRewinder::advanceSimulationToNextUpdate(u32 newUpdateIdx)
 	}
 	else
 	{
-		newUpdateData.gameState = std::make_unique<World>(*previousUpdateData.gameState);
+		newUpdateData.gameState = std::make_unique<WorldLayer>(*previousUpdateData.gameState);
 	}
 }
 

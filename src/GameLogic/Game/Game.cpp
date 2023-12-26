@@ -37,7 +37,7 @@ void Game::preStart(const ArgumentsParser& arguments)
 	// ToDo: make an editor not to hardcode SM data
 	StateMachines::RegisterStateMachines(sm);
 
-	getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>();
+	getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>();
 }
 
 void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
@@ -54,7 +54,7 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 #ifndef DISABLE_SDL
 	if (HAL::Engine* engine = getEngine())
 	{
-		getWorldHolder().getWorld().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
+		getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
 	}
 #endif // !DISABLE_SDL
 

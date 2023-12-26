@@ -2,8 +2,6 @@
 
 #ifndef DISABLE_SDL
 
-#include "GameLogic/Systems/DebugDrawSystem.h"
-
 #include <algorithm>
 
 #include "Base/Random/Random.h"
@@ -17,16 +15,17 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
+
+#include "HAL/Graphics/Font.h"
+#include "HAL/Graphics/Sprite.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-#include "HAL/Graphics/Font.h"
-#include "HAL/Graphics/Sprite.h"
-
 #include "GameLogic/Render/RenderAccessor.h"
+#include "GameLogic/Systems/DebugDrawSystem.h"
 
 DebugDrawSystem::DebugDrawSystem(
 		WorldHolder& worldHolder,
@@ -50,7 +49,7 @@ void RemoveOldDrawElement(std::vector<T>& vector, GameplayTimestamp now)
 void DebugDrawSystem::update()
 {
 	SCOPED_PROFILER("DebugDrawSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();

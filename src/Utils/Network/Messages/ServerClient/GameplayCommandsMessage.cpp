@@ -7,13 +7,13 @@
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateGameplayCommandsMessage(World& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
+	HAL::Network::Message CreateGameplayCommandsMessage(WorldLayer& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
 	{
 		std::vector<std::byte> messageData;
 

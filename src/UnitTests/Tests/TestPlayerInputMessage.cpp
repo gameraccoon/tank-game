@@ -1,17 +1,17 @@
 #include "Base/precomp.h"
 
-#include <gtest/gtest.h>
 #include <memory>
+
+#include <gtest/gtest.h>
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/GameplayInputFrameState.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
-
 
 namespace PlayerInputMessageInternal
 {
@@ -19,7 +19,7 @@ namespace PlayerInputMessageInternal
 	{
 		ComponentFactory componentFactory;
 		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
-		World world{componentFactory, entityGenerator};
+		WorldLayer world{componentFactory, entityGenerator};
 		GameData gameData{componentFactory};
 		GameStateRewinder stateRewinder;
 

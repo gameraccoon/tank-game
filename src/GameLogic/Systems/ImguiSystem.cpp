@@ -5,10 +5,9 @@
 #ifdef IMGUI_ENABLED
 #ifndef DISABLE_SDL
 
-#include "imgui/imgui.h"
-#include "imgui/examples/imgui_impl_sdl.h"
 #include "imgui/examples/imgui_impl_opengl2.h"
-
+#include "imgui/examples/imgui_impl_sdl.h"
+#include "imgui/imgui.h"
 #include <SDL.h>
 #include <SDL_opengl.h>
 
@@ -18,15 +17,14 @@
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
-
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameData/WorldLayer.h"
 
 #include "HAL/Base/Engine.h"
 
+#include "Utils/SharedManagers/WorldHolder.h"
+
 #include "GameLogic/Imgui/ImguiDebugData.h"
 #include "GameLogic/Render/RenderAccessor.h"
-
 
 ImguiSystem::ImguiSystem(
 		ImguiDebugData& debugData,
@@ -59,7 +57,7 @@ void ImguiSystem::update()
 	{
 		std::lock_guard l(mRenderDataMutex);
 
-		const auto [time] = mDebugData.worldHolder.getWorld().getWorldComponents().getComponents<const TimeComponent>();
+		const auto [time] = mDebugData.worldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 		mDebugData.time = *time->getValue();
 
 		for (SDL_Event& sdlEvent : mEngine.getLastFrameEvents())

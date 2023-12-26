@@ -4,7 +4,7 @@
 
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -22,7 +22,7 @@ SaveCommandsToHistorySystem::SaveCommandsToHistorySystem(
 void SaveCommandsToHistorySystem::update()
 {
 	SCOPED_PROFILER("SaveCommandsToHistorySystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const u32 currentUpdateIndex = time->getValue()->lastFixedUpdateIndex;

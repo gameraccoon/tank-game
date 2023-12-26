@@ -10,14 +10,14 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/Time/TimeData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 #include "Utils/Network/GameStateRewinder.h"
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, World& world, ConnectionId connectionId)
+	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId connectionId)
 	{
 		// for players, we need to only send creation command to replicate the data
 		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
@@ -85,7 +85,7 @@ namespace Network::ServerClient
 		LogInfo("Applied CreateWorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 	}
 
-	void CleanBeforeApplyingSnapshot(World& world)
+	void CleanBeforeApplyingSnapshot(WorldLayer& world)
 	{
 		EntityManager& entityManager = world.getEntityManager();
 		NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();

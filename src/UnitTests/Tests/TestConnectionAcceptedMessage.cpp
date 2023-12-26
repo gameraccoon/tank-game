@@ -6,7 +6,7 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
@@ -18,7 +18,7 @@ namespace TestConnectionAcceptedMessageInternal
 	{
 		ComponentFactory componentFactory;
 		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
-		World world{ componentFactory, entityGenerator };
+		WorldLayer world{ componentFactory, entityGenerator };
 		GameData gameData{ componentFactory };
 		GameStateRewinder stateRewinder{ GameStateRewinder::HistoryType::Client, componentFactory, entityGenerator };
 	};

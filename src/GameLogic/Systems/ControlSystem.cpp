@@ -6,7 +6,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -19,7 +19,7 @@ ControlSystem::ControlSystem(WorldHolder& worldHolder) noexcept
 void ControlSystem::update()
 {
 	SCOPED_PROFILER("ControlSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	EntityManager& entityManager = world.getEntityManager();
 
 	entityManager.forEachComponentSetWithEntity<const GameplayInputComponent, MovementComponent>(

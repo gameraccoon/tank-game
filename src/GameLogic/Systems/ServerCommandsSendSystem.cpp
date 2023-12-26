@@ -6,7 +6,7 @@
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
@@ -22,7 +22,7 @@ ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder, Gam
 void ServerCommandsSendSystem::update()
 {
 	SCOPED_PROFILER("ServerCommandsSendSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();

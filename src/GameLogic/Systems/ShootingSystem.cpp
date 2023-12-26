@@ -9,7 +9,7 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameplayCommands/CreateProjectileCommand.h"
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -23,7 +23,7 @@ ShootingSystem::ShootingSystem(WorldHolder& worldHolder, GameStateRewinder& game
 void ShootingSystem::update()
 {
 	SCOPED_PROFILER("ShootingSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = world.getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();

@@ -28,7 +28,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 		{}
 
 		void update() final {
-			World &world = mWorldHolder.getWorld();
+			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 			const NetworkIdMappingComponent *networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 			if (!networkIdMapping->getNetworkIdToEntity().empty()) {
 				mConnectionCheck.checkAsPassed();
@@ -60,7 +60,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 		{}
 
 		void update() final {
-			World& world = mWorldHolder.getWorld();
+			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 			if (clientGameData->getControlledPlayer().isValid())
 			{

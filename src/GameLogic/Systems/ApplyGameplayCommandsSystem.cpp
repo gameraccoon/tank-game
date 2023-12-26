@@ -3,7 +3,7 @@
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils//SharedManagers/WorldHolder.h"
 
@@ -17,7 +17,7 @@ ApplyGameplayCommandsSystem::ApplyGameplayCommandsSystem(WorldHolder& worldHolde
 void ApplyGameplayCommandsSystem::update()
 {
 	SCOPED_PROFILER("ApplyGameplayCommandsSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 	for (const Network::GameplayCommand::Ptr& gameplayCommand : gameplayCommands->getData().list)

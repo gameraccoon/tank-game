@@ -2,23 +2,21 @@
 
 #ifdef IMGUI_ENABLED
 
-#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/ImguiPropertyFiltersWidget.h"
-
 #include <algorithm>
 #include <cstring>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "imgui.h"
-
-#include <raccoon-ecs/entity_manager.h>
 #include <raccoon-ecs/component_factory.h>
+#include <raccoon-ecs/entity_manager.h>
 
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/AbstractPropertyDescriptor.h"
+#include "GameLogic/Imgui/ComponentInspector/PropertyFilters/ImguiPropertyFiltersWidget.h"
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptors/ComponentAvailabilityPropertyDescriptor.h"
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptorsRegistration.h"
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/TypeFilters/FilterRegistration/FilterRegistration.h"
@@ -77,7 +75,7 @@ namespace ImguiPropertyFiltration
 				ss >> id;
 				Entity entity(id);
 
-				if (debugData.worldHolder.getWorld().getEntityManager().hasEntity(entity))
+				if (debugData.worldHolder.getDynamicWorldLayer().getEntityManager().hasEntity(entity))
 				{
 					mExplicitlySetEntity = entity;
 					return;
@@ -170,7 +168,7 @@ namespace ImguiPropertyFiltration
 
 		if (!filteredComponentTypes.empty())
 		{
-			EntityManager& entityManager = debugData.worldHolder.getWorld().getEntityManager();
+			EntityManager& entityManager = debugData.worldHolder.getDynamicWorldLayer().getEntityManager();
 			entityManager.getEntitiesHavingComponents(filteredComponentTypes, inOutEntities);
 
 			for (const auto& filter : mAppliedFilters)

@@ -10,15 +10,14 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
-#include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/ProjectileComponent.generated.h"
+#include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
-#include "GameData/World.h"
-
-#include "Utils/Network/GameStateRewinder.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameplayCommands/GameplayCommandTypes.h"
+#include "Utils/Network/GameStateRewinder.h"
 
 namespace Network
 {
@@ -31,7 +30,7 @@ namespace Network
 	{
 	}
 
-	void CreateProjectileCommand::execute(GameStateRewinder& gameStateRewinder, World& world) const
+	void CreateProjectileCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity projectileEntity = worldEntityManager.addEntity();
@@ -81,7 +80,7 @@ namespace Network
 		return std::make_unique<CreateProjectileCommand>(*this);
 	}
 
-	void CreateProjectileCommand::serverSerialize(World& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId /*receiverConnectionId*/) const
+	void CreateProjectileCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId /*receiverConnectionId*/) const
 	{
 		inOutStream.reserve(inOutStream.size() + 8 + 4*2 + 4*2 + 4);
 

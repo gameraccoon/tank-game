@@ -4,7 +4,7 @@
 
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -18,7 +18,7 @@ FetchClientInputFromHistorySystem::FetchClientInputFromHistorySystem(WorldHolder
 void FetchClientInputFromHistorySystem::update()
 {
 	SCOPED_PROFILER("FetchInputFromHistorySystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const u32 currentUpdateIndex = time->getValue()->lastFixedUpdateIndex;

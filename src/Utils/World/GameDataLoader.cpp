@@ -2,24 +2,24 @@
 
 #include "Utils/World/GameDataLoader.h"
 
-#include <fstream>
-#include <map>
-#include <iomanip>
-
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <map>
+
 #include <nlohmann/json.hpp>
 
 #include "Base/Random/RandomStrings.h"
 
-#include "GameData/World.h"
 #include "GameData/GameData.h"
+#include "GameData/WorldLayer.h"
 
 namespace GameDataLoader
 {
 	static const std::filesystem::path MAPS_PATH = "./resources/maps";
 	static const std::filesystem::path GAME_DATA_PATH = "./resources/game";
 
-	void SaveWorld(World& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void SaveWorld(WorldLayer& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("SaveWorld");
 
@@ -57,7 +57,7 @@ namespace GameDataLoader
 		}
 	}
 
-	void LoadWorld(World& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void LoadWorld(WorldLayer& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("LoadWorld");
 

@@ -11,7 +11,7 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -23,7 +23,7 @@ AnimationSystem::AnimationSystem(WorldHolder& worldHolder) noexcept
 void AnimationSystem::update()
 {
 	SCOPED_PROFILER("AnimationSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();

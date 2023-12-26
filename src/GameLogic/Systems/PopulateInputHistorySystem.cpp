@@ -5,7 +5,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/GameplayInputFrameState.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -21,7 +21,7 @@ void PopulateInputHistorySystem::update()
 {
 	SCOPED_PROFILER("PopulateInputHistorySystem::update");
 
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	const u32 lastUpdateIndex = time->getValue()->lastFixedUpdateIndex;

@@ -8,7 +8,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-class World;
+class WorldLayer;
 
 namespace Network::ServerClient
 {

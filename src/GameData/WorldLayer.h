@@ -4,18 +4,18 @@
 
 #include "GameData/Serialization/Json/JsonComponentSerializer.h"
 
-class World
+class WorldLayer
 {
 public:
-	World(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
+	WorldLayer(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
 
-	World(const World&) = default;
-	World& operator=(const World&) = delete;
-	World(World&&) noexcept = default;
-	World& operator=(World&&) noexcept = default;
-	~World() = default;
+	WorldLayer(const WorldLayer&) = default;
+	WorldLayer& operator=(const WorldLayer&) = delete;
+	WorldLayer(WorldLayer&&) noexcept = default;
+	WorldLayer& operator=(WorldLayer&&) noexcept = default;
+	~WorldLayer() = default;
 
-	void overrideBy(const World& otherWorld);
+	void overrideBy(const WorldLayer& otherWorld);
 
 	[[nodiscard]] EntityManager& getEntityManager() { return entityManager; }
 	[[nodiscard]] const EntityManager& getEntityManager() const { return entityManager; }

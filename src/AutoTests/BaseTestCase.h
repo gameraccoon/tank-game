@@ -2,7 +2,7 @@
 
 #include "AutoTests/TestCheckList.h"
 
-#include "raccoon-ecs/system.h"
+#include "raccoon-ecs/utils/system.h"
 
 class ArgumentsParser;
 class WorldHolder;

@@ -55,7 +55,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
 	std::optional<HAL::Network::NetworkAddress> newNetworkAddress = HAL::Network::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
 	if (newNetworkAddress.has_value())
@@ -65,13 +65,13 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	initSystems();
 
-	GameDataLoader::LoadWorld(getWorldHolder().getWorld(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), arguments.getExecutablePath(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
 	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
 	renderAccessorComponent->setAccessor(renderAccessor);
 
-	TimeComponent* timeComponent = getWorldHolder().getWorld().getWorldComponents().addComponent<TimeComponent>();
+	TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());
 
 	{
@@ -113,10 +113,10 @@ void TankClientGame::fixedTimeUpdate(float dt)
 {
 	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
 
-	const auto [time] = getWorldHolder().getWorld().getWorldComponents().getComponents<const TimeComponent>();
+	const auto [time] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
-	getWorldHolder().setWorld(mGameStateRewinder.getWorld(thisUpdateIdx));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 
@@ -133,7 +133,7 @@ void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpda
 		mShouldQuitGame = true;
 	}
 
-	auto [clientGameData] = getWorldHolder().getWorld().getWorldComponents().getComponents<ClientGameDataComponent>();
+	auto [clientGameData] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<ClientGameDataComponent>();
 	if (clientGameData != nullptr)
 	{
 		ConnectionId connectionId = clientGameData->getClientConnectionId();
@@ -193,7 +193,7 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 {
 	SCOPED_PROFILER("TankClientGame::correctUpdates");
 
-	World& world = getWorldHolder().getWorld();
+	WorldLayer& world = getWorldHolder().getDynamicWorldLayer();
 
 	// don't store references to component data, since the components will be destroyed during history rewinding
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
@@ -256,7 +256,7 @@ void TankClientGame::removeOldUpdates()
 
 	constexpr size_t MAX_STORED_UPDATES_COUNT = 60;
 
-	World& world = getWorldHolder().getWorld();
+	WorldLayer& world = getWorldHolder().getDynamicWorldLayer();
 
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 

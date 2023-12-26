@@ -1,17 +1,17 @@
 #include "Base/precomp.h"
 
-#include <gtest/gtest.h>
 #include <memory>
+
+#include <gtest/gtest.h>
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
 #include "GameData/Network/NetworkProtocolVersion.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
-
 
 namespace TestConnectMessageInternal
 {
@@ -19,7 +19,7 @@ namespace TestConnectMessageInternal
 	{
 		ComponentFactory componentFactory;
 		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
-		World world{ componentFactory, entityGenerator };
+		WorldLayer world{ componentFactory, entityGenerator };
 		GameData gameData{ componentFactory };
 		GameStateRewinder stateRewinder{ GameStateRewinder::HistoryType::Server, componentFactory, entityGenerator };
 	};

@@ -8,7 +8,7 @@
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
@@ -40,7 +40,7 @@ void ClientNetworkSystem::update()
 {
 	SCOPED_PROFILER("ClientNetworkSystem::update");
 
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();

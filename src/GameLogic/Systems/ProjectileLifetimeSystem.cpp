@@ -5,7 +5,7 @@
 #include "GameData/Components/DeathComponent.generated.h"
 #include "GameData/Components/ProjectileComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -17,7 +17,7 @@ ProjectileLifetimeSystem::ProjectileLifetimeSystem(WorldHolder& worldHolder) noe
 void ProjectileLifetimeSystem::update()
 {
 	SCOPED_PROFILER("MovementSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	auto [timeComponent] = world.getWorldComponents().getComponents<TimeComponent>();
 	const TimeData& time = *timeComponent->getValue();

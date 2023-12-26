@@ -9,9 +9,9 @@
 #include "GameData/Components/HitByProjectileComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/ProjectileComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/RollbackOnCollisionComponent.generated.h"
-#include "GameData/World.h"
+#include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Geometry/Collision.h"
 #include "Utils/SharedManagers/WorldHolder.h"
@@ -30,7 +30,7 @@ void CollisionResolutionSystem::update()
 
 void CollisionResolutionSystem::resolveMovingEntities() const
 {
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	TupleVector<const RollbackOnCollisionComponent*, const CollisionComponent*, const MovementComponent*, TransformComponent*> collisionComponents;
 	world.getEntityManager().getComponents<const RollbackOnCollisionComponent, const CollisionComponent, const MovementComponent, TransformComponent>(collisionComponents);
@@ -127,7 +127,7 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 
 void CollisionResolutionSystem::resolveProjectileHits() const
 {
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	TupleVector<Entity, const ProjectileComponent*, const TransformComponent*> projectiles;
 	world.getEntityManager().getComponentsWithEntities<const ProjectileComponent, const TransformComponent>(projectiles);

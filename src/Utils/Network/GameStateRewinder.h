@@ -8,7 +8,7 @@
 
 #include "GameData/EcsDefinitions.h"
 
-class World;
+class WorldLayer;
 namespace RaccoonEcs
 {
 	class EntityGenerator;
@@ -46,7 +46,7 @@ public:
 
 	void unwindBackInHistory(u32 firstUpdateToResimulate);
 
-	World& getWorld(u32 updateIdx) const;
+	WorldLayer& getDynamicWorld(u32 updateIdx) const;
 	void advanceSimulationToNextUpdate(u32 newUpdateIdx);
 
 	u32 getLastConfirmedClientUpdateIdx() const;

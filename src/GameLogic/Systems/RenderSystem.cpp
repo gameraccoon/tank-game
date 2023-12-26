@@ -2,8 +2,6 @@
 
 #ifndef DISABLE_SDL
 
-#include "GameLogic/Systems/RenderSystem.h"
-
 #include <algorithm>
 #include <ranges>
 
@@ -18,16 +16,16 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
+
+#include "HAL/Graphics/Sprite.h"
 
 #include "Utils/Multithreading/ThreadPool.h"
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-#include "HAL/Graphics/Sprite.h"
-
 #include "GameLogic/Render/RenderAccessor.h"
-
+#include "GameLogic/Systems/RenderSystem.h"
 
 RenderSystem::RenderSystem(
 		WorldHolder& worldHolder,
@@ -43,7 +41,8 @@ RenderSystem::RenderSystem(
 void RenderSystem::update()
 {
 	SCOPED_PROFILER("RenderSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& dynamicWorldLayer = mWorldHolder.getDynamicWorldLayer();
+	WorldLayer& staticWorldLayer = mWorldHolder.getStaticWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>();
@@ -54,7 +53,7 @@ void RenderSystem::update()
 
 	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 
-	const auto [worldCachedData] = world.getWorldComponents().getComponents<WorldCachedDataComponent>();
+	const auto [worldCachedData] = dynamicWorldLayer.getWorldComponents().getComponents<WorldCachedDataComponent>();
 	const Vector2D workingRect = worldCachedData->getScreenSize();
 
 	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
@@ -65,18 +64,18 @@ void RenderSystem::update()
 
 	if (!renderMode || renderMode->getIsDrawBackgroundEnabled())
 	{
-		drawBackground(*renderData, world, drawShift, workingRect);
+		drawBackground(*renderData, staticWorldLayer, drawShift, workingRect);
 	}
 
 	{
 		SCOPED_PROFILER("draw tile grid layer 0");
-		drawTileGridLayer(*renderData, world, drawShift, 0);
+		drawTileGridLayer(*renderData, staticWorldLayer, drawShift, 0);
 	}
 
 	if (!renderMode || renderMode->getIsDrawVisibleEntitiesEnabled())
 	{
 		SCOPED_PROFILER("draw visible entities");
-		world.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent>(
+		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent>(
 			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform)
 		{
 			Vector2D location = transform->getLocation() + drawShift;
@@ -113,16 +112,16 @@ void RenderSystem::update()
 
 	{
 		SCOPED_PROFILER("draw tile grid layer 1");
-		drawTileGridLayer(*renderData, world, drawShift, 1);
+		drawTileGridLayer(*renderData, dynamicWorldLayer, drawShift, 1);
 	}
 
 	renderAccessor.submitData(std::move(renderData));
 }
 
-void RenderSystem::drawBackground(RenderData& renderData, World& world, Vector2D drawShift, Vector2D windowSize)
+void RenderSystem::drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize)
 {
 	SCOPED_PROFILER("RenderSystem::drawBackground");
-	auto [backgroundTexture] = world.getWorldComponents().getComponents<BackgroundTextureComponent>();
+	auto [backgroundTexture] = worldLayer.getWorldComponents().getComponents<BackgroundTextureComponent>();
 	if (backgroundTexture != nullptr)
 	{
 		if (!backgroundTexture->getSprite().spriteHandle.isValid())
@@ -144,9 +143,9 @@ void RenderSystem::drawBackground(RenderData& renderData, World& world, Vector2D
 	}
 }
 
-void RenderSystem::drawTileGridLayer(RenderData& renderData, World& world, const Vector2D drawShift, const size_t layerIdx)
+void RenderSystem::drawTileGridLayer(RenderData& renderData, WorldLayer& worldLayer, const Vector2D drawShift, const size_t layerIdx)
 {
-	world.getEntityManager().forEachComponentSet<const TileGridComponent, const TransformComponent>(
+	worldLayer.getEntityManager().forEachComponentSet<const TileGridComponent, const TransformComponent>(
 		[&drawShift, &renderData, layerIdx](const TileGridComponent* tileGrid, const TransformComponent* transform)
 	{
 		const TileGridParams& tileGridData = tileGrid->getGridData();

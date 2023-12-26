@@ -24,9 +24,9 @@ namespace Network
 		[[nodiscard]] static GameplayCommand::Ptr createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner);
 
 		[[nodiscard]] GameplayCommandType getType() const final { return GetType(); }
-		void execute(GameStateRewinder& gameStateRewinder, World& world) const final;
+		void execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const final;
 		[[nodiscard]] Ptr clone() const final;
-		void serverSerialize(World& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const final;
+		void serverSerialize(WorldLayer& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const final;
 		[[nodiscard]] static Ptr ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos);
 		static GameplayCommandType GetType();
 

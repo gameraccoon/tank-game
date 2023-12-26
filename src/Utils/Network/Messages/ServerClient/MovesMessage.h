@@ -11,7 +11,7 @@ class FrameTimeCorrector;
 class GameStateRewinder;
 class NetworkIdComponent;
 class TransformComponent;
-class World;
+class WorldLayer;
 
 namespace Network::ServerClient
 {

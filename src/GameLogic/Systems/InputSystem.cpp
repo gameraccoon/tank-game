@@ -4,8 +4,8 @@
 
 #ifndef DISABLE_SDL
 
-#include <SDL_scancode.h>
 #include <SDL_mouse.h>
+#include <SDL_scancode.h>
 
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
@@ -14,12 +14,11 @@
 #include "GameData/GameData.h"
 #include "GameData/Input/ControllerState.h"
 #include "GameData/Input/InputBindings.h"
-#include "GameData/World.h"
-
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameData/WorldLayer.h"
 
 #include "HAL/InputControllersData.h"
 
+#include "Utils/SharedManagers/WorldHolder.h"
 
 InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept
 	: mWorldHolder(worldHolder)
@@ -85,7 +84,7 @@ void InputSystem::processGameplayInput()
 
 	using namespace Input;
 
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	const PlayerControllerStates& controllerStates = mInputData.controllerStates;
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();

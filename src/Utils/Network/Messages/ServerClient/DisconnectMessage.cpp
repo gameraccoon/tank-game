@@ -6,7 +6,7 @@
 #include "Base/Types/String/StringHelpers.h"
 
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 namespace Network::ServerClient
 {

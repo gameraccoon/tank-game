@@ -6,12 +6,10 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/MovementHistory.h"
-
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameStateRewinder.h"
 #include "Utils/SharedManagers/WorldHolder.h"
-
 
 SaveMovementToHistorySystem::SaveMovementToHistorySystem(
 	WorldHolder& worldHolder,
@@ -25,7 +23,7 @@ SaveMovementToHistorySystem::SaveMovementToHistorySystem(
 void SaveMovementToHistorySystem::update()
 {
 	SCOPED_PROFILER("SaveMovementToHistorySystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 

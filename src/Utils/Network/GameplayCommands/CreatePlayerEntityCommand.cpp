@@ -10,16 +10,15 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
-#include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/RollbackOnCollisionComponent.generated.h"
-#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/SpriteCreatorComponent.generated.h"
+#include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
-#include "GameData/World.h"
-
-#include "Utils/Network/GameStateRewinder.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/Network/GameplayCommands/GameplayCommandTypes.h"
+#include "Utils/Network/GameStateRewinder.h"
 
 namespace Network
 {
@@ -33,7 +32,7 @@ namespace Network
 		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
 	}
 
-	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, World& world) const
+	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
 		Entity controlledEntity = worldEntityManager.addEntity();
@@ -87,7 +86,7 @@ namespace Network
 		return std::make_unique<CreatePlayerEntityCommand>(*this);
 	}
 
-	void CreatePlayerEntityCommand::serverSerialize(World& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
+	void CreatePlayerEntityCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
 	{
 		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4*2);
 

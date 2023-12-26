@@ -2,8 +2,6 @@
 
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 
-#include "GameData/World.h"
-#include "GameData/GameData.h"
 #include "GameData/Components/AnimationClipCreatorComponent.generated.h"
 #include "GameData/Components/AnimationClipsComponent.generated.h"
 #include "GameData/Components/AnimationGroupCreatorComponent.generated.h"
@@ -12,11 +10,13 @@
 #include "GameData/Components/SpriteRenderComponent.generated.h"
 #include "GameData/Components/TileGridComponent.generated.h"
 #include "GameData/Components/TileGridCreatorComponent.generated.h"
+#include "GameData/GameData.h"
+#include "GameData/WorldLayer.h"
+
+#include "HAL/Graphics/Sprite.h"
 
 #include "Utils/ResourceManagement/ResourceManager.h"
 #include "Utils/SharedManagers/WorldHolder.h"
-
-#include "HAL/Graphics/Sprite.h"
 
 #include "GameLogic/Resources/AnimationGroup.h"
 #include "GameLogic/Resources/SpriteAnimationClip.h"
@@ -33,18 +33,17 @@ ResourceStreamingSystem::ResourceStreamingSystem(
 void ResourceStreamingSystem::update()
 {
 	SCOPED_PROFILER("ResourceStreamingSystem::update");
-	World& world = mWorldHolder.getWorld();
-	EntityManager& entityManager = world.getEntityManager();
+	CombinedEntityManagerView& entityManager = mWorldHolder.getFullWorld();
 
 #ifndef DISABLE_SDL
 	// load sprites
 	entityManager.forEachComponentSetWithEntity<SpriteCreatorComponent>(
-			[this, &entityManager](Entity entity, SpriteCreatorComponent* spriteCreator)
+			[this, &entityManager](EntityView entity, SpriteCreatorComponent* spriteCreator)
 	{
 		const auto& descriptions = spriteCreator->getDescriptions();
 		Assert(!descriptions.empty(), "Sprite descriptions should not be empty");
 
-		SpriteRenderComponent* spriteRender = entityManager.scheduleAddComponent<SpriteRenderComponent>(entity);
+		SpriteRenderComponent* spriteRender = entity.scheduleAddComponent<SpriteRenderComponent>();
 		size_t spritesCount = descriptions.size();
 		auto& spriteDatas = spriteRender->getSpriteDatasRef();
 		spriteDatas.resize(spritesCount);
@@ -56,26 +55,26 @@ void ResourceStreamingSystem::update()
 			spriteRender->getSpriteIdsRef().push_back(id++);
 			spriteRender->setMaxSpriteId(id);
 		}
-		entityManager.scheduleRemoveComponent<SpriteCreatorComponent>(entity);
+		entity.scheduleRemoveComponent<SpriteCreatorComponent>();
 	});
 	entityManager.executeScheduledActions();
 
 	// load single animations clips
 	entityManager.forEachComponentSetWithEntity<AnimationClipCreatorComponent>(
-			[this, &entityManager](Entity entity, AnimationClipCreatorComponent* animationClipCreator)
+			[this](EntityView entity, AnimationClipCreatorComponent* animationClipCreator)
 	{
 		const auto& descriptions = animationClipCreator->getDescriptionsRef();
 		Assert(!descriptions.empty(), "Animation descriptions should not be empty");
 
-		AnimationClipsComponent* animationClips = entityManager.scheduleAddComponent<AnimationClipsComponent>(entity);
+		AnimationClipsComponent* animationClips = entity.scheduleAddComponent<AnimationClipsComponent>();
 		size_t animationCount = descriptions.size();
 		auto& animations = animationClips->getDatasRef();
 		animations.resize(animationCount);
 
-		auto [spriteRender] = entityManager.getEntityComponents<SpriteRenderComponent>(entity);
+		auto [spriteRender] = entity.getComponents<SpriteRenderComponent>();
 		if (spriteRender == nullptr)
 		{
-			spriteRender = entityManager.scheduleAddComponent<SpriteRenderComponent>(entity);
+			spriteRender = entity.scheduleAddComponent<SpriteRenderComponent>();
 		}
 
 		auto& spriteDatas = spriteRender->getSpriteDatasRef();
@@ -95,29 +94,29 @@ void ResourceStreamingSystem::update()
 			Assert(spriteRender->getSpriteIds().size() == spriteDatas.size(), "Sprites and SpriteIds have diverged");
 		}
 
-		entityManager.scheduleAddComponent<AnimationClipsComponent>(entity);
+		entity.scheduleAddComponent<AnimationClipsComponent>();
 
-		entityManager.scheduleRemoveComponent<AnimationClipCreatorComponent>(entity);
+		entity.scheduleRemoveComponent<AnimationClipCreatorComponent>();
 	});
 	entityManager.executeScheduledActions();
 
 	// load animation groups
 	entityManager.forEachComponentSetWithEntity<AnimationGroupCreatorComponent>(
-			[this, &entityManager](Entity entity, AnimationGroupCreatorComponent* animationGroupCreator)
+			[this](EntityView entity, AnimationGroupCreatorComponent* animationGroupCreator)
 	{
-		AnimationGroupsComponent* animationGroups = entityManager.scheduleAddComponent<AnimationGroupsComponent>(entity);
+		AnimationGroupsComponent* animationGroups = entity.scheduleAddComponent<AnimationGroupsComponent>();
 
-		auto [animationClips] = entityManager.getEntityComponents<AnimationClipsComponent>(entity);
+		auto [animationClips] = entity.getComponents<AnimationClipsComponent>();
 		if (animationClips == nullptr)
 		{
-			animationClips = entityManager.scheduleAddComponent<AnimationClipsComponent>(entity);
+			animationClips = entity.scheduleAddComponent<AnimationClipsComponent>();
 		}
 		auto& clipDatas = animationClips->getDatasRef();
 
-		auto [spriteRender] = entityManager.getEntityComponents<SpriteRenderComponent>(entity);
+		auto [spriteRender] = entity.getComponents<SpriteRenderComponent>();
 		if (spriteRender == nullptr)
 		{
-			spriteRender = entityManager.scheduleAddComponent<SpriteRenderComponent>(entity);
+			spriteRender = entity.scheduleAddComponent<SpriteRenderComponent>();
 		}
 		auto& spriteDatas = spriteRender->getSpriteDatasRef();
 
@@ -149,16 +148,16 @@ void ResourceStreamingSystem::update()
 			clipDatas.emplace_back(std::move(clip));
 		}
 
-		entityManager.scheduleRemoveComponent<AnimationGroupCreatorComponent>(entity);
+		entity.scheduleRemoveComponent<AnimationGroupCreatorComponent>();
 	});
 	entityManager.executeScheduledActions();
 #endif // !DISABLE_SDL
 
 	// load tile grids
 	entityManager.forEachComponentSetWithEntity<TileGridCreatorComponent>(
-			[this, &entityManager](Entity entity, TileGridCreatorComponent* tileGridCreator)
+			[this](EntityView entity, TileGridCreatorComponent* tileGridCreator)
 	{
-		TileGridComponent* tileGrid = entityManager.scheduleAddComponent<TileGridComponent>(entity);
+		TileGridComponent* tileGrid = entity.scheduleAddComponent<TileGridComponent>();
 
 		ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
 		const Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<Graphics::TileGrid>(tileGridHandle);
@@ -169,7 +168,7 @@ void ResourceStreamingSystem::update()
 		tileGrid->setGridData(tileGridResource->getTileGridParams());
 		tileGrid->setSize(tileGridCreator->getSize());
 
-		entityManager.scheduleRemoveComponent<TileGridCreatorComponent>(entity);
+		entity.scheduleRemoveComponent<TileGridCreatorComponent>();
 	});
 	entityManager.executeScheduledActions();
 }

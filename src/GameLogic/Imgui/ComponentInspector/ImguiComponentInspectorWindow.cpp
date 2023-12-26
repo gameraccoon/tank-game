@@ -9,16 +9,15 @@
 #include <string_view>
 
 #include "imgui/imgui.h"
-
 #include <raccoon-ecs/component_factory.h>
 
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/Imgui/ImguiDebugData.h"
 #include "GameLogic/Imgui/ComponentInspector/ComponentWidgetsRegistration.h"
+#include "GameLogic/Imgui/ImguiDebugData.h"
 
 ImguiComponentInspectorWindow::ImguiComponentInspectorWindow()
 {
@@ -94,7 +93,7 @@ void ImguiComponentInspectorWindow::showComponentsInspector(ImguiDebugData& debu
 		Entity entity = mSelectedEntity.getEntity();
 
 		std::vector<TypedComponent> components;
-		debugData.worldHolder.getWorld().getEntityManager().getAllEntityComponents(entity, components);
+		debugData.worldHolder.getDynamicWorldLayer().getEntityManager().getAllEntityComponents(entity, components);
 		std::ranges::sort(components, [](const auto& a, const auto& b)
 		{
 			return a.typeId < b.typeId;

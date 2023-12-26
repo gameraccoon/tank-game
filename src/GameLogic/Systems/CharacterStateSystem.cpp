@@ -2,15 +2,14 @@
 
 #include "GameLogic/Systems/CharacterStateSystem.h"
 
-#include "GameData/Enums/Direction4.generated.h"
-
 #include "GameData/Components/AnimationGroupsComponent.generated.h"
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/Enums/Direction4.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/World.h"
+#include "GameData/WorldLayer.h"
 
 #include "Utils/SharedManagers/WorldHolder.h"
 
@@ -27,7 +26,7 @@ static bool CanMove(CharacterState /*state*/)
 void CharacterStateSystem::update()
 {
 	SCOPED_PROFILER("CharacterStateSystem::update");
-	World& world = mWorldHolder.getWorld();
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
 	auto [stateMachine] = gameData.getGameComponents().getComponents<StateMachineComponent>();
