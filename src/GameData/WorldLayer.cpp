@@ -13,8 +13,8 @@ void WorldLayer::overrideBy(const WorldLayer& otherWorld)
 	worldComponents.overrideBy(otherWorld.worldComponents);
 }
 
-WorldLayer::WorldLayer(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
-	: entityManager(componentFactory, entityGenerator)
+WorldLayer::WorldLayer(const ComponentFactory& componentFactory)
+	: entityManager(componentFactory)
 	, worldComponents(componentFactory)
 {
 }

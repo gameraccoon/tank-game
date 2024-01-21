@@ -64,27 +64,27 @@ namespace ImguiPropertyFiltration
 
 		if (ImGui::InputTextWithHint("##FilterSearch", "Search Query", mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer)))
 		{
-			{
-				Entity::EntityId id = 0;
-				std::string_view strId(mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer));
-				std::stringstream ss;
-				if (strId[0] == '0' && strId[1] == 'x') {
-					ss << std::hex;
-				}
-				ss << strId;
-				ss >> id;
-				Entity entity(id);
-
-				if (debugData.worldHolder.getDynamicWorldLayer().getEntityManager().hasEntity(entity))
-				{
-					mExplicitlySetEntity = entity;
-					return;
-				}
-				else
-				{
-					mExplicitlySetEntity = {};
-				}
-			}
+//			{
+//				Entity::EntityId id = 0;
+//				std::string_view strId(mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer));
+//				std::stringstream ss;
+//				if (strId[0] == '0' && strId[1] == 'x') {
+//					ss << std::hex;
+//				}
+//				ss << strId;
+//				ss >> id;
+//				Entity entity(id);
+//
+//				if (debugData.worldHolder.getDynamicWorldLayer().getEntityManager().hasEntity(entity))
+//				{
+//					mExplicitlySetEntity = entity;
+//					return;
+//				}
+//				else
+//				{
+//					mExplicitlySetEntity = {};
+//				}
+//			}
 
 			std::string strId(mFilterQueryBuffer, std::strlen(mFilterQueryBuffer));
 			// tolower

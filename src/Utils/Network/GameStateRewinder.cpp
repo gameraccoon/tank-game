@@ -84,11 +84,11 @@ public:
 	using History = BoundCheckedHistory<OneUpdateData, u32>;
 
 public:
-	Impl(ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
+	Impl(ComponentFactory& componentFactory)
 	{
 		OneUpdateData& updateDataZero = updateHistory.getOrCreateRecordByUpdateIdx(0);
 		// set some data for the state of the 0th update to avoid special-case checks
-		updateDataZero.gameState = std::make_unique<WorldLayer>(componentFactory, entityGenerator);
+		updateDataZero.gameState = std::make_unique<WorldLayer>(componentFactory);
 	}
 
 	OneUpdateData& getOrCreateRecordByUpdateIdx(u32 updateIdx)
@@ -106,8 +106,8 @@ public:
 	History updateHistory;
 };
 
-GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator)
-	: mPimpl(std::make_unique<Impl>(componentFactory, entityGenerator))
+GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory)
+	: mPimpl(std::make_unique<Impl>(componentFactory))
 	, mHistoryType(historyType)
 	, mNotRewindableComponents(componentFactory)
 {

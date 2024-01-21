@@ -46,12 +46,12 @@ void ImguiComponentInspectorWindow::showEntityId()
 {
 	if (mSelectedEntity.isValid())
 	{
-		ImGui::Text("id:%llu", static_cast<unsigned long long>(mSelectedEntity.getEntity().getId()));
+		ImGui::Text("id:%llu", static_cast<unsigned long long>(mSelectedEntity.getEntity().getRawId()));
 		ImGui::SameLine();
 		if (ImGui::Button("Copy"))
 		{
 			ImGui::LogToClipboard();
-			ImGui::LogText("id:%llu", static_cast<unsigned long long>(mSelectedEntity.getEntity().getId()));
+			ImGui::LogText("id:%llu", static_cast<unsigned long long>(mSelectedEntity.getEntity().getRawId()));
 			ImGui::LogFinish();
 		}
 	}
@@ -70,7 +70,7 @@ void ImguiComponentInspectorWindow::showFilteredEntities()
 				for (Entity filteredEntity : mFilteredEntities)
 				{
 					char buf[32];
-					sprintf(buf, "id:%llu", static_cast<unsigned long long>(filteredEntity.getId()));
+					sprintf(buf, "id:%llu", static_cast<unsigned long long>(filteredEntity.getRawId()));
 					if (ImGui::Selectable(buf, mSelectedEntity.isValid() && mSelectedEntity.getEntity() == filteredEntity))
 					{
 						mSelectedEntity = filteredEntity;

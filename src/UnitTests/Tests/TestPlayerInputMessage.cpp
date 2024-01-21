@@ -18,13 +18,12 @@ namespace PlayerInputMessageInternal
 	struct TestGame
 	{
 		ComponentFactory componentFactory;
-		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
-		WorldLayer world{componentFactory, entityGenerator};
+		WorldLayer world{componentFactory};
 		GameData gameData{componentFactory};
 		GameStateRewinder stateRewinder;
 
 		explicit TestGame(GameStateRewinder::HistoryType historyType)
-			: stateRewinder(historyType, componentFactory, entityGenerator)
+			: stateRewinder(historyType, componentFactory)
 		{}
 	};
 

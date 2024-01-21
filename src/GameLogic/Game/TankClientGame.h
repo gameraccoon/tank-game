@@ -42,7 +42,7 @@ private:
 	void processCorrections();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client, getComponentFactory(), getEntityGenerator()};
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client, getComponentFactory()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;

@@ -9,10 +9,6 @@
 #include "GameData/EcsDefinitions.h"
 
 class WorldLayer;
-namespace RaccoonEcs
-{
-	class EntityGenerator;
-}
 struct MovementUpdateData;
 
 class GameStateRewinder
@@ -28,7 +24,7 @@ public:
 	static constexpr u32 INVALID_UPDATE_IDX = std::numeric_limits<u32>::max();
 
 public:
-	GameStateRewinder(HistoryType historyType, ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
+	GameStateRewinder(HistoryType historyType, ComponentFactory& componentFactory);
 	~GameStateRewinder();
 	GameStateRewinder(const GameStateRewinder&) = delete;
 	GameStateRewinder& operator=(const GameStateRewinder&) = delete;

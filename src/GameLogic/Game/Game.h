@@ -42,7 +42,6 @@ protected:
 	virtual TimeData& getTimeData() = 0;
 
 	ComponentFactory& getComponentFactory() { return mComponentFactory; }
-	RaccoonEcs::EntityGenerator& getEntityGenerator() { return mEntityGenerator; }
 	WorldHolder& getWorldHolder() { return mWorldHolder; }
 	RaccoonEcs::SystemsManager& getPreFrameSystemsManager() { return mPreFrameSystemsManager; }
 	RaccoonEcs::SystemsManager& getGameLogicSystemsManager() { return mGameLogicSystemsManager; }
@@ -54,9 +53,8 @@ protected:
 
 private:
 	ComponentFactory mComponentFactory;
-	RaccoonEcs::IncrementalEntityGenerator mEntityGenerator;
 	GameData mGameData{mComponentFactory};
-	WorldLayer mStaticWorld{mComponentFactory, mEntityGenerator};
+	WorldLayer mStaticWorld{mComponentFactory};
 	WorldHolder mWorldHolder{mStaticWorld, mGameData};
 
 	HAL::InputControllersData mInputControllersData;

@@ -7,7 +7,7 @@
 class WorldLayer
 {
 public:
-	WorldLayer(const ComponentFactory& componentFactory, RaccoonEcs::EntityGenerator& entityGenerator);
+	WorldLayer(const ComponentFactory& componentFactory);
 
 	WorldLayer(const WorldLayer&) = default;
 	WorldLayer& operator=(const WorldLayer&) = delete;

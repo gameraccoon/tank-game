@@ -17,10 +17,9 @@ namespace TestConnectionAcceptedMessageInternal
 	struct TestClientGame
 	{
 		ComponentFactory componentFactory;
-		RaccoonEcs::IncrementalEntityGenerator entityGenerator;
-		WorldLayer world{ componentFactory, entityGenerator };
+		WorldLayer world{ componentFactory };
 		GameData gameData{ componentFactory };
-		GameStateRewinder stateRewinder{ GameStateRewinder::HistoryType::Client, componentFactory, entityGenerator };
+		GameStateRewinder stateRewinder{ GameStateRewinder::HistoryType::Client, componentFactory };
 	};
 
 	static std::unique_ptr<TestClientGame> CreateClientGameInstance()

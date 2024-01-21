@@ -40,7 +40,7 @@ private:
 	void updateHistory();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory(), getEntityGenerator()};
+	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory()};
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldQuitGame = false;
 	u16 mServerPort = 14436;

@@ -10,7 +10,8 @@
     {
       "name": "ownerEntity",
       "type": "RaccoonEcs::OptionalEntity",
-      "includes": ["\"GameData/Serialization/Json/Entity.h\""]
+      "includes": ["\"GameData/EcsDefinitions.h\""],
+      "flags": ["transient"]
     }
   ]
 }

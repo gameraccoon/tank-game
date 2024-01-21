@@ -33,7 +33,7 @@ void FetchServerInputFromHistorySystem::update()
 			const Entity playerEntity = oneClientData.playerEntity.getEntity();
 			if (!entityManager.hasEntity(playerEntity))
 			{
-				ReportError("Player has entity assigned but it doesn't exist, connectionId=%u, entity id=%u", connectionId, playerEntity.getId());
+				ReportError("Player has entity assigned but it doesn't exist, connectionId=%u, entity id=%u", connectionId, playerEntity.getRawId());
 				continue;
 			}
 
