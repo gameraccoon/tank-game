@@ -19,6 +19,8 @@ public:
 
 	const std::string& getArgumentSwitch() const { return mArgumentSwitch; }
 
+	[[nodiscard]] std::vector<std::string> getAllArguments() const;
+
 	std::filesystem::path getExecutablePath() const;
 
 	void manuallySetArgument(const std::string& argument, const std::string& value = "");

@@ -83,6 +83,22 @@ std::filesystem::path ArgumentsParser::getExecutablePath() const
 	return mExecutablePath;
 }
 
+std::vector<std::string> ArgumentsParser::getAllArguments() const
+{
+	std::vector<std::string> result;
+	result.reserve(mTokens.size());
+
+	for (const std::string& token : mTokens)
+	{
+		if (token.starts_with(mArgumentSwitch))
+		{
+			result.push_back(token.substr(mArgumentSwitch.size()));
+		}
+	}
+
+	return result;
+}
+
 void ArgumentsParser::manuallySetArgument(const std::string& argument, const std::string& value)
 {
 	mTokens.emplace_back(mArgumentSwitch + argument);
