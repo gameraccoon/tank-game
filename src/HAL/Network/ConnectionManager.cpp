@@ -979,9 +979,10 @@ namespace HAL
 		ReportFatalError("Not implemented");
 	}
 
-	void ConnectionManager::SetDebugBehavior(const Network::DebugBehavior& /*debugBehavior*/)
+	void ConnectionManager::SetDebugBehavior(const Network::DebugBehavior& debugBehavior)
 	{
-		ReportFatalError("Not implemented");
+		// only delay is supported for now
+		StaticImpl().fakeNetworkManager->setDebugDelayMilliseconds(debugBehavior.packetLagMs_Recv + debugBehavior.packetLagMs_Send);
 	}
 
 	u64 ConnectionManager::GetTimestampNow()
