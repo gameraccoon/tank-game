@@ -66,5 +66,7 @@ void Log::writeLine(const char* logPrefix, const std::string& text)
 		mLogWriteMutex.unlock();
 	}
 
+#ifndef DEDICATED_SERVER
 	std::clog << text << "\n";
+#endif
 }
