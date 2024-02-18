@@ -9,7 +9,7 @@ class TankClientGame;
 class BaseNetworkingTestCase : public BaseTestCase
 {
 public:
-	BaseNetworkingTestCase(size_t clentsCount);
+	BaseNetworkingTestCase(int clentsCount);
 
 	TestChecklist start(const ArgumentsParser& arguments) override;
 
@@ -31,12 +31,12 @@ protected:
 	virtual ArgumentsParser overrideClientArguments(const ArgumentsParser& arguments, size_t clientIndex);
 
 	void updateServer();
-	void updateClient(size_t clientIndex);
+	void updateClient(int clientIndex);
 
-	size_t getClientCount() const { return mClientsCount; }
+	int getClientCount() const { return mClientsCount; }
 
 private:
-	const size_t mClientsCount;
+	const int mClientsCount;
 
 	std::unique_ptr<TankServerGame> mServerGame;
 	std::vector<std::unique_ptr<TankClientGame>> mClientGames;

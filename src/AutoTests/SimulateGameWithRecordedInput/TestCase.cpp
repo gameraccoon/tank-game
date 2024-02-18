@@ -17,7 +17,7 @@
 
 #include "AutoTests/BasicTestChecks.h"
 
-SimulateGameWithRecordedInputTestCase::SimulateGameWithRecordedInputTestCase(const char* inputFilePath, size_t clientsCount, int maxFramesCount)
+SimulateGameWithRecordedInputTestCase::SimulateGameWithRecordedInputTestCase(const char* inputFilePath, int clientsCount, int maxFramesCount)
 	: BaseNetworkingTestCase(clientsCount)
 	, mInputFilePath(inputFilePath)
 	, mFramesLeft(maxFramesCount)
@@ -44,7 +44,7 @@ void SimulateGameWithRecordedInputTestCase::updateLoop()
 
 	for (int i = 0; i < (mClentExtraUpdates > 0 ? 2 : 1); ++i)
 	{
-		for (size_t clientIndex = 0; clientIndex < getClientCount(); ++clientIndex)
+		for (int clientIndex = 0; clientIndex < getClientCount(); ++clientIndex)
 		{
 			updateClient(clientIndex);
 		}

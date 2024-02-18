@@ -32,7 +32,15 @@ public:
 
 		Iterator& operator++()
 		{
-			mRecordUpdateIdx += IsForward ? 1 : -1;
+			if (IsForward)
+			{
+				++mRecordUpdateIdx;
+			}
+			else
+			{
+				--mRecordUpdateIdx;
+			}
+
 			mData += IsForward ? 1 : -1;
 			return *this;
 		}

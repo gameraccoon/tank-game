@@ -17,7 +17,7 @@
 
 #include "AutoTests/BasicTestChecks.h"
 
-BaseNetworkingTestCase::BaseNetworkingTestCase(size_t clentsCount)
+BaseNetworkingTestCase::BaseNetworkingTestCase(int clentsCount)
 	: mClientsCount(clentsCount)
 {}
 
@@ -54,9 +54,9 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	ArgumentsParser serverArguments = overrideServerArguments(arguments);
 	std::vector<ArgumentsParser> clientArguments;
 	clientArguments.reserve(mClientsCount);
-	for (size_t i = 0; i < mClientsCount; ++i)
+	for (int i = 0; i < mClientsCount; ++i)
 	{
-		clientArguments.push_back(overrideClientArguments(arguments, i));
+		clientArguments.push_back(overrideClientArguments(arguments, static_cast<size_t>(i)));
 	}
 
 	mServerGame = std::make_unique<TankServerGame>(applicationData.resourceManager, applicationData.threadPool, 0);
@@ -64,7 +64,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	mServerGame->initResources();
 
 	mClientGames.resize(mClientsCount);
-	for (size_t i = 0; i < mClientsCount; ++i)
+	for (int i = 0; i < mClientsCount; ++i)
 	{
 		std::optional<RenderAccessorGameRef> clientRenderAccessor;
 #ifndef DISABLE_SDL
@@ -87,7 +87,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 
 	// configure the server and client instances
 	prepareServerGame(*mServerGame, serverArguments);
-	for (size_t i = 0; i < mClientsCount; ++i)
+	for (int i = 0; i < mClientsCount; ++i)
 	{
 		prepareClientGame(*mClientGames[i], clientArguments[i], i);
 	}
@@ -101,7 +101,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 		}
 
 		// if any of the clients request us to stop
-		for (size_t i = 0; i < mClientsCount; ++i)
+		for (int i = 0; i < mClientsCount; ++i)
 		{
 			if (mClientGames[i]->shouldQuitGame()) {
 				break;
@@ -116,7 +116,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 		updateLoop();
 	}
 
-	for (size_t i = 0; i < mClientsCount; ++i)
+	for (int i = 0; i < mClientsCount; ++i)
 	{
 		mClientGames[i]->onGameShutdown();
 	}
@@ -146,9 +146,9 @@ void BaseNetworkingTestCase::updateServer()
 	mServerGame->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 }
 
-void BaseNetworkingTestCase::updateClient(size_t clientIndex)
+void BaseNetworkingTestCase::updateClient(int clientIndex)
 {
-	AssertFatal(clientIndex < mClientsCount, "Invalid client index %zu, clients count is %zu", clientIndex, mClientsCount);
+	AssertFatal(clientIndex >= 0 && clientIndex < mClientsCount, "Invalid client index %d, clients count is %d", clientIndex, mClientsCount);
 	mClientGames[clientIndex]->dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 	mClientGames[clientIndex]->fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mClientGames[clientIndex]->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);

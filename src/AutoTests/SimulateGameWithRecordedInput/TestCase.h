@@ -7,7 +7,7 @@ class ArgumentsParser;
 class SimulateGameWithRecordedInputTestCase final : public BaseNetworkingTestCase
 {
 public:
-	SimulateGameWithRecordedInputTestCase(const char* inputFilePath, size_t clientsCount, int maxFramesCount);
+	SimulateGameWithRecordedInputTestCase(const char* inputFilePath, int clientsCount, int maxFramesCount);
 
 protected:
 	TestChecklist prepareChecklist() override;
