@@ -26,6 +26,7 @@ namespace ConsoleCommands
 			{ "threads-count", "threads-count n", "set amount of worker threads" },
 			{ "open-port", "open-port [n]", "run in server mode on the given port" },
 			{ "connect", "connect [ip:port]", "run in client mode and connect to the given address" },
+			{ "connect-matchmaker", "connect-matchmaker [ip:port]", "connect to the matchmaking server" },
 			{ "no-second-client", "no-second-client", "do not run the second client" },
 			{ "disable-input", "disable-input", "disable keyboard/mouse/controller input" },
 			{ "record-input", "record-input <file>", "record input to the given file" },

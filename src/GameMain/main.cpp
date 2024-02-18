@@ -5,8 +5,10 @@
 #include <raccoon-ecs/error_handling.h>
 
 #include "Base/Random/Random.h"
+#include "Base/Types/String/StringNumberConversion.h"
 
 #include "Utils/Application/ArgumentsParser.h"
+#include "Utils/Network/TcpClient.h"
 
 #include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
@@ -41,6 +43,40 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 	}
 }
 
+static std::optional<std::string> ReceiveServerAddressFromMatchmaker(const std::string& matchmakerAddress)
+{
+	const size_t colonIndex = matchmakerAddress.find(':');
+	if (colonIndex == std::string::npos)
+	{
+		ReportError("Invalid matchmaker address");
+		return std::nullopt;
+	}
+	const std::string matchmakerIp = matchmakerAddress.substr(0, colonIndex);
+	const std::string matchmakerPort = matchmakerAddress.substr(colonIndex + 1);
+
+	TcpClient client;
+	if (client.connectToServer(matchmakerIp, matchmakerPort))
+	{
+		client.sendMessage("connect\n\n");
+		const std::optional<std::string> response = client.receiveMessage();
+		if (response.has_value())
+		{
+			// for now we assume that the server and the matchmaker are always on the same machine
+			return matchmakerIp + ":" + response.value();
+		}
+		else
+		{
+			ReportError("Failed to receive response from the matchmaking server");
+			return std::nullopt;
+		}
+	}
+	else
+	{
+		ReportError("Failed to connect to the matchmaking server");
+		return std::nullopt;
+	}
+}
+
 int main(int argc, char** argv)
 {
 	Random::gGlobalGenerator = Random::GlobalGeneratorType(std::random_device()());
@@ -54,6 +90,21 @@ int main(int argc, char** argv)
 	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
 	{
 		return 0;
+	}
+
+	if (arguments.hasArgument("connect-matchmaker"))
+	{
+		const std::string matchmakerAddress = arguments.getArgumentValue("connect-matchmaker").value_or("");
+		LogInfo("Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());
+		const std::optional<std::string> address = ReceiveServerAddressFromMatchmaker(matchmakerAddress);
+		if (address.has_value())
+		{
+			arguments.manuallySetArgument("connect", address.value());
+		}
+		else
+		{
+			return 1;
+		}
 	}
 
 #ifndef DISABLE_SDL
