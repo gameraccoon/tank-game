@@ -42,7 +42,7 @@ public:
 	bool renderEnabled = true;
 
 public:
-	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& executableFolderPath, Render render = Render::Enabled);
+	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, Render render = Render::Enabled);
 
 #ifndef DISABLE_SDL
 	void startRenderThread();

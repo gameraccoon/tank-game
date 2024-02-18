@@ -21,15 +21,9 @@ public:
 
 	[[nodiscard]] std::vector<std::string> getAllArguments() const;
 
-	std::filesystem::path getExecutablePath() const;
-
 	void manuallySetArgument(const std::string& argument, const std::string& value = "");
-
-private:
-	static std::filesystem::path getExecutablePath(const char* firstArgument);
 
 private:
 	std::vector<std::string> mTokens;
 	std::string mArgumentSwitch;
-	std::filesystem::path mExecutablePath;
 };

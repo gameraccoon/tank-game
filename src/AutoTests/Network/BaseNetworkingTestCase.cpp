@@ -28,7 +28,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	ApplicationData applicationData(
 		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		mClientsCount,
-		arguments.getExecutablePath(),
+		std::filesystem::current_path(),
 		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 

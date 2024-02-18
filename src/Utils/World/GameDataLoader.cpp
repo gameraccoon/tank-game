@@ -19,7 +19,7 @@ namespace GameDataLoader
 	static const std::filesystem::path MAPS_PATH = "./resources/maps";
 	static const std::filesystem::path GAME_DATA_PATH = "./resources/game";
 
-	void SaveWorld(WorldLayer& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void SaveWorld(WorldLayer& world, const std::filesystem::path& workingPath, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("SaveWorld");
 
@@ -29,7 +29,7 @@ namespace GameDataLoader
 		// if it's name, we save to maps folder
 		if (levelName.find_first_of("/\\.") == std::string::npos)
 		{
-			levelPath = appFolder / MAPS_PATH / (levelName + ".json");
+			levelPath = workingPath / MAPS_PATH / (levelName + ".json");
 		}
 		else
 		{
@@ -53,11 +53,11 @@ namespace GameDataLoader
 		}
 		catch (const std::exception& e)
 		{
-			LogError("Can't save world to file '%s': %s", levelPath.c_str(), e.what());
+			ReportError("Can't save world to file '%s': %s", levelPath.c_str(), e.what());
 		}
 	}
 
-	void LoadWorld(WorldLayer& world, const std::filesystem::path& appFolder, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void LoadWorld(WorldLayer& world, const std::filesystem::path& workingPath, const std::string& levelName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("LoadWorld");
 
@@ -67,7 +67,7 @@ namespace GameDataLoader
 		// if it is a name, we search the map in the maps folder
 		if (levelName.find_first_of("/\\.") == std::string::npos)
 		{
-			levelPath = appFolder / MAPS_PATH / (levelName + ".json");
+			levelPath = workingPath / MAPS_PATH / (levelName + ".json");
 		}
 
 		try
@@ -85,15 +85,15 @@ namespace GameDataLoader
 		}
 		catch(const nlohmann::detail::exception& e)
 		{
-			LogError("Can't parse world '%s': %s", levelPath.c_str(), e.what());
+			ReportError("Can't parse world '%s': %s", levelPath.c_str(), e.what());
 		}
 		catch(const std::exception& e)
 		{
-			LogError("Can't open world '%s': %s", levelPath.c_str(), e.what());
+			ReportError("Can't open world '%s': %s", levelPath.c_str(), e.what());
 		}
 	}
 
-	void SaveGameData(const GameData& gameData, const std::filesystem::path& appFolder, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void SaveGameData(const GameData& gameData, const std::filesystem::path& workingPath, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("SaveGameData");
 
@@ -103,7 +103,7 @@ namespace GameDataLoader
 		// if it's name, we save to maps folder
 		if (gameDataName.find_first_of("/\\.") == std::string::npos)
 		{
-			gameDataPath = appFolder / GAME_DATA_PATH / (gameDataName + ".json");
+			gameDataPath = workingPath / GAME_DATA_PATH / (gameDataName + ".json");
 		}
 		else
 		{
@@ -122,11 +122,11 @@ namespace GameDataLoader
 		}
 		catch (const std::exception& e)
 		{
-			LogError("Can't save gameData to file '%s': %s", gameDataPath.c_str(), e.what());
+			ReportError("Can't save gameData to file '%s': %s", gameDataPath.c_str(), e.what());
 		}
 	}
 
-	void LoadGameData(GameData& gameData, const std::filesystem::path& appFolder, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
+	void LoadGameData(GameData& gameData, const std::filesystem::path& workingPath, const std::string& gameDataName, const Json::ComponentSerializationHolder& jsonSerializerHolder)
 	{
 		SCOPED_PROFILER("LoadGameData");
 
@@ -136,7 +136,7 @@ namespace GameDataLoader
 		// if it's name, we search the map in maps folder
 		if (gameDataName.find_first_of("/\\.") == std::string::npos)
 		{
-			gameDataPath = appFolder / GAME_DATA_PATH / (gameDataName + ".json");
+			gameDataPath = workingPath / GAME_DATA_PATH / (gameDataName + ".json");
 		}
 
 		try
@@ -152,11 +152,11 @@ namespace GameDataLoader
 		}
 		catch(const nlohmann::detail::exception& e)
 		{
-			LogError("Can't parse gameData '%s': %s", gameDataPath.c_str(), e.what());
+			ReportError("Can't parse gameData '%s': %s", gameDataPath.c_str(), e.what());
 		}
 		catch(const std::exception& e)
 		{
-			LogError("Can't open gameData '%s': %s", gameDataPath.c_str(), e.what());
+			ReportError("Can't open gameData '%s': %s", gameDataPath.c_str(), e.what());
 		}
 	}
 }

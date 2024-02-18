@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 	ApplicationData applicationData(
 		arguments.getIntArgumentValue("threads-count").getValueOr(ApplicationData::DefaultWorkerThreadCount),
 		additionalThreadsCount,
-		arguments.getExecutablePath(),
+		std::filesystem::current_path(),
 		isRenderingEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 

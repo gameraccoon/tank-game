@@ -65,8 +65,8 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	initSystems();
 
-	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), arguments.getExecutablePath(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
-	GameDataLoader::LoadGameData(getGameData(), arguments.getExecutablePath(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
+	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), std::filesystem::current_path(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
+	GameDataLoader::LoadGameData(getGameData(), std::filesystem::current_path(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
 	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
 	renderAccessorComponent->setAccessor(renderAccessor);
