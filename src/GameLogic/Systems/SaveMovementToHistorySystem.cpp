@@ -40,7 +40,7 @@ void SaveMovementToHistorySystem::update()
 	entityManager.forEachComponentSet<const TransformComponent, const NetworkIdComponent>(
 		[&newUpdateData](const TransformComponent* transform, const NetworkIdComponent* networkId)
 	{
-		newUpdateData.addHash(networkId->getId(), transform->getLocation());
+		newUpdateData.addHash(networkId->getId(), transform->getLocation(), transform->getDirection());
 	});
 
 	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());

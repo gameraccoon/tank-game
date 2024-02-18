@@ -59,6 +59,7 @@ namespace Network::ServerClient
 			const Vector2D location = transform->getLocation();
 			Serialization::AppendNumber<f32>(movesMessageData, location.x);
 			Serialization::AppendNumber<f32>(movesMessageData, location.y);
+			Serialization::AppendNumber<u8>(movesMessageData, static_cast<u8>(transform->getDirection()));
 		}
 
 		return HAL::Network::Message{
@@ -105,8 +106,9 @@ namespace Network::ServerClient
 			Vector2D location{};
 			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
+			const u8 direction = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
 
-			currentUpdateData.addMove(networkEntityId, location);
+			currentUpdateData.addMove(networkEntityId, location, static_cast<Direction4>(direction));
 		}
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());

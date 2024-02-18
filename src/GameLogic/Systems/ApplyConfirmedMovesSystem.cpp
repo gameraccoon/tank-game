@@ -47,6 +47,7 @@ void ApplyConfirmedMovesSystem::update()
 				const EntityMoveData& move = it->second;
 
 				transform->setLocation(move.location);
+				transform->setDirection(move.direction);
 			}
 		);
 	}
