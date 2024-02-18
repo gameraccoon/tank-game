@@ -263,7 +263,12 @@ if (NOT DISABLE_SDL)
 	endif()
 endif()
 
-if (NOT WIN32)
+if (WIN32)
+	set(GENERAL_PROJECT_LIBS
+		${GENERAL_PROJECT_LIBS}
+		ws2_32
+	)
+else()
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		stdc++fs
