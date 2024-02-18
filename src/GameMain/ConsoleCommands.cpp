@@ -21,10 +21,16 @@ namespace ConsoleCommands
 	bool TryExecuteQuickConsoleCommands(const ArgumentsParser& arguments)
 	{
 		std::vector<CommandInfo> commands{
+			{ "help", "help", "print this help" },
+			{ "no-render", "no-render", "disable rendering" },
 			{ "threads-count", "threads-count n", "set amount of worker threads" },
 			{ "open-port", "open-port [n]", "run in server mode on the given port" },
 			{ "connect", "connect [ip:port]", "run in client mode and connect to the given address" },
+			{ "no-second-client", "no-second-client", "do not run the second client" },
 			{ "disable-input", "disable-input", "disable keyboard/mouse/controller input" },
+			{ "record-input", "record-input <file>", "record input to the given file" },
+			{ "replay-input", "replay-input <file>", "replay input from the given file" },
+			{ "continue-after-input-end", "continue-after-input-end", "continue running the game after the input file ends" },
 			{ "time-limit", "time-limit n", "end the game after the given amount of frames" },
 			{ "network-protocol-version", "network-protocol-version", "print network protocol version number" },
 			{ "net-lag", "net-lag [n]", "enable simulation of network lag with given latency in ms" },
