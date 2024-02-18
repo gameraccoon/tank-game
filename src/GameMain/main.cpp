@@ -191,11 +191,13 @@ int main(int argc, char** argv)
 		serverThread->join(); // this call waits for the server thread to be joined
 	}
 
+#ifndef DEDICATED_SERVER
 	if (runSecondClient)
 	{
 		shouldStopExtraThreads = true;
 		client2Thread->join(); // this call waits for the client thread to be joined
 	}
+#endif // !DEDICATED_SERVER
 
 	applicationData.shutdownThreads(); // this call waits for the threads to be joined
 
