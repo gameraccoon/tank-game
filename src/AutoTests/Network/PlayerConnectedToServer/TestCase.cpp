@@ -135,6 +135,8 @@ void PlayerConnectedToServerTestCase::prepareClientGame(TankClientGame& clientGa
 
 void PlayerConnectedToServerTestCase::updateLoop()
 {
+	HAL::ConnectionManager::debugAdvanceTime(16);
+
 	if (mServer0FramePauses.shouldUpdate())
 	{
 		updateServer();

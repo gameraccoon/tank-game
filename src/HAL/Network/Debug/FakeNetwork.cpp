@@ -31,6 +31,7 @@ namespace HAL
 		static inline std::unordered_map<ConnectionId, u16> portByClientConnection;
 		static inline ReceivedMessagesVector receivedClientMessages;
 		static inline ConnectionId nextConnectionId = 0;
+		static inline std::optional<std::chrono::system_clock::time_point> fakeTime;
 		static inline std::mutex dataMutex;
 
 		static inline std::unordered_map<ConnectionId, std::vector<DelayedMessage>> messagesOnTheWay;
@@ -70,7 +71,7 @@ namespace HAL
 		void scheduleMessage(ConnectionId connectionId, const Network::Message& message)
 		{
 			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[connectionId];
-			std::chrono::system_clock::time_point deliveryTime = std::chrono::system_clock::now() + messageDelay;
+			std::chrono::system_clock::time_point deliveryTime = getTime() + messageDelay;
 			auto it = std::upper_bound(delayedMessages.begin(), delayedMessages.end(), deliveryTime, [](std::chrono::system_clock::time_point deliveryTime, const DelayedMessage& message)
 			{
 				return deliveryTime < message.deliveryTime;
@@ -105,7 +106,7 @@ namespace HAL
 			const ConnectionId sendingSideConnectionId = connectionIt->second;
 
 			std::vector<DelayedMessage>& delayedMessages = messagesOnTheWay[sendingSideConnectionId];
-			const std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+			const std::chrono::system_clock::time_point timeNow = getTime();
 			auto receivedMessagesEnd = std::upper_bound(delayedMessages.begin(), delayedMessages.end(), timeNow, [](std::chrono::system_clock::time_point timeNow, const DelayedMessage& message)
 			{
 				return timeNow < message.deliveryTime;
@@ -117,6 +118,15 @@ namespace HAL
 			}
 
 			delayedMessages.erase(delayedMessages.begin(), receivedMessagesEnd);
+		}
+
+		std::chrono::system_clock::time_point getTime() const
+		{
+			if (fakeTime.has_value())
+			{
+				return fakeTime.value();
+			}
+			return std::chrono::system_clock::now();
 		}
 	};
 
@@ -290,6 +300,12 @@ namespace HAL
 	{
 		using namespace std::chrono_literals;
 		mPimpl->messageDelay = milliseconds * 1ms;
+	}
+
+	void FakeNetworkManager::debugAdvanceTimeMilliseconds(int milliseconds)
+	{
+		using namespace std::chrono_literals;
+		mPimpl->fakeTime = mPimpl->getTime() + milliseconds * 1ms;
 	}
 } // namespace HAL
 

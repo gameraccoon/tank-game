@@ -86,6 +86,7 @@ namespace HAL
 		std::vector<std::pair<ConnectionId, Network::Message>> consumeReceivedClientMessages(ConnectionId connectionId);
 
 		void setDebugDelayMilliseconds(int milliseconds);
+		void debugAdvanceTimeMilliseconds(int milliseconds);
 
 	private:
 		struct Impl;

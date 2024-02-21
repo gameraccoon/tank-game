@@ -10,6 +10,7 @@
 #include "Utils/Application/ArgumentsParser.h"
 
 #include "HAL/Base/GameLoop.h"
+#include "HAL/Network/ConnectionManager.h"
 
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/ApplicationData.h"
@@ -40,6 +41,8 @@ void SimulateGameWithRecordedInputTestCase::prepareClientGame(TankClientGame& /*
 
 void SimulateGameWithRecordedInputTestCase::updateLoop()
 {
+	HAL::ConnectionManager::debugAdvanceTime(16);
+
 	updateServer();
 
 	for (int i = 0; i < (mClentExtraUpdates > 0 ? 2 : 1); ++i)

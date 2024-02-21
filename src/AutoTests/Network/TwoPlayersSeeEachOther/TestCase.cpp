@@ -145,6 +145,8 @@ void TwoPlayersSeeEachOtherTestCase::prepareClientGame(TankClientGame& clientGam
 
 void TwoPlayersSeeEachOtherTestCase::updateLoop()
 {
+	HAL::ConnectionManager::debugAdvanceTime(16);
+
 	if (mServer0FramePauses.shouldUpdate())
 	{
 		updateServer();

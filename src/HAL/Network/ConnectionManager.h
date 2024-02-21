@@ -109,6 +109,7 @@ namespace HAL
 		static u64 GetTimestampNow();
 
 		static void TEST_reset();
+		static void debugAdvanceTime(u64 timeMs);
 
 	private:
 		struct Impl;

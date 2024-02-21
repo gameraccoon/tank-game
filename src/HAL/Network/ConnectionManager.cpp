@@ -792,6 +792,11 @@ namespace HAL
 		// do nothing for real network
 	}
 
+	void ConnectionManager::debugAdvanceTime(u64 /*timeMs*/)
+	{
+		// nothing to do here
+	}
+
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()
 	{
 		// we need this for thread-safe lazy initialization
@@ -993,6 +998,11 @@ namespace HAL
 	void ConnectionManager::TEST_reset()
 	{
 		StaticImpl().fakeNetworkManager = std::make_unique<FakeNetworkManager>();
+	}
+
+	void ConnectionManager::debugAdvanceTime(u64 timeMs)
+	{
+		StaticImpl().fakeNetworkManager->debugAdvanceTimeMilliseconds(timeMs);
 	}
 
 	ConnectionManager::Impl& ConnectionManager::StaticImpl()
