@@ -45,6 +45,7 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 
 static std::optional<std::string> ReceiveServerAddressFromMatchmaker(const std::string& matchmakerAddress)
 {
+	const std::string EXPECTED_MATCHMAKER_PROTOCOL_VERSION = "1";
 	const size_t colonIndex = matchmakerAddress.find(':');
 	if (colonIndex == std::string::npos)
 	{
@@ -57,17 +58,44 @@ static std::optional<std::string> ReceiveServerAddressFromMatchmaker(const std::
 	TcpClient client;
 	if (client.connectToServer(matchmakerIp, matchmakerPort))
 	{
-		client.sendMessage("connect\n\n");
-		const std::optional<std::string> response = client.receiveMessage();
-		if (response.has_value())
 		{
-			// for now we assume that the server and the matchmaker are always on the same machine
-			return matchmakerIp + ":" + response.value();
+			client.sendMessage("protocol-version\n\n");
+			const std::optional<std::string> response = client.receiveMessage();
+			if (response.has_value() && response != EXPECTED_MATCHMAKER_PROTOCOL_VERSION)
+			{
+				ReportError("Matchmaker protocol version mismatch (expected: %s, got: %s)", EXPECTED_MATCHMAKER_PROTOCOL_VERSION.c_str(), response.value().c_str());
+				return std::nullopt;
+			}
+			else if (!response.has_value())
+			{
+				ReportError("Failed to receive protocol version from the matchmaking server");
+				return std::nullopt;
+			}
 		}
-		else
+
 		{
-			ReportError("Failed to receive response from the matchmaking server");
-			return std::nullopt;
+			client.sendMessage("connect\n\n");
+			const std::optional<std::string> response = client.receiveMessage();
+			if (response.has_value() && response->starts_with("port:"))
+			{
+				return matchmakerIp + ":" + response.value().substr(5);
+			}
+			else if (response.has_value() && response->starts_with("address:"))
+			{
+				return response.value();
+			}
+			else
+			{
+				if (response.has_value())
+				{
+					ReportError("Matchmaker response is unexpected: %s", response.value().c_str());
+				}
+				else
+				{
+					ReportError("Failed to receive response from the matchmaking server");
+				}
+				return std::nullopt;
+			}
 		}
 	}
 	else
