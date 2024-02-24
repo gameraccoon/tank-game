@@ -265,7 +265,7 @@ public:
 			mLastStoredUpdateIdx += static_cast<IndexType>(shiftLeft);
 		}
 
-		if constexpr (!std::is_same_v<CleanFn, nullptr_t>)
+		if constexpr (!std::is_same_v<CleanFn, std::nullptr_t>)
 		{
 			for (IndexType i = 0; i < shiftLeft; ++i)
 			{

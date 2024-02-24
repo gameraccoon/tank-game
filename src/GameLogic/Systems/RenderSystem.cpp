@@ -29,12 +29,10 @@
 
 RenderSystem::RenderSystem(
 		WorldHolder& worldHolder,
-		ResourceManager& resourceManager,
-		ThreadPool& threadPool
+		ResourceManager& resourceManager
 	) noexcept
 	: mWorldHolder(worldHolder)
 	, mResourceManager(resourceManager)
-	, mThreadPool(threadPool)
 {
 }
 

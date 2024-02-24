@@ -20,8 +20,8 @@ class RenderSystem : public RaccoonEcs::System
 public:
 	RenderSystem(
 		WorldHolder& worldHolder,
-		ResourceManager& resourceManager,
-		ThreadPool& threadPool) noexcept;
+		ResourceManager& resourceManager
+	) noexcept;
 
 	void update() override;
 
@@ -32,7 +32,6 @@ private:
 private:
 	WorldHolder& mWorldHolder;
 	ResourceManager& mResourceManager;
-	ThreadPool& mThreadPool;
 };
 
 #endif // !DISABLE_SDL

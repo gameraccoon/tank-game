@@ -178,7 +178,7 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CollisionResolutionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
@@ -186,7 +186,7 @@ void TankClientGame::initSystems()
 	getNotPausablePostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
 #ifndef DISABLE_SDL
-	getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
+	getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
 	getNotPausablePostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
 
 #if defined(IMGUI_ENABLED)

@@ -14,9 +14,8 @@
 #include "Utils/Network/GameplayCommands/CreateProjectileCommand.h"
 #include "Utils/SharedManagers/WorldHolder.h"
 
-ShootingSystem::ShootingSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
+ShootingSystem::ShootingSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
-	, mGameStateRewinder(gameStateRewinder)
 {
 }
 

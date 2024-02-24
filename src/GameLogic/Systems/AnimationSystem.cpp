@@ -35,7 +35,7 @@ void AnimationSystem::update()
 
 	// update animation clip from FSM
 	entityManager.forEachComponentSet<AnimationGroupsComponent, AnimationClipsComponent>(
-		[dt, stateMachines](AnimationGroupsComponent* animationGroups, AnimationClipsComponent* animationClips)
+		[stateMachines](AnimationGroupsComponent* animationGroups, AnimationClipsComponent* animationClips)
 	{
 		for (auto& data : animationGroups->getDataRef())
 		{

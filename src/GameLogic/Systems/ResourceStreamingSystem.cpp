@@ -38,7 +38,7 @@ void ResourceStreamingSystem::update()
 #ifndef DISABLE_SDL
 	// load sprites
 	entityManager.forEachComponentSetWithEntity<SpriteCreatorComponent>(
-			[this, &entityManager](EntityView entity, SpriteCreatorComponent* spriteCreator)
+			[this](EntityView entity, SpriteCreatorComponent* spriteCreator)
 	{
 		const auto& descriptions = spriteCreator->getDescriptions();
 		Assert(!descriptions.empty(), "Sprite descriptions should not be empty");

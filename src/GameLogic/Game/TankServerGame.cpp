@@ -142,7 +142,7 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 	getGameLogicSystemsManager().registerSystem<CharacterStateSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<MovementSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<CollisionResolutionSystem>(getWorldHolder());
-	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<ShootingSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 
@@ -153,7 +153,7 @@ void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
 #ifndef DISABLE_SDL
 	if (shouldRender)
 	{
-		getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
+		getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
 	}
 #endif // !DISABLE_SDL
 }
