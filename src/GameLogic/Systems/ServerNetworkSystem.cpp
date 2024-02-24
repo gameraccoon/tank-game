@@ -26,11 +26,13 @@ ServerNetworkSystem::ServerNetworkSystem(
 	WorldHolder& worldHolder,
 	GameStateRewinder& gameStateRewinder,
 	u16 serverPort,
+	bool& shouldPauseGame,
 	bool& shouldQuitGame
 ) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 	, mServerPort(serverPort)
+	, mShouldPauseGame(shouldPauseGame)
 	, mShouldQuitGame(shouldQuitGame)
 {
 }
@@ -124,9 +126,19 @@ void ServerNetworkSystem::update()
 		}
 
 		mLastClientInteractionUpdateIdx = timeData.lastFixedUpdateIndex;
+		mShouldPauseGame = false;
 	}
 
-	if (mLastClientInteractionUpdateIdx + SERVER_IDLE_TIMEOUT_UPDATES < timeData.lastFixedUpdateIndex)
+	if (mLastClientInteractionUpdateIdx + SERVER_IDLE_TIMEOUT_UPDATES_TO_PAUSE < timeData.lastFixedUpdateIndex)
+	{
+		if (!mShouldPauseGame)
+		{
+			LogInfo("No activity from clients during some time. Pausing the server simulation");
+			mShouldPauseGame = true;
+		}
+	}
+
+	if (mLastClientInteractionUpdateIdx + SERVER_IDLE_TIMEOUT_UPDATES_TO_QUIT < timeData.lastFixedUpdateIndex)
 	{
 		LogInfo("No connections or messages from clients during quite some time. Shutting down the server");
 		mShouldQuitGame = true;

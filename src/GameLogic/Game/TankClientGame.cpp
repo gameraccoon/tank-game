@@ -31,6 +31,7 @@
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"
+#include "GameLogic/Systems/DebugInputSystem.h"
 #include "GameLogic/Systems/FetchClientInputFromHistorySystem.h"
 #include "GameLogic/Systems/FetchConfirmedCommandsSystem.h"
 #include "GameLogic/Systems/InputSystem.h"
@@ -154,12 +155,18 @@ TimeData& TankClientGame::getTimeData()
 void TankClientGame::initSystems()
 {
 	SCOPED_PROFILER("TankClientGame::initSystems");
+
+#ifndef DISABLE_SDL
+	getNotPausablePreFrameSystemsManager().registerSystem<DebugInputSystem>(getWorldHolder(), getInputData(), mShouldPauseGame);
+#endif // !DISABLE_SDL
+
 #ifndef DISABLE_SDL
 	getPreFrameSystemsManager().registerSystem<InputSystem>(getWorldHolder(), getInputData());
 #endif // !DISABLE_SDL
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mFrameTimeCorrector, mShouldQuitGameNextTick);
+
 	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchClientInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyConfirmedMovesSystem>(getWorldHolder(), mGameStateRewinder);
@@ -175,18 +182,20 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<AnimationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
-	getPostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
-#ifndef DISABLE_SDL
-	getPostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
-	getPostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
-#endif // !DISABLE_SDL
 
-#if defined(IMGUI_ENABLED) && !defined(DISABLE_SDL)
+	getNotPausablePostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
+
+#ifndef DISABLE_SDL
+	getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager(), getThreadPool());
+	getNotPausablePostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
+
+#if defined(IMGUI_ENABLED)
 	if (HAL::Engine* engine = getEngine())
 	{
-		getPostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
+		getNotPausablePostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
 	}
-#endif // IMGUI_ENABLED && !DISABLE_SDL
+#endif // IMGUI_ENABLED
+#endif // !DISABLE_SDL
 }
 
 void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)

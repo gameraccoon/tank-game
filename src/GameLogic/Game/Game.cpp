@@ -40,16 +40,15 @@ void Game::preStart(const ArgumentsParser& arguments)
 	getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>();
 }
 
-void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+void Game::notPausablePreFrameUpdate(float dt)
 {
-	SCOPED_PROFILER("Game::dynamicTimePreFrameUpdate");
+	SCOPED_PROFILER("Game::notPausablePreFrameUpdate");
 #ifdef ENABLE_SCOPED_PROFILER
 	mFrameBeginTime = std::chrono::steady_clock::now();
 #endif // ENABLE_SCOPED_PROFILER
 
 	TimeData& timeData = getTimeData();
 	timeData.lastUpdateDt = dt;
-	timeData.countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
 
 #ifndef DISABLE_SDL
 	if (HAL::Engine* engine = getEngine())
@@ -57,6 +56,17 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 		getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
 	}
 #endif // !DISABLE_SDL
+
+	mNotPausablePreFrameSystemsManager.update();
+}
+
+void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+{
+	SCOPED_PROFILER("Game::dynamicTimePreFrameUpdate");
+
+	TimeData& timeData = getTimeData();
+	timeData.lastUpdateDt = dt;
+	timeData.countFixedTimeUpdatesThisFrame = plannedFixedTimeUpdates;
 
 	mDebugBehavior.preInnerUpdate(*this);
 
@@ -82,10 +92,22 @@ void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 
 	mPostFrameSystemsManager.update();
 
+	mDebugBehavior.postInnerUpdate(*this);
+}
+
+void Game::notPausablePostFrameUpdate(float dt) {
+	SCOPED_PROFILER("Game::notPausablePostFrameUpdate");
+
+	TimeData& timeData = getTimeData();
+	timeData.lastUpdateDt = dt;
+
+	mNotPausablePostFrameSystemsManager.update();
+
+	// this additional reset is needed for debug input in case we are paused
+	mInputControllersData.resetLastFrameStates();
+
 	// test code
 	//mRenderThread.testRunMainThread(*mGameData.getGameComponents().getOrAddComponent<RenderAccessorComponent>()->getAccessor(), getResourceManager(), getEngine());
-
-	mDebugBehavior.postInnerUpdate(*this);
 
 	{
 		auto [renderAccessorComponent] = getGameData().getGameComponents().getComponents<RenderAccessorComponent>();
@@ -107,9 +129,11 @@ void Game::initResources()
 {
 	SCOPED_PROFILER("Game::initResources");
 	getResourceManager().loadAtlasesData(RelativeResourcePath("resources/atlas/atlas-list.json"));
+	mNotPausablePreFrameSystemsManager.initResources();
 	mPreFrameSystemsManager.initResources();
 	mGameLogicSystemsManager.initResources();
 	mPostFrameSystemsManager.initResources();
+	mNotPausablePostFrameSystemsManager.initResources();
 }
 
 void Game::onGameShutdown()
@@ -118,7 +142,9 @@ void Game::onGameShutdown()
 	ProfileDataWriter::PrintFrameDurationStatsToFile(mFrameDurationsOutputPath, mFrameDurations);
 #endif // ENABLE_SCOPED_PROFILER
 
+	mNotPausablePreFrameSystemsManager.shutdown();
 	mPreFrameSystemsManager.shutdown();
 	mGameLogicSystemsManager.shutdown();
 	mPostFrameSystemsManager.shutdown();
+	mNotPausablePostFrameSystemsManager.shutdown();
 }

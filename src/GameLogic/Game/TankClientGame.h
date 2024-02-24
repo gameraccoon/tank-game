@@ -28,6 +28,7 @@ public:
 	void fixedTimeUpdate(float dt) final;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
 
+	bool shouldPauseGame() const final { return mShouldPauseGame; }
 	bool shouldQuitGame() const final { return mShouldQuitGame; }
 	void quitGame() final { mShouldQuitGameNextTick = true; }
 	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const final;
@@ -44,6 +45,7 @@ private:
 private:
 	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client, getComponentFactory()};
 	HAL::ConnectionManager mConnectionManager;
+	bool mShouldPauseGame = false;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 	FrameTimeCorrector mFrameTimeCorrector;

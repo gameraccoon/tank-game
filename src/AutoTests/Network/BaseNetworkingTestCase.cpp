@@ -141,15 +141,19 @@ ArgumentsParser BaseNetworkingTestCase::overrideClientArguments(const ArgumentsP
 
 void BaseNetworkingTestCase::updateServer()
 {
+	mServerGame->notPausablePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mServerGame->dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 	mServerGame->fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mServerGame->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+	mServerGame->notPausablePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 }
 
 void BaseNetworkingTestCase::updateClient(int clientIndex)
 {
 	AssertFatal(clientIndex >= 0 && clientIndex < mClientsCount, "Invalid client index %d, clients count is %d", clientIndex, mClientsCount);
+	mClientGames[clientIndex]->notPausablePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mClientGames[clientIndex]->dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 	mClientGames[clientIndex]->fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mClientGames[clientIndex]->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
+	mClientGames[clientIndex]->notPausablePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 }

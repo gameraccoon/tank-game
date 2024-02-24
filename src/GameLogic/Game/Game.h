@@ -27,9 +27,11 @@ public:
 	void preStart(const ArgumentsParser& arguments);
 	void onGameShutdown();
 
+	void notPausablePreFrameUpdate(float dt) override;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) override;
 	void fixedTimeUpdate(float dt) override;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) override;
+	void notPausablePostFrameUpdate(float dt) override;
 	void initResources() override;
 
 	template<typename T, typename... Args>
@@ -43,9 +45,11 @@ protected:
 
 	ComponentFactory& getComponentFactory() { return mComponentFactory; }
 	WorldHolder& getWorldHolder() { return mWorldHolder; }
+	RaccoonEcs::SystemsManager& getNotPausablePreFrameSystemsManager() { return mNotPausablePreFrameSystemsManager; }
 	RaccoonEcs::SystemsManager& getPreFrameSystemsManager() { return mPreFrameSystemsManager; }
 	RaccoonEcs::SystemsManager& getGameLogicSystemsManager() { return mGameLogicSystemsManager; }
 	RaccoonEcs::SystemsManager& getPostFrameSystemsManager() { return mPostFrameSystemsManager; }
+	RaccoonEcs::SystemsManager& getNotPausablePostFrameSystemsManager() { return mNotPausablePostFrameSystemsManager; }
 	HAL::InputControllersData& getInputData() { return mInputControllersData; }
 	ThreadPool& getThreadPool() { return mThreadPool; }
 	GameData& getGameData() { return mGameData; }
@@ -53,16 +57,18 @@ protected:
 
 private:
 	ComponentFactory mComponentFactory;
-	GameData mGameData{mComponentFactory};
-	WorldLayer mStaticWorld{mComponentFactory};
-	WorldHolder mWorldHolder{mStaticWorld, mGameData};
+	GameData mGameData{ mComponentFactory };
+	WorldLayer mStaticWorld{ mComponentFactory };
+	WorldHolder mWorldHolder{ mStaticWorld, mGameData };
 
 	HAL::InputControllersData mInputControllersData;
 
 	ThreadPool& mThreadPool;
+	RaccoonEcs::SystemsManager mNotPausablePreFrameSystemsManager;
 	RaccoonEcs::SystemsManager mPreFrameSystemsManager;
 	RaccoonEcs::SystemsManager mGameLogicSystemsManager;
 	RaccoonEcs::SystemsManager mPostFrameSystemsManager;
+	RaccoonEcs::SystemsManager mNotPausablePostFrameSystemsManager;
 	Json::ComponentSerializationHolder mComponentSerializers;
 
 #ifdef ENABLE_SCOPED_PROFILER

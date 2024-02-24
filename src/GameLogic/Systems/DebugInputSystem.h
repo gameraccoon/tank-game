@@ -12,21 +12,26 @@ namespace HAL
 }
 
 /**
- * System that transforms raw controller input into gameplay input commands
+ * System that processes debug input
  */
-class InputSystem : public RaccoonEcs::System
+class DebugInputSystem : public RaccoonEcs::System
 {
 public:
-	InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept;
+	DebugInputSystem(
+		WorldHolder& worldHolder,
+		const HAL::InputControllersData& inputData,
+		bool& shouldPauseGame
+	) noexcept;
 
 	void update() override;
 
 private:
-	void processGameplayInput();
+	void processDebugInput();
 
 private:
 	WorldHolder& mWorldHolder;
 	const HAL::InputControllersData& mInputData;
+	bool& mShouldPauseGame;
 };
 
 #endif // !DISABLE_SDL
