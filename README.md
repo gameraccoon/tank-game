@@ -3,7 +3,7 @@ A simple cooperative multiplayer game, written in C++ using custom ECS implement
 **Currently in early stages of development**
 
 [![MIT License](https://img.shields.io/github/license/gameraccoon/tank-game)](https://github.com/gameraccoon/tank-game/blob/main/License.txt)  
-[![Windows - build](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml) [![Ubuntu - build and run unit-tests](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml)
+[![Windows - build](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-windows.yml) [![Ubuntu - build and run unit-tests](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu.yml) [![Ubuntu - build with clang](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu-clang.yml/badge.svg)](https://github.com/gameraccoon/tank-game/actions/workflows/build-game-ubuntu-clang.yml)
 
 ## Intent
 This is an educational project that doesn't have any applications to real-world problems, but it can still be used as a source of inspiration (or as a copypaste source).
@@ -30,7 +30,7 @@ e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfl
 - git with git-lfs
 - CMake (see the minimal supported version in [CMakeLists.txt](https://github.com/gameraccoon/tank-game/blob/main/CMakeLists.txt#L1=))
 - python3
-- GCC 13 (or higher) or the latest Visual Studio 2022 (or newer)
+- GCC 13 (or higher) or clang-16 (or higher) or Visual Studio 2022 (or newer)
 - for Linux, you need to install libssl and protobuf using your packet manager  
 e.g. for apt: `sudo apt-get install libssl-dev libprotobuf-dev protobuf-compiler`
 
