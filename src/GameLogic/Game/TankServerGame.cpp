@@ -84,12 +84,19 @@ void TankServerGame::initResources()
 	Game::initResources();
 }
 
+void TankServerGame::notPausablePreFrameUpdate(float dt)
+{
+	SCOPED_PROFILER("TankServerGame::notPausablePreFrameUpdate");
+
+	mConnectionManager.processNetworkEvents();
+
+	Game::notPausablePreFrameUpdate(dt);
+}
+
 void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankServerGame::dynamicTimePreFrameUpdate");
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
-
-	mConnectionManager.processNetworkEvents();
 
 	updateHistory();
 }
@@ -106,13 +113,13 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	Game::fixedTimeUpdate(dt);
 }
 
-void TankServerGame::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
+void TankServerGame::notPausablePostFrameUpdate(float dt)
 {
-	SCOPED_PROFILER("TankServerGame::dynamicTimePostFrameUpdate");
+	SCOPED_PROFILER("TankServerGame::notPausablePostFrameUpdate");
 
-	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
+	Game::notPausablePostFrameUpdate(dt);
 
-	mConnectionManager.flushMessagesForAllClientConnections(14436);
+	mConnectionManager.flushMessagesForAllClientConnections(mServerPort);
 }
 
 TimeData& TankServerGame::getTimeData()

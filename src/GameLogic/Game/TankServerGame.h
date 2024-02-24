@@ -24,9 +24,10 @@ public:
 
 	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 	void initResources() final;
+	void notPausablePreFrameUpdate(float dt) final;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
 	void fixedTimeUpdate(float dt) final;
-	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
+	void notPausablePostFrameUpdate(float dt) final;
 
 	bool shouldPauseGame() const final { return mShouldPauseGame; }
 	bool shouldQuitGame() const final { return mShouldQuitGame; }
