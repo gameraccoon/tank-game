@@ -23,6 +23,7 @@ namespace HAL
 {
 #ifdef CONCURRENT_ACCESS_DETECTION
 	ConcurrentAccessDetector gSDLAccessDetector;
+	ConcurrentAccessDetector gSDLEventsAccessDetector;
 #endif
 
 	struct Engine::Impl
@@ -126,7 +127,7 @@ namespace HAL
 
 	std::vector<SDL_Event>& Engine::getLastFrameEvents()
 	{
-		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
+		DETECT_CONCURRENT_ACCESS(gSDLEventsAccessDetector);
 		return mPimpl->mLastFrameEvents;
 	}
 
@@ -134,12 +135,16 @@ namespace HAL
 	{
 		AssertFatal(mGame, "Game should be set to Engine before calling start()");
 
-		RunGameLoop(*mGame, nullptr, [this]{ parseEvents(); }, [this]{ mLastFrameEvents.clear(); });
+		RunGameLoop(*mGame, nullptr, [this]{ parseEvents(); }, [this]{
+			DETECT_CONCURRENT_ACCESS(gSDLEventsAccessDetector);
+			mLastFrameEvents.clear();
+		});
 	}
 
 	void Engine::Impl::parseEvents()
 	{
 		//SCOPED_PROFILER("Engine::Impl::parseEvents");
+		DETECT_CONCURRENT_ACCESS(gSDLEventsAccessDetector);
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{

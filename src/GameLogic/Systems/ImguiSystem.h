@@ -4,6 +4,7 @@
 #ifndef DISABLE_SDL
 
 #include <mutex>
+#include <memory>
 #include <raccoon-ecs/utils/system.h>
 
 #include "HAL/EngineFwd.h"
@@ -35,6 +36,7 @@ private:
 	ImguiMainMenu mImguiMainMenu;
 
 	std::mutex mRenderDataMutex;
+	std::shared_ptr<bool> mHasPreviousFrameProcessedOnRenderThread;
 };
 
 #endif // !DISABLE_SDL
