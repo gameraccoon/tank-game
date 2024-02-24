@@ -58,7 +58,7 @@ make
 
 After being built, the resulting executables can be found in `bin` folder
 
-### Building a dedicated server
+### Building the dedicated server
 #### Windows
 For Windows with Visual Studio you can run `scripts\generate_dedicated_server_vs2022_project.cmd` it will generate the solution for Visual Studio 2022. Path to the generated solution: `build\dedicated_server\DedicatedServer.sln`
 
