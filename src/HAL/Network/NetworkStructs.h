@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 struct SteamNetworkingIPAddr;
 
 namespace HAL

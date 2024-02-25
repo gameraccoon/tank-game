@@ -2,9 +2,14 @@
 
 #include "HAL/Network/NetworkStructs.h"
 
-#include "Base/Types/Serialization.h"
-
 #include <optional>
+
+#ifndef FAKE_NETWORK
+#include <steam/isteamnetworkingutils.h>
+#include <steam/steamnetworkingtypes.h>
+#endif // FAKE_NETWORK
+
+#include "Base/Types/Serialization.h"
 
 namespace HAL
 {
