@@ -30,6 +30,14 @@ set(EXECUTABLE_NAME Game)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+macro(mark_option_internal _var)
+	set(${_var} ${${_var}} CACHE INTERNAL "hidden" FORCE)
+endmacro(mark_option_internal _var)
+
+macro(override_option _var _val)
+	set(${_var} ${_val} CACHE BOOL "" FORCE)
+endmacro(override_option _var _val)
+
 # constants
 set(GAME_BASE_DIR ${CMAKE_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${GAME_BASE_DIR}/cmake")
@@ -40,9 +48,9 @@ set(EXTERNALS_DIR ${GAME_BASE_DIR}/external)
 set(BIN_PLATFORM "x64")
 
 set(BUILD_SHARED_LIBS FALSE)
-set(SDL_STATIC ON CACHE BOOL "" FORCE)
-set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-set(SDL2IMAGE_INSTALL OFF CACHE BOOL "" FORCE)
+override_option(SDL_STATIC ON)
+override_option(SDL_SHARED OFF)
+override_option(SDL2IMAGE_INSTALL OFF)
 
 file (STRINGS "${GAME_BASE_DIR}/VersionInfo" EXECUTABLE_VERSION)
 file(STRINGS "${GAME_BASE_DIR}/BuildNum" BUILD_NUMBER)
@@ -89,6 +97,16 @@ endif()
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
+
+if (WIN32)
+	add_definitions(-DPLATFORM_WIN32)
+elseif (UNIX AND NOT APPLE)
+	add_definitions(-DPLATFORM_LINUX)
+elseif (APPLE)
+	add_definitions(-DPLATFORM_MACOS)
+else()
+	message(FATAL_ERROR "Unsupported platform")
+endif()
 
 # compiler parameters
 if (MSVC)
@@ -139,10 +157,6 @@ function(add_folder_as_library folder_path name)
 	set_target_properties(${name} PROPERTIES UNITY_BUILD ${ENABLE_UNITY_BUILD})
 	target_compile_options(${name} PRIVATE ${PROJECT_CXX_FLAGS})
 endfunction()
-
-macro(mark_option_internal _var)
-	set(${_var} ${${_var}} CACHE INTERNAL "hidden" FORCE)
-endmacro(mark_option_internal _var)
 
 add_folder_as_library(${GAME_SRC_DIR}/Base Base)
 add_folder_as_library(${GAME_SRC_DIR}/GameData GameData)
@@ -258,8 +272,68 @@ if (NOT DISABLE_SDL)
 			${GENERAL_PROJECT_LIBS}
 			${SDL2_LIBRARY}
 			${SDL2_IMAGE_LIBRARY}
-			GL
 		)
+	endif()
+endif()
+
+# Diligent
+if (NOT DISABLE_SDL)
+	set(OpenGL_GL_PREFERENCE "GLVND")
+
+	override_option(DILIGENT_BUILD_TESTS OFF)
+	override_option(DILIGENT_NO_ARCHIVER ON)
+	override_option(DILIGENT_NO_RENDER_STATE_PACKAGER ON)
+	# override_option(DILIGENT_NO_GLSLANG ON)
+	override_option(DILIGENT_NO_FORMAT_VALIDATION ON)
+	override_option(DILIGENT_INSTALL_TOOLS OFF)
+	override_option(DILIGENT_INSTALL_FX OFF)
+	override_option(DILIGENT_INSTALL_SAMPLES OFF)
+
+	# disable extra render backends to increase build times
+	override_option(DILIGENT_NO_OPENGL OFF)
+	override_option(DILIGENT_NO_VULKAN OFF)
+	override_option(DILIGENT_NO_DIRECT3D12 ON)
+	override_option(DILIGENT_NO_DIRECT3D11 ON)
+	override_option(DILIGENT_NO_METAL ON)
+
+	add_subdirectory(${EXTERNALS_DIR}/sources/DiligentCore EXCLUDE_FROM_ALL)
+	include_directories(${EXTERNALS_DIR}/sources/DiligentCore)
+
+	if (WIN32)
+		add_definitions(-DSDL_VIDEO_DRIVER_WINDOWS)
+	elseif (APPLE)
+		add_definitions(-DSDL_VIDEO_DRIVER_COCOA)
+	elseif (UNIX)
+		add_definitions(-DSDL_VIDEO_DRIVER_X11)
+	endif()
+
+	if (VULKAN_SUPPORTED)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			Diligent-GraphicsEngineVk-static
+		)
+		add_definitions(-DVULKAN_SUPPORTED)
+	endif()
+	if (D3D12_SUPPORTED)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			Diligent-GraphicsEngineD3D12-static
+		)
+		add_definitions(-DD3D12_SUPPORTED)
+	endif()
+	if (D3D11_SUPPORTED)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			Diligent-GraphicsEngineD3D11-static
+		)
+		add_definitions(-DD3D11_SUPPORTED)
+	endif()
+	if(GL_SUPPORTED)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			Diligent-GraphicsEngineOpenGL-static
+		)
+		add_definitions(-DGL_SUPPORTED)
 	endif()
 endif()
 

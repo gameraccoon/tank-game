@@ -22,3 +22,6 @@
 [submodule "external/sources/GameNetworkingSockets"]
 	path = external/sources/GameNetworkingSockets
 	url = git@github.com:ValveSoftware/GameNetworkingSockets.git
+[submodule "external/sources/DiligentCore"]
+	path = external/sources/DiligentCore
+	url = https://github.com/DiligentGraphics/DiligentCore.git
