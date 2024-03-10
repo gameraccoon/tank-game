@@ -40,6 +40,6 @@ jobs:
       run: scripts/scripter/windows/generate_vs_project.cmd
 
     - name: Build
-      working-directory: ${{github.workspace}}
+      working-directory: ${{github.workspace}}/build/game
       shell: cmd
-      run: scripts/scripter/windows/build_project.cmd
+      run: cmake --build .
