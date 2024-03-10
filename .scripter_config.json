@@ -1,10 +1,11 @@
 {
-  "version": "0.10.5",
+  "version": "0.13.0",
   "rewritable": {
     "always_on_top": false,
     "window_status_reactions": true,
     "keep_window_size": false,
     "enable_script_filtering": true,
+    "enable_title_editing": true,
     "custom_theme": {
       "background": [
         0.25,
@@ -150,6 +151,10 @@
           "path": "scripts/scripter/windows/switch_branch.cmd",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -167,6 +172,10 @@
         },
         "command": {
           "path": "scripts/scripter/windows/update_submodules.cmd",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -188,6 +197,10 @@
           "path": "scripts/scripter/windows/generate_vs_project.cmd",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -205,6 +218,10 @@
         },
         "command": {
           "path": "scripts/scripter/windows/build_project.cmd",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -226,6 +243,10 @@
           "path": "scripts/scripter/windows/open_vs_solution.cmd",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -243,6 +264,10 @@
         },
         "command": {
           "path": "scripts/scripter/windows/run_unit_tests.cmd",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -264,6 +289,10 @@
           "path": "scripts/scripter/windows/clean_reset.cmd",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -281,6 +310,10 @@
         },
         "command": {
           "path": "git",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -302,6 +335,10 @@
           "path": "rundll32",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "user32.dll, MessageBeep -MB_OK",
         "autorerun_count": 0,
         "ignore_previous_failures": true,
@@ -310,7 +347,7 @@
       }
     }
   ],
-  "child_config_path": {
+  "local_config_path": {
     "path": ".scripter_config.local.json",
     "path_type": "WorkingDirRelative"
   }
