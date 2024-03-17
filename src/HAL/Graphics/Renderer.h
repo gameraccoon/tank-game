@@ -14,14 +14,6 @@
 
 struct SDL_Renderer;
 
-namespace HAL
-{
-	namespace Internal
-	{
-		class Window;
-	}
-}
-
 namespace Graphics
 {
 	class Font;

@@ -2,22 +2,21 @@
 
 #ifndef DISABLE_SDL
 
-#include "HAL/Base/Engine.h"
-
 #include <algorithm>
+#include <cstring> // should be before SDL.h to suppress undifined memcpy error
 
 #include <glew/glew.h>
-
+#include <SDL.h>
 #include <SDL_mixer.h>
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
 
+#include "HAL/Base/Engine.h"
 #include "HAL/Base/GameLoop.h"
+#include "HAL/Base/SdlInstance.h"
+#include "HAL/Base/Window.h"
 #include "HAL/Graphics/Renderer.h"
 #include "HAL/IGame.h"
-#include "HAL/Internal/GlContext.h"
-#include "HAL/Internal/Sdl.h"
-#include "HAL/Internal/SdlWindow.h"
 
 namespace HAL
 {
@@ -28,12 +27,11 @@ namespace HAL
 
 	struct Engine::Impl
 	{
-		Internal::SDLInstance mSdl;
+		SdlInstance mSdl;
 		const int mWindowWidth;
 		const int mWindowHeight;
-		Internal::Window mWindow;
-		Internal::GlContext mGlContext{mWindow};
-		Graphics::Renderer mRenderer;
+		Window mWindow;
+		::Graphics::Renderer mRenderer;
 		IGame* mGame = nullptr;
 		InputControllersData* mInputDataPtr = nullptr;
 
@@ -43,7 +41,7 @@ namespace HAL
 			: mSdl(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE)
 			, mWindowWidth(windowWidth)
 			, mWindowHeight(windowHeight)
-			, mWindow(windowWidth, windowHeight)
+			, mWindow(Graphics::RendererDeviceType::OpenGL, windowWidth, windowHeight)
 		{
 		}
 
@@ -110,7 +108,7 @@ namespace HAL
 	void Engine::acquireRenderContext()
 	{
 		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-		SDL_GL_MakeCurrent(mPimpl->mWindow.getRawWindow(), mPimpl->mGlContext.getRawGLContext());
+//		SDL_GL_MakeCurrent(mPimpl->mWindow.getRawWindow(), mPimpl->mGlContext.getRawGLContext());
 	}
 
 	SDL_Window* Engine::getRawWindow()
@@ -122,7 +120,8 @@ namespace HAL
 	void* Engine::getRawGlContext()
 	{
 		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-		return mPimpl->mGlContext.getRawGLContext();
+//		return mPimpl->mGlContext.getRawGLContext();
+		return nullptr;
 	}
 
 	std::vector<SDL_Event>& Engine::getLastFrameEvents()

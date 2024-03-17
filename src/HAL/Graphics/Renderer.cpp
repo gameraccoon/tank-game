@@ -2,21 +2,15 @@
 
 #ifndef DISABLE_SDL
 
-#include "HAL/Graphics/Renderer.h"
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glew/glew.h>
-
 #include "SDL_surface.h"
+#include <glew/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "Base/Debug/ConcurrentAccessDetector.h"
 
-#include "HAL/Internal/GlContext.h"
-
-#include "HAL/Internal/SdlWindow.h"
-#include "HAL/Graphics/SdlSurface.h"
 #include "HAL/Graphics/Font.h"
-
+#include "HAL/Graphics/Renderer.h"
+#include "HAL/Graphics/SdlSurface.h"
 
 static constexpr double MATH_PI = 3.14159265358979323846;
 
