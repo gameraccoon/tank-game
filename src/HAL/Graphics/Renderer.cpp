@@ -2,7 +2,10 @@
 
 #ifndef DISABLE_SDL
 
-#include "SDL_surface.h"
+#include <SDL.h>
+#include <SDL_syswm.h>
+#include <SDL_surface.h>
+
 #include <glew/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -11,6 +14,26 @@
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Renderer.h"
 #include "HAL/Graphics/SdlSurface.h"
+
+#include "HAL/Base/SdlInstance.h"
+
+#include "HAL/Graphics/Diligent/DiligentEngine.h"
+
+// Undef symbols defined by XLib
+#ifdef Bool
+#undef Bool
+#endif
+#ifdef True
+#undef True
+#endif
+#ifdef False
+#undef False
+#endif
+
+#include "Common/interface/RefCntAutoPtr.hpp"
+#include "Graphics/GraphicsEngine/interface/DeviceContext.h"
+#include "Graphics/GraphicsEngine/interface/RenderDevice.h"
+#include "Graphics/GraphicsEngine/interface/SwapChain.h"
 
 static constexpr double MATH_PI = 3.14159265358979323846;
 
@@ -23,6 +46,135 @@ namespace HAL
 
 namespace HAL::Graphics
 {
+	static void createResources(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IPipelineState** pso)
+	{
+		static const char* VsSource = R"(
+struct PSInput
+{
+   float4 Pos   : SV_POSITION;
+   float3 Color : COLOR;
+};
+
+void main(in  uint    VertId : SV_VertexID,
+		 out PSInput PSIn)
+{
+   float4 Pos[3];
+   Pos[0] = float4(-0.5, -0.5, 0.0, 1.0);
+   Pos[1] = float4( 0.0, +0.5, 0.0, 1.0);
+   Pos[2] = float4(+0.5, -0.5, 0.0, 1.0);
+
+   float3 Col[3];
+   Col[0] = float3(1.0, 0.0, 0.0); // red
+   Col[1] = float3(0.0, 1.0, 0.0); // green
+   Col[2] = float3(0.0, 0.0, 1.0); // blue
+
+   PSIn.Pos   = Pos[VertId];
+   PSIn.Color = Col[VertId];
+}
+)";
+
+		// Pixel shader will simply output interpolated vertex color
+		static const char* PsSource = R"(
+struct PSInput
+{
+   float4 Pos   : SV_POSITION;
+   float3 Color : COLOR;
+};
+
+struct PSOutput
+{
+   float4 Color : SV_TARGET;
+};
+
+void main(in  PSInput  PSIn,
+		 out PSOutput PSOut)
+{
+   PSOut.Color = float4(PSIn.Color.rgb, 1.0);
+}
+)";
+
+		// Pipeline state object encompasses configuration of all GPU stages
+
+		Diligent::GraphicsPipelineStateCreateInfo psoCreateInfo;
+		Diligent::PipelineStateDesc& psoDesc = psoCreateInfo.PSODesc;
+
+		// Pipeline state name is used by the engine to report issues
+		// It is always a good idea to give objects descriptive names
+		psoDesc.Name = "Simple triangle PSO";
+
+		// This is a graphics pipeline
+		psoDesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
+
+		// This tutorial will render to a single render target
+		psoCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
+		// Set render target format which is the format of the swap chain's color buffer
+		psoCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain.GetDesc().ColorBufferFormat;
+		// This tutorial will not use depth buffer
+		psoCreateInfo.GraphicsPipeline.DSVFormat = Diligent::TEX_FORMAT_D32_FLOAT;
+		// Primitive topology defines what kind of primitives will be rendered by this pipeline state
+		psoCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		// No back face culling for this tutorial
+		psoCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+		// Disable depth testing
+		psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = Diligent::False;
+
+		Diligent::ShaderCreateInfo shaderCI;
+		// Tell the system that the shader source code is in HLSL.
+		// For OpenGL, the engine will convert this into GLSL behind the scene
+		shaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+		// OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+		shaderCI.Desc.UseCombinedTextureSamplers = true;
+		// Create vertex shader
+		Diligent::RefCntAutoPtr<Diligent::IShader> vectorShader;
+		{
+			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+			shaderCI.EntryPoint = "main";
+			shaderCI.Desc.Name = "Triangle vertex shader";
+			shaderCI.Source = VsSource;
+			device.CreateShader(shaderCI, &vectorShader);
+		}
+
+		// Create pixel shader
+		Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader;
+		{
+			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+			shaderCI.EntryPoint = "main";
+			shaderCI.Desc.Name = "Triangle pixel shader";
+			shaderCI.Source = PsSource;
+			device.CreateShader(shaderCI, &pixelShader);
+		}
+
+		// Finally, create the pipeline state
+		psoCreateInfo.pVS = vectorShader;
+		psoCreateInfo.pPS = pixelShader;
+		device.CreateGraphicsPipelineState(psoCreateInfo, pso);
+	}
+
+	static void render(Diligent::ISwapChain& swapChain, Diligent::IDeviceContext& context, Diligent::IPipelineState& pso)
+	{
+		// Set render targets before issuing any draw command.
+		// Note that Present() unbinds the back buffer if it is set as render target.
+		auto* pRtv = swapChain.GetCurrentBackBufferRTV();
+		auto* pDsv = swapChain.GetDepthBufferDSV();
+		context.SetRenderTargets(1, &pRtv, pDsv, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+		// Clear the back buffer
+		const float clearColor[] = { 0.350f, 0.350f, 0.350f, 1.0f };
+		// Let the engine perform required state transitions
+		context.ClearRenderTarget(pRtv, clearColor, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+		context.ClearDepthStencil(pDsv, Diligent::CLEAR_DEPTH_FLAG, 1.f, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+		// Set pipeline state in the immediate context
+		context.SetPipelineState(&pso);
+
+		// Typically we should now call CommitShaderResources(), however shaders in this example don't
+		// use any resources.
+
+		Diligent::DrawAttribs drawAttrs;
+		drawAttrs.NumVertices = 3; // We will render 3 vertices
+		context.Draw(drawAttrs);
+	}
+
 	void Render::BindSurface(const Surface& surface)
 	{
 		surface.bind();
@@ -119,6 +271,8 @@ namespace HAL::Graphics
 	Renderer::Renderer(Window& window, RendererDeviceType renderDeviceType)
 		: mDiligentEngine(window, renderDeviceType)
 	{
+		mDiligentEngine.setCreateResourcesCallback(createResources);
+		mDiligentEngine.setRenderCallback(render);
 	}
 } // namespace HAL::Graphics
 

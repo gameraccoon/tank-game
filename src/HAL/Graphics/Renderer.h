@@ -38,7 +38,7 @@ namespace HAL::Graphics
 		Renderer(Renderer&&) = delete;
 		Renderer& operator=(Renderer&&) = delete;
 
-		DiligentEngine& GetDiligentEngine() const;
+		DiligentEngine& getDiligentEngine() { return mDiligentEngine; }
 
 	private:
 		DiligentEngine mDiligentEngine;

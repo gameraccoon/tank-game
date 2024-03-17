@@ -71,6 +71,7 @@ namespace HAL
 
 	void Engine::init(IGame* game, InputControllersData* inputData)
 	{
+		mPimpl->mRenderer.getDiligentEngine().createResources();
 		mPimpl->mGame = game;
 		mPimpl->mInputDataPtr = inputData;
 		mPimpl->mWindow.show();
@@ -98,6 +99,8 @@ namespace HAL
 
 		RunGameLoop(*mGame, nullptr, [this]{ parseEvents(); }, [this]{
 			DETECT_CONCURRENT_ACCESS(gSDLEventsAccessDetector);
+			mRenderer.getDiligentEngine().render();
+			mRenderer.getDiligentEngine().present();
 			mLastFrameEvents.clear();
 		});
 	}
