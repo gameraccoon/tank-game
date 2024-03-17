@@ -9,7 +9,6 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
-#include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
@@ -49,7 +48,7 @@
 #endif // IMGUI_ENABLED
 #include "GameLogic/Initialization/StateMachines.h"
 
-void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
+void TankClientGame::preStart(const ArgumentsParser& arguments)
 {
 	SCOPED_PROFILER("TankClientGame::preStart");
 
@@ -68,9 +67,6 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), std::filesystem::current_path(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), std::filesystem::current_path(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
-
-	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
-	renderAccessorComponent->setAccessor(renderAccessor);
 
 	TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());

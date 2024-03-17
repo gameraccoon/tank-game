@@ -16,7 +16,7 @@
 #include "GameLogic/Resources/AnimationGroup.h"
 #include "GameLogic/Resources/SpriteAnimationClip.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	struct AnimGroupData
 	{

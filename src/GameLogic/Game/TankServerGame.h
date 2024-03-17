@@ -22,7 +22,7 @@ class TankServerGame final : public Game
 public:
 	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex) noexcept;
 
-	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
+	void preStart(const ArgumentsParser& arguments);
 	void initResources() final;
 	void notPausablePreFrameUpdate(float dt) final;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;

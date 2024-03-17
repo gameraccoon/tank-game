@@ -22,7 +22,7 @@ namespace HAL
 }
 #endif
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	static UniqueAny LoadSurfaceInitStep(UniqueAny&& resource, ResourceManager&, ResourceHandle)
 	{
@@ -172,6 +172,6 @@ namespace Graphics
 			},
 		};
 	}
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

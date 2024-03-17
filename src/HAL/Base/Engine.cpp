@@ -31,7 +31,7 @@ namespace HAL
 		const int mWindowWidth;
 		const int mWindowHeight;
 		Window mWindow;
-		::Graphics::Renderer mRenderer;
+		Graphics::Renderer mRenderer;
 		IGame* mGame = nullptr;
 		InputControllersData* mInputDataPtr = nullptr;
 
@@ -42,6 +42,7 @@ namespace HAL
 			, mWindowWidth(windowWidth)
 			, mWindowHeight(windowHeight)
 			, mWindow(Graphics::RendererDeviceType::OpenGL, windowWidth, windowHeight)
+			, mRenderer(mWindow, Graphics::RendererDeviceType::OpenGL)
 		{
 		}
 
@@ -55,20 +56,6 @@ namespace HAL
 		: mPimpl(HS_NEW Impl(windowWidth, windowHeight))
 	{
 		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetSwapInterval(0); // vsync off
-
-		glEnable(GL_TEXTURE_2D);
-		glClearColor(0.0, 0.0, 0.0, 1.0);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0.0, windowWidth, windowHeight, 0.0, -1.0, 1.0);
-		glMatrixMode(GL_MODELVIEW);
 
 		if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 4096) == -1)
 		{
@@ -97,31 +84,6 @@ namespace HAL
 	Vector2D Engine::getWindowSize() const
 	{
 		return Vector2D(static_cast<float>(mPimpl->mWindowWidth), static_cast<float>(mPimpl->mWindowHeight));
-	}
-
-	void Engine::releaseRenderContext()
-	{
-		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-		SDL_GL_MakeCurrent(nullptr, 0);
-	}
-
-	void Engine::acquireRenderContext()
-	{
-		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-//		SDL_GL_MakeCurrent(mPimpl->mWindow.getRawWindow(), mPimpl->mGlContext.getRawGLContext());
-	}
-
-	SDL_Window* Engine::getRawWindow()
-	{
-		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-		return mPimpl->mWindow.getRawWindow();
-	}
-
-	void* Engine::getRawGlContext()
-	{
-		DETECT_CONCURRENT_ACCESS(gSDLAccessDetector);
-//		return mPimpl->mGlContext.getRawGLContext();
-		return nullptr;
 	}
 
 	std::vector<SDL_Event>& Engine::getLastFrameEvents()

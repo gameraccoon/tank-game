@@ -10,7 +10,7 @@
 
 class RelativeResourcePath;
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class Surface;
 
@@ -35,6 +35,6 @@ namespace Graphics
 		const Surface* mSurface = nullptr;
 		QuadUV mUV;
 	};
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

@@ -4,7 +4,6 @@
 
 #include "Base/Types/TemplateHelpers.h"
 
-#include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/Time/TimeData.h"
@@ -19,7 +18,6 @@
 #include "HAL/Base/Engine.h"
 
 #include "GameLogic/Initialization/StateMachines.h"
-#include "GameLogic/Render/RenderAccessor.h"
 
 Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex)
 	: HAL::GameBase(engine, resourceManager)
@@ -110,13 +108,13 @@ void Game::notPausablePostFrameUpdate(float dt) {
 	//mRenderThread.testRunMainThread(*mGameData.getGameComponents().getOrAddComponent<RenderAccessorComponent>()->getAccessor(), getResourceManager(), getEngine());
 
 	{
-		auto [renderAccessorComponent] = getGameData().getGameComponents().getComponents<RenderAccessorComponent>();
-		if (renderAccessorComponent != nullptr && renderAccessorComponent->getAccessor().has_value())
-		{
-			std::unique_ptr<RenderData> renderCommands = std::make_unique<RenderData>();
-			TemplateHelpers::EmplaceVariant<FinalizeFrameCommand>(renderCommands->layers);
-			renderAccessorComponent->getAccessorRef()->submitData(std::move(renderCommands));
-		}
+//		auto [renderAccessorComponent] = getGameData().getGameComponents().getComponents<RenderAccessorComponent>();
+//		if (renderAccessorComponent != nullptr && renderAccessorComponent->getAccessor().has_value())
+//		{
+//			std::unique_ptr<RenderData> renderCommands = std::make_unique<RenderData>();
+//			TemplateHelpers::EmplaceVariant<FinalizeFrameCommand>(renderCommands->layers);
+//			renderAccessorComponent->getAccessorRef()->submitData(std::move(renderCommands));
+//		}
 	}
 
 #ifdef ENABLE_SCOPED_PROFILER

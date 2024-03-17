@@ -7,7 +7,6 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
-#include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 
@@ -18,7 +17,6 @@
 #include "Utils/World/GameDataLoader.h"
 
 #include "GameLogic/Initialization/StateMachines.h"
-#include "GameLogic/Render/RenderAccessor.h"
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
@@ -42,7 +40,7 @@ TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& thr
 {
 }
 
-void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor)
+void TankServerGame::preStart(const ArgumentsParser& arguments)
 {
 	SCOPED_PROFILER("TankServerGame::preStart");
 
@@ -53,7 +51,11 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
-	const bool shouldRender = renderAccessor.has_value();
+#ifndef DEDICATED_SERVER
+	bool shouldRender = !arguments.hasArgument("no-render");
+#else
+	bool shouldRender = false;
+#endif
 
 	initSystems(shouldRender);
 
@@ -63,12 +65,6 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
 	timeComponent->setValue(&mGameStateRewinder.getTimeData());
 
-	// if we do debug rendering of server state
-	if (shouldRender)
-	{
-		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
-		renderAccessorComponent->setAccessor(renderAccessor);
-	}
 	{
 		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().addComponent<ConnectionManagerComponent>();
 		connectionManager->setManagerPtr(&mConnectionManager);

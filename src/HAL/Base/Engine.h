@@ -31,13 +31,6 @@ namespace HAL
 
 		Vector2D getWindowSize() const;
 
-		void releaseRenderContext();
-		void acquireRenderContext();
-
-		// for debug tools such as imgui
-		SDL_Window* getRawWindow();
-		void* getRawGlContext();
-
 		std::vector<SDL_Event>& getLastFrameEvents();
 
 	private:

@@ -12,7 +12,7 @@
 
 #include "GameLogic/Resources/TileSet.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	struct TileGridLoadData
 	{

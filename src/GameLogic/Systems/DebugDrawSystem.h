@@ -25,8 +25,8 @@ public:
 	void init() override;
 
 private:
-	WorldHolder& mWorldHolder;
-	GameStateRewinder& mGameStateRewinder;
+//	WorldHolder& mWorldHolder;
+//	GameStateRewinder& mGameStateRewinder;
 	ResourceManager& mResourceManager;
 
 	ResourceHandle mCollisionSpriteHandle;

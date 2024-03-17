@@ -15,7 +15,7 @@
 
 #include "GameLogic/Resources/SpriteAnimationClip.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	static std::vector<RelativeResourcePath> LoadSpriteAnimClipData(const AbsoluteResourcePath& path)
 	{

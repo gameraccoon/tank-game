@@ -8,7 +8,7 @@
 #include "GameData/Resources/ResourceHandle.h"
 #include "GameData/Resources/Resource.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class SpriteAnimationClip : public Resource
 	{

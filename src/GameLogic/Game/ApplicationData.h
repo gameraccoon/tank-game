@@ -7,8 +7,6 @@
 
 #include "HAL/Base/Engine.h"
 
-#include "GameLogic/Render/RenderThreadManager.h"
-
 class ApplicationData
 {
 public:
@@ -35,7 +33,6 @@ public:
 	ThreadPool threadPool;
 	ResourceManager resourceManager;
 #ifndef DISABLE_SDL
-	RenderThreadManager renderThread;
 	std::optional<HAL::Engine> engine;
 #endif // !DISABLE_SDL
 
@@ -44,9 +41,6 @@ public:
 public:
 	explicit ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, Render render = Render::Enabled);
 
-#ifndef DISABLE_SDL
-	void startRenderThread();
-#endif // !DISABLE_SDL
 	void writeProfilingData();
 	void threadSaveProfileData(size_t threadIndex);
 	void shutdownThreads();

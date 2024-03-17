@@ -6,7 +6,7 @@ namespace HAL
 	class InputControllersData;
 }
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class Sprite;
 	namespace Internal

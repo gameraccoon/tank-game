@@ -30,8 +30,8 @@ public:
 	void shutdown() override;
 
 private:
-	HAL::Engine& mEngine;
-	ImguiDebugData& mDebugData;
+//	HAL::Engine& mEngine;
+//	ImguiDebugData& mDebugData;
 
 	ImguiMainMenu mImguiMainMenu;
 

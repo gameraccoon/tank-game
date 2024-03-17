@@ -4,7 +4,7 @@
 
 #include "GameData/Geometry/Vector2D.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	struct QuadUV
 	{
@@ -43,4 +43,4 @@ namespace Graphics
 		Vector2D spacePoint;
 		Vector2D texturePoint;
 	};
-}
+} // namespace HAL::Graphics

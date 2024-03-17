@@ -10,7 +10,7 @@
 
 #include "Utils/ResourceManagement/ResourceManager.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	struct LoadSpriteData
 	{
@@ -115,6 +115,6 @@ namespace Graphics
 	{
 		return {};
 	}
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

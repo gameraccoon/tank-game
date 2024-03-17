@@ -10,7 +10,7 @@
 struct SDL_Surface;
 class AbsoluteResourcePath;
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class Surface : public Resource
 	{
@@ -43,6 +43,6 @@ namespace Graphics
 		SDL_Surface* mSurface;
 		unsigned int mTextureID;
 	};
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

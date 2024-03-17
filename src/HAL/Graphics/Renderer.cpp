@@ -21,7 +21,7 @@ namespace HAL
 }
 #endif
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	void Render::BindSurface(const Surface& surface)
 	{
@@ -116,16 +116,10 @@ namespace Graphics
 		glEnd();
 	}
 
-	void Renderer::renderText(const Graphics::Font& /*font*/, Vector2D /*pos*/, Graphics::Color /*color*/, const char* /*text*/)
+	Renderer::Renderer(Window& window, RendererDeviceType renderDeviceType)
+		: mDiligentEngine(window, renderDeviceType)
 	{
-		//FC_DrawColor(font.getRawFont(), mRenderer, pos.x, pos.y, { color.R, color.G, color.B, color.A }, text);
 	}
-
-	std::array<int, 2> Renderer::getTextSize(const Graphics::Font& /*font*/, const char* /*text*/)
-	{
-		//return { FC_GetWidth(font.getRawFont(), text), FC_GetHeight(font.getRawFont(), text) };
-		return { 1, 1 };
-	}
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

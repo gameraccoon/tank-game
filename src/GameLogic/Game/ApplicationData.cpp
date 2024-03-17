@@ -7,7 +7,6 @@
 #endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Game/TankServerGame.h"
-#include "GameLogic/Render/RenderAccessor.h"
 
 ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, Render render)
 	: WorkerThreadsCount(workerThreadsCount)
@@ -25,14 +24,6 @@ ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, 
 	}
 #endif // !DISABLE_SDL
 }
-
-#ifndef DISABLE_SDL
-void ApplicationData::startRenderThread()
-{
-	engine->releaseRenderContext();
-	renderThread.startThread(resourceManager, engine.value(), [&engineRef = *engine]{ engineRef.acquireRenderContext(); });
-}
-#endif // !DISABLE_SDL
 
 void ApplicationData::writeProfilingData()
 {
@@ -92,9 +83,6 @@ void ApplicationData::threadSaveProfileData([[maybe_unused]] size_t threadIndex)
 
 void ApplicationData::shutdownThreads()
 {
-#ifndef DISABLE_SDL
-	renderThread.shutdownThread();
-#endif // !DISABLE_SDL
 	threadPool.shutdown();
 	resourceManager.stopLoadingThread();
 }

@@ -11,13 +11,10 @@
 
 #include "HAL/Base/Types.h"
 #include "HAL/EngineFwd.h"
+#include "HAL/Graphics/Diligent/DiligentEngine.h"
 
-struct SDL_Renderer;
-
-namespace Graphics
+namespace HAL::Graphics
 {
-	class Font;
-	class Texture;
 	class Surface;
 
 	namespace Render
@@ -34,16 +31,18 @@ namespace Graphics
 	class Renderer
 	{
 	public:
-		Renderer() = default;
+		Renderer(Window& window, RendererDeviceType renderDeviceType);
 
 		Renderer(const Renderer&) = delete;
 		Renderer& operator=(const Renderer&) = delete;
 		Renderer(Renderer&&) = delete;
 		Renderer& operator=(Renderer&&) = delete;
 
-		void renderText(const Font& font, Vector2D pos, Color color, const char* text);
-		std::array<int, 2> getTextSize(const Font& font, const char* text);
+		DiligentEngine& GetDiligentEngine() const;
+
+	private:
+		DiligentEngine mDiligentEngine;
 	};
-}
+} // namespace HAL::Graphics
 
 #endif // !DISABLE_SDL

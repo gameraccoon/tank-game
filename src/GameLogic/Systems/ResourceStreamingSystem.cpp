@@ -49,7 +49,7 @@ void ResourceStreamingSystem::update()
 		spriteDatas.resize(spritesCount);
 		for (size_t i = 0; i < spritesCount; ++i)
 		{
-			spriteDatas[i].spriteHandle = mResourceManager.lockResource<Graphics::Sprite>(descriptions[i].path);
+			spriteDatas[i].spriteHandle = mResourceManager.lockResource<HAL::Graphics::Sprite>(descriptions[i].path);
 			spriteDatas[i].params = descriptions[i].params;
 			int id = spriteRender->getMaxSpriteId();
 			spriteRender->getSpriteIdsRef().push_back(id++);
@@ -80,9 +80,9 @@ void ResourceStreamingSystem::update()
 		auto& spriteDatas = spriteRender->getSpriteDatasRef();
 		for (size_t i = 0; i < animationCount; ++i)
 		{
-			animations[i].animation = mResourceManager.lockResource<Graphics::SpriteAnimationClip>(descriptions[i].path);
+			animations[i].animation = mResourceManager.lockResource<HAL::Graphics::SpriteAnimationClip>(descriptions[i].path);
 			animations[i].params = descriptions[i].params;
-			animations[i].sprites = mResourceManager.tryGetResource<Graphics::SpriteAnimationClip>(animations[i].animation)->getSprites();
+			animations[i].sprites = mResourceManager.tryGetResource<HAL::Graphics::SpriteAnimationClip>(animations[i].animation)->getSprites();
 
 			AssertFatal(!animations[i].sprites.empty(), "Empty SpriteAnimation '%s'", descriptions[i].path.getRelativePath().c_str());
 			spriteDatas.emplace_back(descriptions[i].spriteParams, animations[i].sprites.front());
@@ -123,9 +123,9 @@ void ResourceStreamingSystem::update()
 		const size_t animGroupCount = animationGroupCreator->getAnimationGroups().size();
 		for (size_t i = 0; i < animGroupCount; ++i)
 		{
-			ResourceHandle animGroupHandle = mResourceManager.lockResource<Graphics::AnimationGroup>(animationGroupCreator->getAnimationGroups()[i]);
+			ResourceHandle animGroupHandle = mResourceManager.lockResource<HAL::Graphics::AnimationGroup>(animationGroupCreator->getAnimationGroups()[i]);
 
-			const Graphics::AnimationGroup* group = mResourceManager.tryGetResource<Graphics::AnimationGroup>(animGroupHandle);
+			const HAL::Graphics::AnimationGroup* group = mResourceManager.tryGetResource<HAL::Graphics::AnimationGroup>(animGroupHandle);
 			AnimationGroup<StringId> animationGroup;
 			animationGroup.currentState = group->getDefaultState();
 			animationGroup.animationClips = group->getAnimationClips();
@@ -159,8 +159,8 @@ void ResourceStreamingSystem::update()
 	{
 		TileGridComponent* tileGrid = entity.scheduleAddComponent<TileGridComponent>();
 
-		ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
-		const Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<Graphics::TileGrid>(tileGridHandle);
+		ResourceHandle tileGridHandle = mResourceManager.lockResource<HAL::Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
+		const HAL::Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<HAL::Graphics::TileGrid>(tileGridHandle);
 		if (tileGridResource == nullptr) {
 			return;
 		}

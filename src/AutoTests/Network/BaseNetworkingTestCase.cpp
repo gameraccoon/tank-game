@@ -32,24 +32,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 		isRenderEnabled ? ApplicationData::Render::Enabled : ApplicationData::Render::Disabled
 	);
 
-#ifndef DISABLE_SDL
-	if (isRenderEnabled)
-	{
-		applicationData.startRenderThread();
-		applicationData.renderThread.setAmountOfRenderedGameInstances(mClientsCount + 1);
-	}
-#endif // !DISABLE_SDL
-
 	std::unique_ptr<std::thread> serverThread;
-
-	std::optional<RenderAccessorGameRef> serverRenderAccessor;
-
-#ifndef DISABLE_SDL
-	if (isRenderEnabled)
-	{
-		serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
-	}
-#endif // !DISABLE_SDL
 
 	ArgumentsParser serverArguments = overrideServerArguments(arguments);
 	std::vector<ArgumentsParser> clientArguments;
@@ -60,25 +43,20 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	}
 
 	mServerGame = std::make_unique<TankServerGame>(applicationData.resourceManager, applicationData.threadPool, 0);
-	mServerGame->preStart(serverArguments, serverRenderAccessor);
+	mServerGame->preStart(serverArguments);
 	mServerGame->initResources();
 
 	mClientGames.resize(mClientsCount);
 	for (int i = 0; i < mClientsCount; ++i)
 	{
-		std::optional<RenderAccessorGameRef> clientRenderAccessor;
 #ifndef DISABLE_SDL
-		if (isRenderEnabled)
-		{
-			clientRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), i + 1);
-		}
 		HAL::Engine* enginePtr = (applicationData.engine && i == 0) ? &applicationData.engine.value() : nullptr;
 #else
 		HAL::Engine* enginePtr = nullptr;
 #endif // !DISABLE_SDL
 
 		mClientGames[i] = std::make_unique<TankClientGame>(enginePtr, applicationData.resourceManager, applicationData.threadPool, i + 1);
-		mClientGames[i]->preStart(clientArguments[i], clientRenderAccessor);
+		mClientGames[i]->preStart(clientArguments[i]);
 		mClientGames[i]->initResources();
 	}
 

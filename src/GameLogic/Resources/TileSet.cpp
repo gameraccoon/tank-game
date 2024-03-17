@@ -16,7 +16,7 @@
 
 #include "GameLogic/Resources/SpriteAnimationClip.h"
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	static TileSetParams::Material GetTileSetMaterialFromProperties(const nlohmann::json& propertiesJson)
 	{

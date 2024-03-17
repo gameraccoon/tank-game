@@ -15,7 +15,7 @@
 
 class RelativeResourcePath;
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class AnimationGroup : public Resource
 	{

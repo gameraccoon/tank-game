@@ -5,7 +5,7 @@
 
 class AbsoluteResourcePath;
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class TileGrid : public Resource
 	{

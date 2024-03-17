@@ -5,7 +5,7 @@
 
 class RelativeResourcePath;
 
-namespace Graphics
+namespace HAL::Graphics
 {
 	class TileSet : public Resource
 	{

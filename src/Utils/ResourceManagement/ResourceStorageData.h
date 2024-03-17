@@ -19,7 +19,7 @@ namespace ResourceLoading
 		struct AtlasFrameData
 		{
 			RelativeResourcePath atlasPath;
-			Graphics::QuadUV quadUV;
+			HAL::Graphics::QuadUV quadUV;
 		};
 
 	public:
