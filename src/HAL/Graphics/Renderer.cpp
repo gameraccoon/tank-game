@@ -17,8 +17,6 @@
 
 #include "HAL/Base/SdlInstance.h"
 
-#include "HAL/Graphics/Diligent/DiligentEngine.h"
-
 // Undef symbols defined by XLib
 #ifdef Bool
 #undef Bool
@@ -30,10 +28,17 @@
 #undef False
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#endif // __clang__
 #include "Common/interface/RefCntAutoPtr.hpp"
 #include "Graphics/GraphicsEngine/interface/DeviceContext.h"
 #include "Graphics/GraphicsEngine/interface/RenderDevice.h"
 #include "Graphics/GraphicsEngine/interface/SwapChain.h"
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif // __clang__
 
 static constexpr double MATH_PI = 3.14159265358979323846;
 
@@ -79,6 +84,23 @@ namespace HAL::Graphics
 		shaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
 		// OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
 		shaderCI.Desc.UseCombinedTextureSamplers = true;
+
+		Diligent::TEXTURE_FORMAT colorBufferFormat = swapChain.GetDesc().ColorBufferFormat;
+		// Presentation engine always expects input in gamma space. Normally, pixel shader output is
+		// converted from linear to gamma space by the GPU. However, some platforms (e.g. Android in GLES mode,
+		// or Emscripten in WebGL mode) do not support gamma-correction. In this case the application
+		// has to do the conversion manually.
+		// If the swap chain color buffer format is a non-sRGB UNORM format,
+		// we need to manually convert pixel shader output to gamma space.
+		const bool convertPsOutputToGamma = (colorBufferFormat == Diligent::TEX_FORMAT_RGBA8_UNORM || colorBufferFormat == Diligent::TEX_FORMAT_BGRA8_UNORM);
+		Diligent::ShaderMacro psMacros[] = { { "CONVERT_PS_OUTPUT_TO_GAMMA", convertPsOutputToGamma ? "1" : "0" } };
+		shaderCI.Macros = { psMacros, _countof(psMacros) };
+
+		// Create a shader source stream factory to load shaders from files.
+		Diligent::RefCntAutoPtr<Diligent::IShaderSourceInputStreamFactory> shaderSourceFactory;
+		engineFactory.CreateDefaultShaderSourceStreamFactory(nullptr, &shaderSourceFactory);
+		shaderCI.pShaderSourceStreamFactory = shaderSourceFactory;
+
 		// Create vertex shader
 		Diligent::RefCntAutoPtr<Diligent::IShader> vectorShader;
 		{
