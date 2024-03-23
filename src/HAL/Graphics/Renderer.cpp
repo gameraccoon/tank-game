@@ -46,53 +46,8 @@ namespace HAL
 
 namespace HAL::Graphics
 {
-	static void createResources(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IPipelineState** pso)
+	static void createResources(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IEngineFactory& engineFactory, Diligent::IPipelineState** pso)
 	{
-		static const char* VsSource = R"(
-struct PSInput
-{
-   float4 Pos   : SV_POSITION;
-   float3 Color : COLOR;
-};
-
-void main(in  uint    VertId : SV_VertexID,
-		 out PSInput PSIn)
-{
-   float4 Pos[3];
-   Pos[0] = float4(-0.5, -0.5, 0.0, 1.0);
-   Pos[1] = float4( 0.0, +0.5, 0.0, 1.0);
-   Pos[2] = float4(+0.5, -0.5, 0.0, 1.0);
-
-   float3 Col[3];
-   Col[0] = float3(1.0, 0.0, 0.0); // red
-   Col[1] = float3(0.0, 1.0, 0.0); // green
-   Col[2] = float3(0.0, 0.0, 1.0); // blue
-
-   PSIn.Pos   = Pos[VertId];
-   PSIn.Color = Col[VertId];
-}
-)";
-
-		// Pixel shader will simply output interpolated vertex color
-		static const char* PsSource = R"(
-struct PSInput
-{
-   float4 Pos   : SV_POSITION;
-   float3 Color : COLOR;
-};
-
-struct PSOutput
-{
-   float4 Color : SV_TARGET;
-};
-
-void main(in  PSInput  PSIn,
-		 out PSOutput PSOut)
-{
-   PSOut.Color = float4(PSIn.Color.rgb, 1.0);
-}
-)";
-
 		// Pipeline state object encompasses configuration of all GPU stages
 
 		Diligent::GraphicsPipelineStateCreateInfo psoCreateInfo;
@@ -110,7 +65,7 @@ void main(in  PSInput  PSIn,
 		// Set render target format which is the format of the swap chain's color buffer
 		psoCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain.GetDesc().ColorBufferFormat;
 		// This tutorial will not use depth buffer
-		psoCreateInfo.GraphicsPipeline.DSVFormat = Diligent::TEX_FORMAT_D32_FLOAT;
+		psoCreateInfo.GraphicsPipeline.DSVFormat = swapChain.GetDesc().DepthBufferFormat;
 		// Primitive topology defines what kind of primitives will be rendered by this pipeline state
 		psoCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		// No back face culling for this tutorial
@@ -130,7 +85,7 @@ void main(in  PSInput  PSIn,
 			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
 			shaderCI.EntryPoint = "main";
 			shaderCI.Desc.Name = "Triangle vertex shader";
-			shaderCI.Source = VsSource;
+			shaderCI.FilePath = "resources/shaders/triangle.vsh";
 			device.CreateShader(shaderCI, &vectorShader);
 		}
 
@@ -140,7 +95,7 @@ void main(in  PSInput  PSIn,
 			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
 			shaderCI.EntryPoint = "main";
 			shaderCI.Desc.Name = "Triangle pixel shader";
-			shaderCI.Source = PsSource;
+			shaderCI.FilePath = "resources/shaders/triangle.psh";
 			device.CreateShader(shaderCI, &pixelShader);
 		}
 
