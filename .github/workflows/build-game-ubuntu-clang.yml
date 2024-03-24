@@ -42,17 +42,22 @@ jobs:
 
     - name: Install dependencies
       run: sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler
+
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: "16.0"
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v4
+
     - name: Generate project
       shell: bash
       working-directory: ${{github.workspace}}/build/game
       env:
         CC: clang-16
-        CXX: clang-16
-      run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        CXX: clang++-16
+      run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE  --preset linux-ninja-clang
 
     - name: Build game
       working-directory: ${{github.workspace}}/build/game
@@ -62,4 +67,3 @@ jobs:
     - name: Run unit tests
       working-directory: ${{github.workspace}}/bin
       run: ./UnitTests
-
