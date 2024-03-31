@@ -31,13 +31,23 @@
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#pragma clang diagnostic ignored "-Wnested-anon-types"
+#pragma clang diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif // __clang__
 #include "Common/interface/RefCntAutoPtr.hpp"
+#include "Common/interface/BasicMath.hpp"
+#include "Graphics/GraphicsAccessories/interface/ColorConversion.h"
 #include "Graphics/GraphicsEngine/interface/DeviceContext.h"
 #include "Graphics/GraphicsEngine/interface/RenderDevice.h"
 #include "Graphics/GraphicsEngine/interface/SwapChain.h"
 #if defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif // __clang__
 
 static constexpr double MATH_PI = 3.14159265358979323846;
@@ -51,106 +61,230 @@ namespace HAL
 
 namespace HAL::Graphics
 {
-	static void createResources(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IEngineFactory& engineFactory, Diligent::IPipelineState** pso)
+	struct Renderer::Impl
 	{
-		// Pipeline state object encompasses configuration of all GPU stages
+		DiligentEngine mDiligentEngine;
+		Diligent::RefCntAutoPtr<Diligent::IBuffer> mVertexBuffer;
+		Diligent::RefCntAutoPtr<Diligent::IBuffer> mIndexBuffer;
+		bool mConvertPsOutputToGamma = false;
+		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> mSrb;
+		Diligent::RefCntAutoPtr<Diligent::ITextureView> mTextureSrv;
 
-		Diligent::GraphicsPipelineStateCreateInfo psoCreateInfo;
-		Diligent::PipelineStateDesc& psoDesc = psoCreateInfo.PSODesc;
-
-		// Pipeline state name is used by the engine to report issues
-		// It is always a good idea to give objects descriptive names
-		psoDesc.Name = "Simple triangle PSO";
-
-		// This is a graphics pipeline
-		psoDesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
-
-		// This tutorial will render to a single render target
-		psoCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
-		// Set render target format which is the format of the swap chain's color buffer
-		psoCreateInfo.GraphicsPipeline.RTVFormats[0] = swapChain.GetDesc().ColorBufferFormat;
-		// This tutorial will not use depth buffer
-		psoCreateInfo.GraphicsPipeline.DSVFormat = swapChain.GetDesc().DepthBufferFormat;
-		// Primitive topology defines what kind of primitives will be rendered by this pipeline state
-		psoCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		// No back face culling for this tutorial
-		psoCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
-		// Disable depth testing
-		psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = Diligent::False;
-
-		Diligent::ShaderCreateInfo shaderCI;
-		// Tell the system that the shader source code is in HLSL.
-		// For OpenGL, the engine will convert this into GLSL behind the scene
-		shaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
-		// OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
-		shaderCI.Desc.UseCombinedTextureSamplers = true;
-
-		Diligent::TEXTURE_FORMAT colorBufferFormat = swapChain.GetDesc().ColorBufferFormat;
-		// Presentation engine always expects input in gamma space. Normally, pixel shader output is
-		// converted from linear to gamma space by the GPU. However, some platforms (e.g. Android in GLES mode,
-		// or Emscripten in WebGL mode) do not support gamma-correction. In this case the application
-		// has to do the conversion manually.
-		// If the swap chain color buffer format is a non-sRGB UNORM format,
-		// we need to manually convert pixel shader output to gamma space.
-		const bool convertPsOutputToGamma = (colorBufferFormat == Diligent::TEX_FORMAT_RGBA8_UNORM || colorBufferFormat == Diligent::TEX_FORMAT_BGRA8_UNORM);
-		Diligent::ShaderMacro psMacros[] = { { "CONVERT_PS_OUTPUT_TO_GAMMA", convertPsOutputToGamma ? "1" : "0" } };
-		shaderCI.Macros = { psMacros, _countof(psMacros) };
-
-		// Create a shader source stream factory to load shaders from files.
-		Diligent::RefCntAutoPtr<Diligent::IShaderSourceInputStreamFactory> shaderSourceFactory;
-		engineFactory.CreateDefaultShaderSourceStreamFactory(nullptr, &shaderSourceFactory);
-		shaderCI.pShaderSourceStreamFactory = shaderSourceFactory;
-
-		// Create vertex shader
-		Diligent::RefCntAutoPtr<Diligent::IShader> vectorShader;
+		Impl(Window& window, RendererDeviceType renderDeviceType)
+			: mDiligentEngine(window, renderDeviceType)
 		{
-			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
-			shaderCI.EntryPoint = "main";
-			shaderCI.Desc.Name = "Triangle vertex shader";
-			shaderCI.FilePath = "resources/shaders/triangle.vsh";
-			device.CreateShader(shaderCI, &vectorShader);
+			mDiligentEngine.setCreateResourcesCallback([this](auto&&... var){ createResources(std::forward<decltype(var)>(var)...); });
+			mDiligentEngine.setRenderCallback([this](auto&&... var){ render(std::forward<decltype(var)>(var)...); });
 		}
 
-		// Create pixel shader
-		Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader;
+		void createPipelineState(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IEngineFactory& engineFactory, Diligent::IPipelineState** pso)
 		{
-			shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
-			shaderCI.EntryPoint = "main";
-			shaderCI.Desc.Name = "Triangle pixel shader";
-			shaderCI.FilePath = "resources/shaders/triangle.psh";
-			device.CreateShader(shaderCI, &pixelShader);
+			const Diligent::TEXTURE_FORMAT colorBufferFormat = swapChain.GetDesc().ColorBufferFormat;
+			const Diligent::TEXTURE_FORMAT depthBufferFormat = swapChain.GetDesc().DepthBufferFormat;
+
+			Diligent::GraphicsPipelineStateCreateInfo psoCreateInfo;
+
+			Diligent::PipelineStateDesc& psoDesc = psoCreateInfo.PSODesc;
+			psoDesc.Name = "Simple triangle PSO";
+			psoDesc.PipelineType = Diligent::PIPELINE_TYPE_GRAPHICS;
+			psoCreateInfo.GraphicsPipeline.NumRenderTargets = 1;
+			psoCreateInfo.GraphicsPipeline.RTVFormats[0] = colorBufferFormat;
+			psoCreateInfo.GraphicsPipeline.DSVFormat = depthBufferFormat;
+			psoCreateInfo.GraphicsPipeline.PrimitiveTopology = Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+			// For simple 2D we don't need back-face culling and depth testing
+			psoCreateInfo.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+			psoCreateInfo.GraphicsPipeline.DepthStencilDesc.DepthEnable = Diligent::False;
+
+			Diligent::ShaderCreateInfo shaderCI;
+			shaderCI.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+			// OpenGL backend requires emulated combined HLSL texture samplers (g_Texture + g_Texture_sampler combination)
+			shaderCI.Desc.UseCombinedTextureSamplers = true;
+
+			// Presentation engine always expects input in gamma space. Normally, pixel shader output is
+			// converted from linear to gamma space by the GPU. However, some platforms (e.g. Android in GLES mode,
+			// or Emscripten in WebGL mode) do not support gamma-correction. In this case the application
+			// has to do the conversion manually.
+			// If the swap chain color buffer format is a non-sRGB UNORM format,
+			// we need to manually convert pixel shader output to gamma space.
+			Diligent::ShaderMacro psMacros[] = { { "CONVERT_PS_OUTPUT_TO_GAMMA", mConvertPsOutputToGamma ? "1" : "0" } };
+			shaderCI.Macros = { psMacros, _countof(psMacros) };
+
+			// Create a shader source stream factory to load shaders from files.
+			Diligent::RefCntAutoPtr<Diligent::IShaderSourceInputStreamFactory> shaderSourceFactory;
+			engineFactory.CreateDefaultShaderSourceStreamFactory(nullptr, &shaderSourceFactory);
+			shaderCI.pShaderSourceStreamFactory = shaderSourceFactory;
+
+			Diligent::RefCntAutoPtr<Diligent::IShader> vertexShader;
+			{
+				shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+				shaderCI.EntryPoint = "main";
+				shaderCI.Desc.Name = "Triangle vertex shader";
+				shaderCI.FilePath = "resources/shaders/simple_mesh.vsh";
+				device.CreateShader(shaderCI, &vertexShader);
+			}
+
+			Diligent::RefCntAutoPtr<Diligent::IShader> pixelShader;
+			{
+				shaderCI.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+				shaderCI.EntryPoint = "main";
+				shaderCI.Desc.Name = "Triangle pixel shader";
+				shaderCI.FilePath = "resources/shaders/simple_mesh.psh";
+				device.CreateShader(shaderCI, &pixelShader);
+			}
+
+			psoCreateInfo.pVS = vertexShader;
+			psoCreateInfo.pPS = pixelShader;
+
+			// Define vertex shader input layout
+			Diligent::LayoutElement layoutElems[] = {
+				// Attribute 0 - vertex position
+				Diligent::LayoutElement{ 0, 0, 2, Diligent::VT_FLOAT32, Diligent::False },
+				// Attribute 1 - texture coordinates
+				Diligent::LayoutElement{ 1, 0, 2, Diligent::VT_FLOAT32, Diligent::False },
+			};
+
+			psoCreateInfo.GraphicsPipeline.InputLayout.LayoutElements = layoutElems;
+			psoCreateInfo.GraphicsPipeline.InputLayout.NumElements = _countof(layoutElems);
+
+			psoCreateInfo.PSODesc.ResourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_STATIC;
+
+			// Shader variables should typically be mutable, which means they are expected
+			// to change on a per-instance basis
+			Diligent::ShaderResourceVariableDesc Vars[] = {
+				{ Diligent::SHADER_TYPE_PIXEL, "g_Texture", Diligent::SHADER_RESOURCE_VARIABLE_TYPE_MUTABLE }
+			};
+			psoCreateInfo.PSODesc.ResourceLayout.Variables = Vars;
+			psoCreateInfo.PSODesc.ResourceLayout.NumVariables = _countof(Vars);
+
+			// Define immutable sampler for g_Texture. Immutable samplers should be used whenever possible
+			Diligent::SamplerDesc samLinearClampDesc{
+				Diligent::FILTER_TYPE_LINEAR, Diligent::FILTER_TYPE_LINEAR, Diligent::FILTER_TYPE_LINEAR,
+				Diligent::TEXTURE_ADDRESS_CLAMP, Diligent::TEXTURE_ADDRESS_CLAMP, Diligent::TEXTURE_ADDRESS_CLAMP
+			};
+			Diligent::ImmutableSamplerDesc imtblSamplers[] = {
+				{ Diligent::SHADER_TYPE_PIXEL, "g_Texture", samLinearClampDesc }
+			};
+			psoCreateInfo.PSODesc.ResourceLayout.ImmutableSamplers = imtblSamplers;
+			psoCreateInfo.PSODesc.ResourceLayout.NumImmutableSamplers = _countof(imtblSamplers);
+
+			device.CreateGraphicsPipelineState(psoCreateInfo, pso);
+
+			// Since we are using mutable variable, we must create a shader resource binding object
+			// http://diligentgraphics.com/2016/03/23/resource-binding-model-in-diligent-engine-2-0/
+			(*pso)->CreateShaderResourceBinding(&mSrb, true);
 		}
 
-		// Finally, create the pipeline state
-		psoCreateInfo.pVS = vectorShader;
-		psoCreateInfo.pPS = pixelShader;
-		device.CreateGraphicsPipelineState(psoCreateInfo, pso);
-	}
+		void loadTextures(Diligent::IRenderDevice& device)
+		{
+			{
+				Diligent::TextureDesc texDesc;
+				texDesc.Name = "Test texture";
+				texDesc.Width = 100;
+				texDesc.Height = 200;
+				texDesc.Type = Diligent::RESOURCE_DIM_TEX_2D;
+				texDesc.Format = Diligent::TEX_FORMAT_R8_UNORM;
+				texDesc.BindFlags = Diligent::BIND_SHADER_RESOURCE;
 
-	static void render(Diligent::ISwapChain& swapChain, Diligent::IDeviceContext& context, Diligent::IPipelineState& pso)
-	{
-		// Set render targets before issuing any draw command.
-		// Note that Present() unbinds the back buffer if it is set as render target.
-		auto* pRtv = swapChain.GetCurrentBackBufferRTV();
-		auto* pDsv = swapChain.GetDepthBufferDSV();
-		context.SetRenderTargets(1, &pRtv, pDsv, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+				Diligent::RefCntAutoPtr<Diligent::ITexture> texture;
+				device.CreateTexture(texDesc, nullptr, &texture);
+				Assert(texture != nullptr, "Failed to create texture");
+				mTextureSrv = texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+			}
 
-		// Clear the back buffer
-		const float clearColor[] = { 0.350f, 0.350f, 0.350f, 1.0f };
-		// Let the engine perform required state transitions
-		context.ClearRenderTarget(pRtv, clearColor, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-		context.ClearDepthStencil(pDsv, Diligent::CLEAR_DEPTH_FLAG, 1.f, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			mSrb->GetVariableByName(Diligent::SHADER_TYPE_PIXEL, "g_Texture")->Set(mTextureSrv);
+		}
 
-		// Set pipeline state in the immediate context
-		context.SetPipelineState(&pso);
+		void createVertexBuffer(Diligent::IRenderDevice& device)
+		{
+			// Layout of this structure matches the one we defined in the pipeline state
+			struct Vertex
+			{
+				Diligent::float2 pos;
+				Diligent::float2 uv;
+			};
 
-		// Typically we should now call CommitShaderResources(), however shaders in this example don't
-		// use any resources.
+			constexpr Vertex verts[] = {
+				{ Diligent::float2{ -0.5f, -0.5f }, Diligent::float2{ 0.0f, 0.0f } },
+				{ Diligent::float2{ 0.0f, 0.5f }, Diligent::float2{ 0.5f, 1.0f } },
+				{ Diligent::float2{ 0.5f, -0.5f }, Diligent::float2{ 1.0f, 0.0f } },
+			};
 
-		Diligent::DrawAttribs drawAttrs;
-		drawAttrs.NumVertices = 3; // We will render 3 vertices
-		context.Draw(drawAttrs);
-	}
+			Diligent::BufferDesc vertBuffDesc;
+			vertBuffDesc.Name = "Simple vertex buffer";
+			vertBuffDesc.Usage = Diligent::USAGE_IMMUTABLE;
+			vertBuffDesc.BindFlags = Diligent::BIND_VERTEX_BUFFER;
+			vertBuffDesc.Size = sizeof(verts);
+			Diligent::BufferData vbData;
+			vbData.pData = verts;
+			vbData.DataSize = sizeof(verts);
+			device.CreateBuffer(vertBuffDesc, &vbData, &mVertexBuffer);
+		}
+
+		void createIndexBuffer(Diligent::IRenderDevice& device)
+		{
+			// clang-format off
+			constexpr Uint32 indices[] =
+			{
+				0, 1, 2,
+			};
+			// clang-format on
+
+			Diligent::BufferDesc indBuffDesc;
+			indBuffDesc.Name = "Simple index buffer";
+			indBuffDesc.Usage = Diligent::USAGE_IMMUTABLE;
+			indBuffDesc.BindFlags = Diligent::BIND_INDEX_BUFFER;
+			indBuffDesc.Size = sizeof(indices);
+			Diligent::BufferData ibData;
+			ibData.pData = indices;
+			ibData.DataSize = sizeof(indices);
+			device.CreateBuffer(indBuffDesc, &ibData, &mIndexBuffer);
+		}
+
+		void createResources(Diligent::ISwapChain& swapChain, Diligent::IRenderDevice& device, Diligent::IEngineFactory& engineFactory, Diligent::IPipelineState** pso)
+		{
+			Diligent::TEXTURE_FORMAT colorBufferFormat = swapChain.GetDesc().ColorBufferFormat;
+			mConvertPsOutputToGamma = (colorBufferFormat == Diligent::TEX_FORMAT_RGBA8_UNORM || colorBufferFormat == Diligent::TEX_FORMAT_BGRA8_UNORM);
+
+			createPipelineState(swapChain, device, engineFactory, pso);
+			loadTextures(device);
+			createVertexBuffer(device);
+			createIndexBuffer(device);
+		}
+
+		void render(Diligent::ISwapChain& swapChain, Diligent::IDeviceContext& context, Diligent::IPipelineState& pso) const
+		{
+			auto* pRtv = swapChain.GetCurrentBackBufferRTV();
+			auto* pDsv = swapChain.GetDepthBufferDSV();
+			// Clear the back buffer
+			Diligent::float4 clearColor = { 0.350f, 0.350f, 0.350f, 1.0f };
+			if (mConvertPsOutputToGamma)
+			{
+				// If manual gamma correction is required, we need to clear the render target with sRGB color
+				clearColor = Diligent::LinearToSRGB(clearColor);
+			}
+			context.ClearRenderTarget(pRtv, clearColor.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			context.ClearDepthStencil(pDsv, Diligent::CLEAR_DEPTH_FLAG, 1.f, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+			// Bind vertex and index buffers
+			const Uint64 offset = 0;
+			Diligent::IBuffer* pBuffs[] = { mVertexBuffer };
+			context.SetVertexBuffers(0, 1, pBuffs, &offset, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION, Diligent::SET_VERTEX_BUFFERS_FLAG_RESET);
+			context.SetIndexBuffer(mIndexBuffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+			// Set the pipeline state
+			context.SetPipelineState(&pso);
+			// Commit shader resources. RESOURCE_STATE_TRANSITION_MODE_TRANSITION mode
+			// makes sure that resources are transitioned to required states.
+			context.CommitShaderResources(mSrb, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
+			Diligent::DrawIndexedAttribs drawAttrs;    // This is an indexed draw call
+			drawAttrs.IndexType = Diligent::VT_UINT32; // Index type
+			drawAttrs.NumIndices = 3;
+			// Verify the state of vertex and index buffers
+			drawAttrs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+			context.DrawIndexed(drawAttrs);
+		}
+	};
 
 	void Render::BindSurface(const Surface& surface)
 	{
@@ -246,10 +380,15 @@ namespace HAL::Graphics
 	}
 
 	Renderer::Renderer(Window& window, RendererDeviceType renderDeviceType)
-		: mDiligentEngine(window, renderDeviceType)
+		: mPimpl(std::make_unique<Impl>(window, renderDeviceType))
 	{
-		mDiligentEngine.setCreateResourcesCallback(createResources);
-		mDiligentEngine.setRenderCallback(render);
+	}
+
+	Renderer::~Renderer() = default;
+
+	DiligentEngine& Renderer::getDiligentEngine()
+	{
+		return mPimpl->mDiligentEngine;
 	}
 } // namespace HAL::Graphics
 

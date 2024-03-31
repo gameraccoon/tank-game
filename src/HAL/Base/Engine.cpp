@@ -27,6 +27,7 @@ namespace HAL
 
 	struct Engine::Impl
 	{
+		const Graphics::RendererDeviceType mRenderDeviceType = Graphics::RendererDeviceType::Vulkan;
 		SdlInstance mSdl;
 		const int mWindowWidth;
 		const int mWindowHeight;
@@ -41,8 +42,8 @@ namespace HAL
 			: mSdl(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_NOPARACHUTE)
 			, mWindowWidth(windowWidth)
 			, mWindowHeight(windowHeight)
-			, mWindow(Graphics::RendererDeviceType::OpenGL, windowWidth, windowHeight)
-			, mRenderer(mWindow, Graphics::RendererDeviceType::OpenGL)
+			, mWindow(mRenderDeviceType, windowWidth, windowHeight)
+			, mRenderer(mWindow, mRenderDeviceType)
 		{
 		}
 

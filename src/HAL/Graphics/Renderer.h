@@ -4,6 +4,7 @@
 
 #include <array>
 #include <vector>
+#include <memory>
 
 #include <glm/fwd.hpp>
 
@@ -16,6 +17,7 @@
 namespace HAL::Graphics
 {
 	class Surface;
+	class DiligentEngine;
 
 	namespace Render
 	{
@@ -32,16 +34,18 @@ namespace HAL::Graphics
 	{
 	public:
 		Renderer(Window& window, RendererDeviceType renderDeviceType);
+		~Renderer();
 
 		Renderer(const Renderer&) = delete;
 		Renderer& operator=(const Renderer&) = delete;
 		Renderer(Renderer&&) = delete;
 		Renderer& operator=(Renderer&&) = delete;
 
-		DiligentEngine& getDiligentEngine() { return mDiligentEngine; }
+		DiligentEngine& getDiligentEngine();
 
 	private:
-		DiligentEngine mDiligentEngine;
+		struct Impl;
+		std::unique_ptr<Impl> mPimpl;
 	};
 } // namespace HAL::Graphics
 
