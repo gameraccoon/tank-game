@@ -1,11 +1,12 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.3",
   "rewritable": {
     "always_on_top": false,
     "window_status_reactions": true,
     "keep_window_size": false,
     "enable_script_filtering": true,
     "enable_title_editing": true,
+    "config_version_update_behavior": "OnManualSave",
     "custom_theme": {
       "background": [
         0.25,
@@ -42,7 +43,130 @@
         0.296875,
         0.296875
       ]
-    }
+    },
+    "app_actions_keybinds": [
+      {
+        "action": "RequestCloseApp",
+        "keybind": {
+          "key": "W",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "FocusFilter",
+        "keybind": {
+          "key": "F",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "TrySwitchWindowEditMode",
+        "keybind": {
+          "key": "E",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "RescheduleScripts",
+        "keybind": {
+          "key": "R",
+          "modifiers": "Cmd+Shift"
+        }
+      },
+      {
+        "action": "RunScripts",
+        "keybind": {
+          "key": "R",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "StopScripts",
+        "keybind": {
+          "key": "C",
+          "modifiers": "Cmd+Shift"
+        }
+      },
+      {
+        "action": "ClearExecutionScripts",
+        "keybind": {
+          "key": "C",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "MaximizeOrRestoreExecutionPane",
+        "keybind": {
+          "key": "Q",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "CursorConfirm",
+        "keybind": {
+          "key": "Enter",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "CursorConfirm",
+        "keybind": {
+          "key": "Enter",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "MoveScriptDown",
+        "keybind": {
+          "key": "Down",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "MoveScriptUp",
+        "keybind": {
+          "key": "Up",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "SwitchPaneFocusBackwards",
+        "keybind": {
+          "key": "Tab",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "MoveCursorDown",
+        "keybind": {
+          "key": "Down",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "MoveCursorUp",
+        "keybind": {
+          "key": "Up",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "SwitchPaneFocusForward",
+        "keybind": {
+          "key": "Tab",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "RemoveCursorScript",
+        "keybind": {
+          "key": "Delete",
+          "modifiers": ""
+        }
+      }
+    ],
+    "script_keybinds": [],
+    "show_current_git_branch": true
   },
   "script_definitions": [
     {
