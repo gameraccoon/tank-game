@@ -1,10 +1,12 @@
 {
-  "version": "0.10.5",
+  "version": "0.14.3",
   "rewritable": {
     "always_on_top": false,
     "window_status_reactions": true,
     "keep_window_size": false,
     "enable_script_filtering": true,
+    "enable_title_editing": true,
+    "config_version_update_behavior": "OnStartup",
     "custom_theme": {
       "background": [
         0.25,
@@ -41,7 +43,130 @@
         0.125,
         0.125
       ]
-    }
+    },
+    "app_actions_keybinds": [
+      {
+        "action": "RequestCloseApp",
+        "keybind": {
+          "key": "W",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "FocusFilter",
+        "keybind": {
+          "key": "F",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "TrySwitchWindowEditMode",
+        "keybind": {
+          "key": "E",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "RescheduleScripts",
+        "keybind": {
+          "key": "R",
+          "modifiers": "Cmd+Shift"
+        }
+      },
+      {
+        "action": "RunScripts",
+        "keybind": {
+          "key": "R",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "StopScripts",
+        "keybind": {
+          "key": "C",
+          "modifiers": "Cmd+Shift"
+        }
+      },
+      {
+        "action": "ClearExecutionScripts",
+        "keybind": {
+          "key": "C",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "MaximizeOrRestoreExecutionPane",
+        "keybind": {
+          "key": "Q",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "CursorConfirm",
+        "keybind": {
+          "key": "Enter",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "CursorConfirm",
+        "keybind": {
+          "key": "Enter",
+          "modifiers": "Cmd"
+        }
+      },
+      {
+        "action": "MoveScriptDown",
+        "keybind": {
+          "key": "Down",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "MoveScriptUp",
+        "keybind": {
+          "key": "Up",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "SwitchPaneFocusBackwards",
+        "keybind": {
+          "key": "Tab",
+          "modifiers": "Shift"
+        }
+      },
+      {
+        "action": "MoveCursorDown",
+        "keybind": {
+          "key": "Down",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "MoveCursorUp",
+        "keybind": {
+          "key": "Up",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "SwitchPaneFocusForward",
+        "keybind": {
+          "key": "Tab",
+          "modifiers": ""
+        }
+      },
+      {
+        "action": "RemoveCursorScript",
+        "keybind": {
+          "key": "Delete",
+          "modifiers": ""
+        }
+      }
+    ],
+    "script_keybinds": [],
+    "show_current_git_branch": false
   },
   "script_definitions": [
     {
@@ -150,6 +275,10 @@
           "path": "scripts/scripter/linux/switch_branch.sh",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -167,6 +296,10 @@
         },
         "command": {
           "path": "scripts/scripter/linux/update_submodules.sh",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -188,6 +321,10 @@
           "path": "scripts/scripter/linux/generate_cmake_project.sh",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -205,6 +342,10 @@
         },
         "command": {
           "path": "scripts/scripter/linux/build_project.sh",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -226,6 +367,10 @@
           "path": "scripts/scripter/linux/open_clion.sh",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -243,6 +388,10 @@
         },
         "command": {
           "path": "scripts/package/build_and_prepare_dedicated_server.sh ",
+          "path_type": "WorkingDirRelative"
+        },
+        "working_directory": {
+          "path": ".",
           "path_type": "WorkingDirRelative"
         },
         "arguments": "",
@@ -264,6 +413,10 @@
           "path": "scripts/scripter/linux/clean_reset.sh",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -283,6 +436,10 @@
           "path": "git",
           "path_type": "WorkingDirRelative"
         },
+        "working_directory": {
+          "path": ".",
+          "path_type": "WorkingDirRelative"
+        },
         "arguments": "",
         "autorerun_count": 0,
         "ignore_previous_failures": false,
@@ -291,7 +448,7 @@
       }
     }
   ],
-  "child_config_path": {
+  "local_config_path": {
     "path": ".scripter_config.local.json",
     "path_type": "WorkingDirRelative"
   }
