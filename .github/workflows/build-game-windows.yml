@@ -43,3 +43,4 @@ jobs:
       working-directory: ${{github.workspace}}/build/game
       shell: cmd
       run: cmake --build .
+

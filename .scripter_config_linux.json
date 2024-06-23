@@ -1,7 +1,6 @@
 {
-  "version": "0.14.3",
+  "version": "0.16.2",
   "rewritable": {
-    "always_on_top": false,
     "window_status_reactions": true,
     "keep_window_size": false,
     "enable_script_filtering": true,
@@ -74,7 +73,7 @@
         }
       },
       {
-        "action": "RunScripts",
+        "action": "RunScriptsAfterExecution",
         "keybind": {
           "key": "R",
           "modifiers": "Cmd"
@@ -163,10 +162,18 @@
           "key": "Delete",
           "modifiers": ""
         }
+      },
+      {
+        "action": "CursorConfirm",
+        "keybind": {
+          "key": "Enter",
+          "modifiers": "Cmd+Alt"
+        }
       }
     ],
     "script_keybinds": [],
-    "show_current_git_branch": false
+    "show_current_git_branch": false,
+    "quick_launch_scripts": []
   },
   "script_definitions": [
     {

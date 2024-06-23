@@ -74,12 +74,12 @@ bool ValidateChecklist(const TestChecklist& checklist)
 
 	if (failedChecksCount > 0)
 	{
-		LogInfo("Checks failed: %u out of %u", failedChecksCount, totalChecksCount);
+		LogInfo("Failed %u checks out of %u", failedChecksCount, totalChecksCount);
 		return false;
 	}
 	else
 	{
-		LogInfo("Passed all checks out of %d", totalChecksCount, totalChecksCount);
+		LogInfo("Passed %d checks out of %d", totalChecksCount, totalChecksCount);
 		return true;
 	}
 }
@@ -91,14 +91,14 @@ int main(int argc, char** argv)
 	unsigned int seed = std::random_device()();
 	if (arguments.hasArgument("randseed"))
 	{
-		auto seedResult = arguments.getIntArgumentValue("randseed");
-		if (seedResult.hasValue())
+		auto seedValue = arguments.getIntArgumentValue("randseed");
+		if (seedValue.hasValue())
 		{
-			seed = seedResult.getValue();
+			seed = static_cast<unsigned int>(seedValue.getValue());
 		}
 		else
 		{
-			std::cout << seedResult.getError() << "\n";
+			std::cout << seedValue.getError() << "\n";
 			return 1;
 		}
 	}
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		std::cout << "Unknown test " + arguments.getArgumentValue("case").value() << "\n";
+		std::cout << "Unknown test '" << arguments.getArgumentValue("case").value() << "'\n";
 		return 1;
 	}
 }

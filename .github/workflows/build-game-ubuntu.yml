@@ -77,3 +77,4 @@ jobs:
       with:
         name: dedicated-server
         path: ./package/dedicated_server
+

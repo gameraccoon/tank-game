@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json_fwd.hpp>
+
 #include "GameData/Geometry/Vector2D.h"
 /**
  * Axis-aligned bounding box (AABB)

@@ -43,6 +43,7 @@ log.txt
 .vs
 *.obj
 *.tlog
+*.lib
 *.cache
 /bin
 /build

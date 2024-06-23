@@ -66,3 +66,4 @@ jobs:
     - name: Run autotests
       working-directory: ${{github.workspace}}
       run: ./scripts/tests/run_all_autotests.sh --no-render
+
