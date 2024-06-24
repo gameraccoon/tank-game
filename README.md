@@ -22,7 +22,7 @@ ECS pattern has been chosen here **not** for performance reasons, but to get bet
 - git with git-lfs
 - CMake (see the minimal supported version in [CMakeLists.txt](https://github.com/gameraccoon/tank-game/blob/main/CMakeLists.txt#L1=))
 - python3
-- GCC 13 (or higher), or clang-16 (or higher), or the latest Visual Studio 2022 (or newer)
+- GCC 13 (or higher), or ~~clang-16 (or higher),~~ or the latest Visual Studio 2022 (or newer)
 - for Linux, you need to install dependencies of SLD2, also libssl, and protobuf using your packet manager  
 e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler`
 
