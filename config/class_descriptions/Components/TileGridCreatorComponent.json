@@ -5,7 +5,7 @@
 			"name": "gridPath",
 			"type": "RelativeResourcePath",
 			"includes": [
-				"\"Base/Types/String/ResourcePath.h\""
+				"\"EngineCommon/Types/String/ResourcePath.h\""
 			],
 			"flags": ["get_by_ref"]
 		},
@@ -13,7 +13,7 @@
 			"name": "size",
 			"type": "Vector2D",
 			"default": " = ZERO_VECTOR",
-			"includes": ["\"GameData/Geometry/Vector2D.h\""]
+			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
 		}
 	]
 }

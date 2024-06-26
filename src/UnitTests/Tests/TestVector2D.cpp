@@ -1,12 +1,10 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <map>
 
 #include <gtest/gtest.h>
 
-#include "Base/CompilerHelpers.h"
-
-#include "GameData/Geometry/Vector2D.h"
+#include "EngineData/Geometry/Vector2D.h"
 
 
 TEST(Vector2D, Creation)

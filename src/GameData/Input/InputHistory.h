@@ -3,7 +3,7 @@
 #include <limits>
 #include <vector>
 
-#include "Base/Types/BasicTypes.h"
+#include "EngineCommon/Types/BasicTypes.h"
 #include "GameData/Input/GameplayInputFrameState.h"
 
 namespace Input

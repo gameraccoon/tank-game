@@ -1,15 +1,10 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "AutoTests/Network/BaseNetworkingTestCase.h"
 
-#include "Base/TimeConstants.h"
+#include "EngineCommon/TimeConstants.h"
 
-#include "GameData/Components/ClientGameDataComponent.generated.h"
-#include "GameData/Components/NetworkIdMappingComponent.generated.h"
-
-#include "Utils/Application/ArgumentsParser.h"
-
-#include "HAL/Base/GameLoop.h"
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/ApplicationData.h"

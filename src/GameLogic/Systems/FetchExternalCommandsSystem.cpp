@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/FetchExternalCommandsSystem.h"
 
@@ -6,8 +6,8 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 FetchExternalCommandsSystem::FetchExternalCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)

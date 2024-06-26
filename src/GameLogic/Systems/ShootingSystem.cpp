@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ShootingSystem.h"
 
@@ -8,11 +8,10 @@
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
-#include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameplayCommands/CreateProjectileCommand.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameplayCommands/CreateProjectileCommand.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 ShootingSystem::ShootingSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)

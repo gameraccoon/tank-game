@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/CharacterStateSystem.h"
 
@@ -6,12 +6,11 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Enums/Direction4.generated.h"
+#include "GameData/Enums/OptionalDirection4.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 CharacterStateSystem::CharacterStateSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)

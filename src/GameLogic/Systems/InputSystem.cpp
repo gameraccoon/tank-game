@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/InputSystem.h"
 
@@ -18,7 +18,7 @@
 
 #include "HAL/InputControllersData.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 InputSystem::InputSystem(WorldHolder& worldHolder, const HAL::InputControllersData& inputData) noexcept
 	: mWorldHolder(worldHolder)

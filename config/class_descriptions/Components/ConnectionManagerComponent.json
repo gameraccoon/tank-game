@@ -8,7 +8,7 @@
 			"default": " = nullptr",
 			"includes": [
 				"\"HAL/Network/ConnectionManager.h\"",
-				"\"Base/Types/TemplateAliases.h\""
+				"\"EngineCommon/Types/TemplateAliases.h\""
 			]
 		}
 	]

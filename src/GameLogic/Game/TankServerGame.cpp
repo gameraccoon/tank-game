@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Game/TankServerGame.h"
 
-#include "Base/Types/TemplateHelpers.h"
+#include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
@@ -13,11 +13,10 @@
 
 #include "HAL/Base/Engine.h"
 
-#include "Utils/Application/ArgumentsParser.h"
-#include "Utils/ResourceManagement/ResourceManager.h"
-#include "Utils/World/GameDataLoader.h"
+#include "GameUtils/Application/ArgumentsParser.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/World/GameDataLoader.h"
 
-#include "GameLogic/Initialization/StateMachines.h"
 #include "GameLogic/Render/RenderAccessor.h"
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"

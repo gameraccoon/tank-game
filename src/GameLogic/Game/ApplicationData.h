@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Base/Types/String/ResourcePath.h"
+#include "EngineCommon/Types/String/ResourcePath.h"
 
-#include "Utils/Multithreading/ThreadPool.h"
-#include "Utils/ResourceManagement/ResourceManager.h"
+#include "EngineUtils/Multithreading/ThreadPool.h"
+
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 #include "HAL/Base/Engine.h"
 

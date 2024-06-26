@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "Base/Types/String/StringId.h"
+#include "EngineCommon/Types/String/StringId.h"
 
 #include "GameData/Resources/ResourceHandle.h"
 #include "GameData/FSM/Blackboard.h"

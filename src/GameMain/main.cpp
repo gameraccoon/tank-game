@@ -1,14 +1,13 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <iostream>
 
 #include <raccoon-ecs/error_handling.h>
 
-#include "Base/Random/Random.h"
-#include "Base/Types/String/StringNumberConversion.h"
+#include "EngineCommon/Random/Random.h"
 
-#include "Utils/Application/ArgumentsParser.h"
-#include "Utils/Network/TcpClient.h"
+#include "GameUtils/Application/ArgumentsParser.h"
+#include "GameUtils/Network/TcpClient.h"
 
 #include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
@@ -107,6 +106,8 @@ static std::optional<std::string> ReceiveServerAddressFromMatchmaker(const std::
 
 int main(int argc, char** argv)
 {
+	INITIALIZE_STRING_IDS();
+
 	Random::gGlobalGenerator = Random::GlobalGeneratorType(std::random_device()());
 
 #ifdef RACCOON_ECS_DEBUG_CHECKS_ENABLED

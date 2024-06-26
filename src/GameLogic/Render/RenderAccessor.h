@@ -7,9 +7,12 @@
 #include <vector>
 #include <functional>
 
-#include "Base/Profile/ScopedProfiler.h"
+#ifdef ENABLE_SCOPED_PROFILER
+#include "EngineCommon/Profile/ScopedProfiler.h"
+#endif // ENABLE_SCOPED_PROFILER
 
-#include "GameData/Geometry/Vector2D.h"
+#include "EngineData/Geometry/Vector2D.h"
+
 #include "GameData/Resources/ResourceHandle.h"
 #include "GameData/Render/RenderAccessorGameRef.h"
 

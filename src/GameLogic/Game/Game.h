@@ -11,7 +11,7 @@
 #include "HAL/GameBase.h"
 #include "HAL/InputControllersData.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Debug/DebugGameBehavior.h"
 

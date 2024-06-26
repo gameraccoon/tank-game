@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 
@@ -8,8 +8,8 @@
 #include "GameData/Network/MovementHistory.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 SaveMovementToHistorySystem::SaveMovementToHistorySystem(
 	WorldHolder& worldHolder,

@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "Utils/Functional/ScopeFinalizer.h"
+#include "GameUtils/Functional/ScopeFinalizer.h"
 
 // These tests are flaky and contaminate other tests
 // (the testing framework may flag some random tests as

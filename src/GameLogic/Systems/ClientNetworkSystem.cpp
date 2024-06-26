@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ClientNetworkSystem.h"
 
-#include "Base/Types/Serialization.h"
+#include "EngineCommon/Types/Serialization.h"
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
@@ -12,14 +12,14 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "Utils/Network/FrameTimeCorrector.h"
-#include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
-#include "Utils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
-#include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
-#include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
-#include "Utils/Network/Messages/ServerClient/MovesMessage.h"
-#include "Utils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/FrameTimeCorrector.h"
+#include "GameUtils/Network/Messages/ClientServer/ConnectMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/DisconnectMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/MovesMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 ClientNetworkSystem::ClientNetworkSystem(
 	WorldHolder& worldHolder,

@@ -4,7 +4,7 @@
 
 #include <raccoon-ecs/utils/system.h>
 
-#include "GameData/Geometry/Vector2D.h"
+#include "EngineData/Geometry/Vector2D.h"
 
 class ResourceManager;
 class ThreadPool;

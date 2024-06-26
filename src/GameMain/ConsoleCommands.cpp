@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameMain/ConsoleCommands.h"
 
@@ -7,7 +7,7 @@
 
 #include "GameData/Network/NetworkProtocolVersion.h"
 
-#include "Utils/Application/ArgumentsParser.h"
+#include "GameUtils/Application/ArgumentsParser.h"
 
 namespace ConsoleCommands
 {

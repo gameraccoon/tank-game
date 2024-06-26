@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
 
@@ -9,9 +9,9 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/Messages/ClientServer/PlayerInputMessage.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 ClientInputSendSystem::ClientInputSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)

@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Imgui/ComponentInspector/ImguiComponentInspectorWindow.h"
 
@@ -9,12 +9,11 @@
 #include <string_view>
 
 #include "imgui/imgui.h"
-#include <raccoon-ecs/component_factory.h>
 
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Imgui/ComponentInspector/ComponentWidgetsRegistration.h"
 #include "GameLogic/Imgui/ImguiDebugData.h"

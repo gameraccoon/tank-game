@@ -23,3 +23,6 @@
 	path = external/sources/GameNetworkingSockets
 	url = git@github.com:ValveSoftware/GameNetworkingSockets.git
 
+[submodule "src/Engine"]
+	path = src/Engine
+	url = git@github.com:gameraccoon/simple-game-engine.git

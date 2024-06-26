@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ProjectileLifetimeSystem.h"
 
@@ -7,7 +7,7 @@
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 ProjectileLifetimeSystem::ProjectileLifetimeSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)

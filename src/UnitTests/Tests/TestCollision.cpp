@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <gtest/gtest.h>
 
-#include "Utils/Geometry/Collision.h"
+#include "GameUtils/Geometry/Collision.h"
 
 namespace TestCollisionInternal
 {

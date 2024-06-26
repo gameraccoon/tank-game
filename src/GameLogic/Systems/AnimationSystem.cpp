@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/AnimationSystem.h"
 
@@ -9,11 +9,10 @@
 #include "GameData/Components/SpriteRenderComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 AnimationSystem::AnimationSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)

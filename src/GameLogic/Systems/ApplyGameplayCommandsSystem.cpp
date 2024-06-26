@@ -1,11 +1,11 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 
 #include "GameData/Components/GameplayCommandsComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils//SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 ApplyGameplayCommandsSystem::ApplyGameplayCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept

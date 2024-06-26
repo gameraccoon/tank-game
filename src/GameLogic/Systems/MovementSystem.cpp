@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/MovementSystem.h"
 
@@ -6,7 +6,7 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 MovementSystem::MovementSystem(WorldHolder& worldHolder) noexcept

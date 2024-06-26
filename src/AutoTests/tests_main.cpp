@@ -1,12 +1,12 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <iostream>
 
-#include "Base/Random/Random.h"
+#include "EngineCommon//Random/Random.h"
 
 #include <raccoon-ecs/error_handling.h>
 
-#include "Utils/Application/ArgumentsParser.h"
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
@@ -86,6 +86,8 @@ bool ValidateChecklist(const TestChecklist& checklist)
 
 int main(int argc, char** argv)
 {
+	INITIALIZE_STRING_IDS();
+
 	ArgumentsParser arguments(argc, argv);
 
 	unsigned int seed = std::random_device()();

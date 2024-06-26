@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/DebugInputSystem.h"
 
@@ -7,18 +7,14 @@
 #include <SDL_mouse.h>
 #include <SDL_scancode.h>
 
-#include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/Components/ImguiComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Input/ControllerState.h"
-#include "GameData/Input/InputBindings.h"
-#include "GameData/WorldLayer.h"
 
 #include "HAL/InputControllersData.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 DebugInputSystem::DebugInputSystem(
 	WorldHolder& worldHolder,

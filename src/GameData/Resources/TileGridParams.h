@@ -1,10 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <limits>
 
-#include "GameData/Geometry/IntVector2D.h"
-#include "GameData/Resources/ResourceHandle.h"
+#include "EngineData/Geometry/IntVector2D.h"
+
 #include "GameData/Resources/TileSetParams.h"
 
 struct TileGridParams

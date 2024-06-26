@@ -1,11 +1,11 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #ifndef DISABLE_SDL
 
 #include <algorithm>
 
-#include "Base/Random/Random.h"
-#include "Base/Types/TemplateHelpers.h"
+#include "EngineCommon/Random/Random.h"
+#include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/CollisionComponent.generated.h"
@@ -20,9 +20,9 @@
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Sprite.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/ResourceManagement/ResourceManager.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
 #include "GameLogic/Systems/DebugDrawSystem.h"

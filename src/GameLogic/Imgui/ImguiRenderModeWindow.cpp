@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Imgui/ImguiRenderModeWindow.h"
 
@@ -9,7 +9,7 @@
 #include "GameData/GameData.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Imgui/ImguiDebugData.h"
 

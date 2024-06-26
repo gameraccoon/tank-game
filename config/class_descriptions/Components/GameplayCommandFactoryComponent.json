@@ -6,7 +6,7 @@
 			"name": "instance",
 			"type": "Network::GameplayCommandFactory",
 			"includes": [
-				"\"Utils/Network/GameplayCommands/GameplayCommandsFactory.h\""
+				"\"GameUtils/Network/GameplayCommands/GameplayCommandsFactory.h\""
 			],
 			"flags": ["transient", "get_by_ref"]
 		}

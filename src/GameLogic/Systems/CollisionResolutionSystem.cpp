@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/CollisionResolutionSystem.h"
 
-#include "Base/Types/TemplateAliases.h"
+#include "EngineCommon/Types/TemplateAliases.h"
 
 #include "GameData/Components/CollisionComponent.generated.h"
 #include "GameData/Components/DeathComponent.generated.h"
@@ -13,8 +13,8 @@
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Geometry/Collision.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Geometry/Collision.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 CollisionResolutionSystem::CollisionResolutionSystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)

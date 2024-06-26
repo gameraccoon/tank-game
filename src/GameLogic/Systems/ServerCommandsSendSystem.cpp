@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 
@@ -8,9 +8,9 @@
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept

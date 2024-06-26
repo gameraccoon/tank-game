@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ApplyInputToEntitySystem.h"
 
@@ -6,7 +6,7 @@
 #include "GameData/Components/GameplayInputComponent.generated.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 ApplyInputToEntitySystem::ApplyInputToEntitySystem(WorldHolder& worldHolder) noexcept

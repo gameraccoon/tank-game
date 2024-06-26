@@ -1,14 +1,14 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Resources/TileGrid.h"
 
 #include <nlohmann/json.hpp>
 
-#include "Base/Types/String/ResourcePath.h"
+#include "EngineCommon/Types/String/ResourcePath.h"
 
 #include "GameData/Resources/TileGridParams.h"
 
-#include "Utils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 #include "GameLogic/Resources/TileSet.h"
 

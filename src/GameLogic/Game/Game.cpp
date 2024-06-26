@@ -1,20 +1,21 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Game/Game.h"
 
-#include "Base/Types/TemplateHelpers.h"
+#include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/Time/TimeData.h"
 
-#include "Utils/Application/ArgumentsParser.h"
-#include "Utils/Multithreading/ThreadPool.h"
+#include "EngineUtils/Multithreading/ThreadPool.h"
+
+#include "GameUtils/Application/ArgumentsParser.h"
 #ifdef ENABLE_SCOPED_PROFILER
 #include "Utils/Profiling/ProfileDataWriter.h"
 #endif
-#include "Utils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 #include "HAL/Base/Engine.h"
 

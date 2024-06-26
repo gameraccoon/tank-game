@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 
@@ -10,13 +10,11 @@
 #include "GameData/Components/SpriteRenderComponent.generated.h"
 #include "GameData/Components/TileGridComponent.generated.h"
 #include "GameData/Components/TileGridCreatorComponent.generated.h"
-#include "GameData/GameData.h"
-#include "GameData/WorldLayer.h"
 
 #include "HAL/Graphics/Sprite.h"
 
-#include "Utils/ResourceManagement/ResourceManager.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Resources/AnimationGroup.h"
 #include "GameLogic/Resources/SpriteAnimationClip.h"

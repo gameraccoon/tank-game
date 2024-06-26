@@ -1,12 +1,12 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #ifndef DISABLE_SDL
 
 #include <algorithm>
 #include <ranges>
 
-#include "Base/Types/TemplateAliases.h"
-#include "Base/Types/TemplateHelpers.h"
+#include "EngineCommon/Types/TemplateAliases.h"
+#include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/Components/BackgroundTextureComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
@@ -20,9 +20,8 @@
 
 #include "HAL/Graphics/Sprite.h"
 
-#include "Utils/Multithreading/ThreadPool.h"
-#include "Utils/ResourceManagement/ResourceManager.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Render/RenderAccessor.h"
 #include "GameLogic/Systems/RenderSystem.h"

@@ -6,8 +6,8 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
-#include "Utils/Network/FrameTimeCorrector.h"
-#include "Utils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/FrameTimeCorrector.h"
+#include "GameUtils/Network/GameStateRewinder.h"
 
 #include "GameLogic/Game/Game.h"
 #ifdef IMGUI_ENABLED

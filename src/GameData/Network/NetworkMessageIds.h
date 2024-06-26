@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Base/Types/BasicTypes.h"
+#include "EngineCommon/Types/BasicTypes.h"
 
 enum class NetworkMessageId : u32
 {

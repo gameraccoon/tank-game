@@ -3,10 +3,11 @@
 #include <limits>
 #include <vector>
 
-#include "Base/Types/BasicTypes.h"
+#include "EngineCommon/Types/BasicTypes.h"
+
+#include "EngineData/Geometry/Vector2D.h"
 
 #include "GameData/Enums/Direction4.generated.h"
-#include "GameData/Geometry/Vector2D.h"
 #include "GameData/Network/NetworkEntityId.h"
 
 struct EntityMoveHash

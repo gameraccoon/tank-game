@@ -1,10 +1,10 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <gtest/gtest.h>
 
 #include <vector>
 
-#include "Utils/Network/BoundCheckedHistory.h"
+#include "GameUtils/Network/BoundCheckedHistory.h"
 
 TEST(BoundCheckedHistory, NewHistory_ContainsOneUpdate)
 {

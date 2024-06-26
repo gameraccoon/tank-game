@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <memory>
 
@@ -10,8 +10,8 @@
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/Messages/ClientServer/ConnectMessage.h"
 
 namespace TestConnectMessageInternal
 {

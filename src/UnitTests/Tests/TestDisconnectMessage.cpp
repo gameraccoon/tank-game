@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <gtest/gtest.h>
 
-#include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/DisconnectMessage.h"
 
 
 TEST(DisconnectMessage, DisconnectMessageReceived_CarriesTheProvidedReason)

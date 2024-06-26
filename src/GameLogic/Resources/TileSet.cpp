@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Resources/TileSet.h"
 
@@ -6,15 +6,13 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Base/Types/String/ResourcePath.h"
+#include "EngineCommon/Types/String/ResourcePath.h"
 
 #include "GameData/Resources/TileSetParams.h"
 
 #include "HAL/Graphics/Sprite.h"
 
-#include "Utils/ResourceManagement/ResourceManager.h"
-
-#include "GameLogic/Resources/SpriteAnimationClip.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 namespace Graphics
 {

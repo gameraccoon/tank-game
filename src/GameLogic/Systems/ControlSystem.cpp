@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ControlSystem.h"
 
@@ -8,7 +8,7 @@
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 ControlSystem::ControlSystem(WorldHolder& worldHolder) noexcept

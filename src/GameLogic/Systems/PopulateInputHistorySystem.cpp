@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/PopulateInputHistorySystem.h"
 
@@ -7,8 +7,8 @@
 #include "GameData/Input/GameplayInputFrameState.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 PopulateInputHistorySystem::PopulateInputHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept

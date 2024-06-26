@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #ifndef DISABLE_SDL
 
@@ -9,14 +9,14 @@
 #include <glew/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Base/Types/ComplexTypes/VectorUtils.h"
+#include "EngineCommon/Types/ComplexTypes/VectorUtils.h"
 
 #include "HAL/Base/Math.h"
 #include "HAL/Graphics/Renderer.h"
 #include "HAL/Graphics/Sprite.h"
 #include "HAL/Base/Engine.h"
 
-#include "Utils/ResourceManagement/ResourceManager.h"
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 namespace RenderThreadManagerInternal
 {

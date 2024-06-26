@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include "GameData/Geometry/Vector2D.h"
-#include "GameData/Geometry/IntVector2D.h"
 #include "GameData/Resources/ResourceHandle.h"
 
 struct TileSetParams

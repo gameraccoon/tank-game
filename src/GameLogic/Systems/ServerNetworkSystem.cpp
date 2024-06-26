@@ -1,4 +1,4 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 
@@ -13,14 +13,14 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "Utils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/ClientServer/ConnectMessage.h"
-#include "Utils/Network/Messages/ClientServer/PlayerInputMessage.h"
-#include "Utils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
-#include "Utils/Network/Messages/ServerClient/DisconnectMessage.h"
-#include "Utils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/Messages/ClientServer/ConnectMessage.h"
+#include "GameUtils/Network/Messages/ClientServer/PlayerInputMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/DisconnectMessage.h"
+#include "GameUtils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 ServerNetworkSystem::ServerNetworkSystem(
 	WorldHolder& worldHolder,

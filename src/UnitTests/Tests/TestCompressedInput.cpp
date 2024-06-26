@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include <gtest/gtest.h>
 
-#include "Utils/Network/CompressedInput.h"
+#include "GameUtils/Network/CompressedInput.h"
 
 TEST(CompressedInput, WriteAndReadEmptyInput)
 {

@@ -2,8 +2,7 @@
 
 #include <algorithm>
 
-#include "Base/Types/TemplateAliases.h"
-#include "Base/Debug/Assert.h"
+#include "EngineCommon/Debug/Assert.h"
 
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/AbstractPropertyDescriptor.h"
 

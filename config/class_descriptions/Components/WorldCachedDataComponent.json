@@ -6,7 +6,7 @@
 			"name": "screenSize",
 			"type": "Vector2D",
 			"default": " = ZERO_VECTOR",
-			"includes": ["\"GameData/Geometry/Vector2D.h\""],
+			"includes": ["\"EngineData/Geometry/Vector2D.h\""],
 			"flags": ["transient"]
 		}
 	]

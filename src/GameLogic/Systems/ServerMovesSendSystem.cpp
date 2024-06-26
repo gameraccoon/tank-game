@@ -1,8 +1,8 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Systems/ServerMovesSendSystem.h"
 
-#include "Base/Types/TemplateAliases.h"
+#include "EngineCommon/Types/TemplateAliases.h"
 
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
@@ -12,9 +12,9 @@
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
-#include "Utils/Network/GameStateRewinder.h"
-#include "Utils/Network/Messages/ServerClient/MovesMessage.h"
-#include "Utils/SharedManagers/WorldHolder.h"
+#include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/Network/Messages/ServerClient/MovesMessage.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 
 ServerMovesSendSystem::ServerMovesSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept

@@ -1,12 +1,10 @@
-#include "Base/precomp.h"
+#include "EngineCommon/precomp.h"
 
 #include "GameLogic/Imgui/ImguiMainMenu.h"
 
 #ifdef IMGUI_ENABLED
 
 #include "imgui/imgui.h"
-
-#include "Utils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Imgui/ImguiDebugData.h"
 

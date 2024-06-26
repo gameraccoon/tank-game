@@ -2,7 +2,7 @@
 
 #ifndef DEDICATED_SERVER
 
-#include "Utils/Application/ArgumentsParser.h"
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
