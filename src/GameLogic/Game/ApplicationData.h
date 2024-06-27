@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "EngineCommon/Types/String/ResourcePath.h"
 
 #include "EngineUtils/Multithreading/ThreadPool.h"

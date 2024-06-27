@@ -29,8 +29,8 @@ CONNECTION_MANAGER_TEST(OpenAndClosePort)
 {
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
-	const u16 port = 48630;
-	const u16 incorrectPort = 48629;
+	constexpr u16 port = 48630;
+	constexpr u16 incorrectPort = 48629;
 	HAL::ConnectionManager connectionManager;
 	EXPECT_FALSE(connectionManager.isPortOpen(port));
 	connectionManager.startListeningToPort(port);
@@ -45,8 +45,8 @@ CONNECTION_MANAGER_TEST(OpenAndCloseTwoPorts)
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
 	HAL::ConnectionManager connectionManager;
-	const u16 port1 = 48631;
-	const u16 port2 = 48632;
+	constexpr u16 port1 = 48631;
+	constexpr u16 port2 = 48632;
 	EXPECT_FALSE(connectionManager.isPortOpen(port1));
 	EXPECT_FALSE(connectionManager.isPortOpen(port2));
 	connectionManager.startListeningToPort(port1);
@@ -61,12 +61,17 @@ CONNECTION_MANAGER_TEST(OpenAndCloseTwoPorts)
 	EXPECT_FALSE(connectionManager.isPortOpen(port2));
 }
 
+static std::array<u8, 4> getLocalhostAddress()
+{
+	return {127, 0, 0, 1};
+}
+
 CONNECTION_MANAGER_TEST(ConnectAndDisconnectToOpenPort)
 {
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
 	HAL::ConnectionManager connectionManagerServer;
-	static const u16 port = 48633;
+	static constexpr u16 port = 48633;
 	connectionManagerServer.startListeningToPort(port);
 
 	auto threadFn = []
@@ -74,7 +79,7 @@ CONNECTION_MANAGER_TEST(ConnectAndDisconnectToOpenPort)
 		HAL::ConnectionManager connectionManagerClient;
 
 		connectionManagerClient.processNetworkEvents();
-		auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
+		const auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4(getLocalhostAddress(), port));
 		ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 		EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
@@ -92,11 +97,11 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 {
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
-	static const std::vector<std::byte> testMessageData = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
-	static const u16 port = 48634;
+	static const std::vector testMessageData = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
+	static constexpr u16 port = 48634;
 
 	std::promise<bool> serverStartedPromise;
-	std::future<bool> serverStartedFuture = serverStartedPromise.get_future();
+	const std::future<bool> serverStartedFuture = serverStartedPromise.get_future();
 
 	std::thread serverThread([&serverStartedPromise]
 	{
@@ -105,14 +110,14 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 		serverStartedPromise.set_value(true);
 
 		using namespace std::chrono;
-		steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
+		const steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
 		while (steady_clock::now() < timeout)
 		{
 			connectionManagerServer.processNetworkEvents();
 			std::vector<std::pair<ConnectionId, HAL::Network::Message>> messages = connectionManagerServer.consumeReceivedServerMessages(port);
 			if (!messages.empty())
 			{
-				EXPECT_EQ(testMessageData, std::vector<std::byte>(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
+				EXPECT_EQ(testMessageData, std::vector(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
 				return;
 			}
 			std::this_thread::yield();
@@ -128,11 +133,11 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 
 	HAL::ConnectionManager connectionManagerClient;
 	connectionManagerClient.processNetworkEvents();
-	auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
+	const auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4(getLocalhostAddress(), port));
 	ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 	EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
-	auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData});
+	const auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData});
 	EXPECT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
 
 	serverThread.join();
@@ -142,9 +147,9 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 {
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
-	static const std::vector<std::byte> testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
-	static const std::vector<std::byte> testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
-	static const u16 port = 48635;
+	static const std::vector testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
+	static const std::vector testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
+	static constexpr u16 port = 48635;
 
 	HAL::ConnectionManager connectionManagerServer;
 	connectionManagerServer.startListeningToPort(port);
@@ -155,14 +160,14 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 
 		HAL::ConnectionManager connectionManagerClient;
 		connectionManagerClient.processNetworkEvents();
-		auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
+		const auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4(getLocalhostAddress(), port));
 		ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 		EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
-		auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData1});
+		const auto messageSendResult = connectionManagerClient.sendMessageToServer(connectionResult.connectionId, HAL::Network::Message{1, testMessageData1});
 		ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult.status);
 
-		steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
+		const steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
 		while (steady_clock::now() < timeout)
 		{
 			auto messages = connectionManagerClient.consumeReceivedClientMessages(connectionResult.connectionId);
@@ -170,7 +175,7 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 			{
 				EXPECT_EQ(connectionResult.connectionId, messages[0].first);
 				EXPECT_EQ(1u, messages[0].second.readMessageType());
-				EXPECT_EQ(testMessageData2, std::vector<std::byte>(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
+				EXPECT_EQ(testMessageData2, std::vector(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
 				return;
 			}
 			std::this_thread::yield();
@@ -182,7 +187,7 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 	{
 		using namespace std::chrono;
 		bool receivedMessageFromClient = false;
-		steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
+		const steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
 		while (steady_clock::now() < timeout)
 		{
 			connectionManagerServer.processNetworkEvents();
@@ -190,7 +195,7 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 			if (!messages.empty())
 			{
 				EXPECT_EQ(messages.size(), 1u);
-				auto messageSendResult2 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{1, testMessageData2});
+				const auto messageSendResult2 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{1, testMessageData2});
 				ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult2.status);
 				receivedMessageFromClient = true;
 				break;
@@ -207,10 +212,10 @@ CONNECTION_MANAGER_TEST(ClientAndServer_ServerSendsTwoReliableMessages_MessagesA
 {
 	ScopeFinalizer finalizer([] { HAL::ConnectionManager::TEST_reset(); });
 
-	static const std::vector<std::byte> testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
-	static const std::vector<std::byte> testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
-	static const std::vector<std::byte> testMessageData3 = {std::byte(9), std::byte(10), std::byte(11), std::byte(12)};
-	static const u16 port = 48636;
+	static const std::vector testMessageData1 = {std::byte(1), std::byte(2), std::byte(3), std::byte(4)};
+	static const std::vector testMessageData2 = {std::byte(5), std::byte(6), std::byte(7), std::byte(8)};
+	static const std::vector testMessageData3 = {std::byte(9), std::byte(10), std::byte(11), std::byte(12)};
+	static constexpr u16 port = 48636;
 
 	HAL::ConnectionManager connectionManagerServer;
 	connectionManagerServer.startListeningToPort(port);
@@ -221,7 +226,7 @@ CONNECTION_MANAGER_TEST(ClientAndServer_ServerSendsTwoReliableMessages_MessagesA
 
 		HAL::ConnectionManager connectionManagerClient;
 		connectionManagerClient.processNetworkEvents();
-		auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, port));
+		auto connectionResult = connectionManagerClient.connectToServer(HAL::Network::NetworkAddress::Ipv4({u8(127), u8(0), u8(0), u8(1)}, port));
 		ASSERT_EQ(HAL::ConnectionManager::ConnectResult::Status::Success, connectionResult.status);
 		EXPECT_TRUE(connectionManagerClient.isServerConnectionOpen(connectionResult.connectionId));
 
@@ -244,10 +249,10 @@ CONNECTION_MANAGER_TEST(ClientAndServer_ServerSendsTwoReliableMessages_MessagesA
 				ASSERT_EQ(receivedMessages.size(), 2u);
 				EXPECT_EQ(connectionResult.connectionId, receivedMessages[0].first);
 				EXPECT_EQ(1u, receivedMessages[0].second.readMessageType());
-				EXPECT_EQ(testMessageData2, std::vector<std::byte>(receivedMessages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[0].second.data.end()));
+				EXPECT_EQ(testMessageData2, std::vector(receivedMessages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[0].second.data.end()));
 				EXPECT_EQ(connectionResult.connectionId, receivedMessages[1].first);
 				EXPECT_EQ(2u, receivedMessages[1].second.readMessageType());
-				EXPECT_EQ(testMessageData3, std::vector<std::byte>(receivedMessages[1].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[1].second.data.end()));
+				EXPECT_EQ(testMessageData3, std::vector(receivedMessages[1].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[1].second.data.end()));
 				return;
 			}
 			std::this_thread::yield();
@@ -259,16 +264,16 @@ CONNECTION_MANAGER_TEST(ClientAndServer_ServerSendsTwoReliableMessages_MessagesA
 	{
 		using namespace std::chrono;
 		bool receivedMessageFromClient = false;
-		steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
+		const steady_clock::time_point timeout = steady_clock::now() + milliseconds(1000);
 		while (steady_clock::now() < timeout)
 		{
 			connectionManagerServer.processNetworkEvents();
 			std::vector<std::pair<ConnectionId, HAL::Network::Message>> messages = connectionManagerServer.consumeReceivedServerMessages(port);
 			if (!messages.empty())
 			{
-				auto messageSendResult2 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{1, testMessageData2});
+				const auto messageSendResult2 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{1, testMessageData2});
 				ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult2.status);
-				auto messageSendResult3 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{2, testMessageData3});
+				const auto messageSendResult3 = connectionManagerServer.sendMessageToClient(messages[0].first, HAL::Network::Message{2, testMessageData3});
 				ASSERT_EQ(HAL::ConnectionManager::SendMessageResult::Status::Success, messageSendResult3.status);
 				receivedMessageFromClient = true;
 				break;

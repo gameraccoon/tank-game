@@ -13,7 +13,7 @@ option(MEMLEAK_REDEFINE_NEW "Redefine default new (provide more detailed info bu
 option(CONCURRENT_ACCESS_DETECTION "Enable concurrent access detection" ON)
 option(DEDICATED_SERVER "Are we building dedicated server" OFF)
 option(BUILD_UNIT_TESTS "Build unit-tests with normal build" ON)
-option(ENABLE_UNITY_BUILD "Should the sources be built with unity build" ON)
+option(ENABLE_UNITY_BUILD "Should the sources be built with unity build" OFF)
 option(FAKE_NETWORK "Should faked network be used instead of real networking" OFF)
 CMAKE_DEPENDENT_OPTION(BUILD_AUTO_TESTS "Build AutoTests project with normal build" ON "NOT DEDICATED_SERVER" OFF)
 CMAKE_DEPENDENT_OPTION(DISABLE_SDL "Are we building version without graphics, e.g. for dedicated server" OFF "NOT DEDICATED_SERVER" ON)
@@ -118,8 +118,6 @@ execute_process(
 
 # requirements
 find_package(Python3 3.5)
-
-include_directories(include)
 
 include_directories(
 	${EXTERNALS_DIR}/include

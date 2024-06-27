@@ -9,7 +9,8 @@ class TankClientGame;
 class BaseNetworkingTestCase : public BaseTestCase
 {
 public:
-	BaseNetworkingTestCase(int clentsCount);
+	explicit BaseNetworkingTestCase(int clentsCount);
+	~BaseNetworkingTestCase() override;
 
 	TestChecklist start(const ArgumentsParser& arguments) override;
 

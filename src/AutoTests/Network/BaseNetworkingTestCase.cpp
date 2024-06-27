@@ -16,6 +16,8 @@ BaseNetworkingTestCase::BaseNetworkingTestCase(int clentsCount)
 	: mClientsCount(clentsCount)
 {}
 
+BaseNetworkingTestCase::~BaseNetworkingTestCase() = default;
+
 TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 {
 	const bool isRenderEnabled = !arguments.hasArgument("no-render");
