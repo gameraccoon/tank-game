@@ -8,7 +8,7 @@
 
 #include "HAL/Base/Engine.h"
 
-#include "GameLogic/Render/RenderThreadManager.h"
+#include "EngineLogic/Render/RenderThreadManager.h"
 
 class ApplicationData
 {

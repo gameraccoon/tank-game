@@ -8,7 +8,7 @@
 			"includes": [
 				"<unordered_map>",
 				"\"GameData/Network/OneClientData.h\"",
-				"\"GameData/Network/ConnectionId.h\""
+				"\"EngineData/Network/ConnectionId.h\""
 			],
 			"flags": ["get_by_ref"]
 		}

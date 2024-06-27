@@ -17,7 +17,8 @@
 #include "GameUtils/ResourceManagement/ResourceManager.h"
 #include "GameUtils/World/GameDataLoader.h"
 
-#include "GameLogic/Render/RenderAccessor.h"
+#include "EngineLogic/Render/RenderAccessor.h"
+
 #include "GameLogic/Systems/AnimationSystem.h"
 #include "GameLogic/Systems/ApplyGameplayCommandsSystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"

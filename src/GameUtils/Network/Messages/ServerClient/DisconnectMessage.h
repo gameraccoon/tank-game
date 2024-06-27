@@ -4,8 +4,6 @@
 
 #include "EngineCommon/Types/BasicTypes.h"
 
-#include "GameData/Network/ConnectionId.h"
-
 #include "HAL/Network/ConnectionManager.h"
 
 class WorldLayer;

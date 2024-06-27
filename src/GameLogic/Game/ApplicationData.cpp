@@ -7,7 +7,6 @@
 #endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Game/TankServerGame.h"
-#include "GameLogic/Render/RenderAccessor.h"
 
 ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, Render render)
 	: WorkerThreadsCount(workerThreadsCount)

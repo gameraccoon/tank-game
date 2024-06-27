@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "GameData/Network/ConnectionId.h"
+#include "EngineData/Network/ConnectionId.h"
 
 class WorldLayer;
 class GameStateRewinder;

@@ -23,8 +23,9 @@
 
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
+#include "EngineLogic/Render/RenderAccessor.h"
+
 #include "GameLogic/Imgui/ImguiDebugData.h"
-#include "GameLogic/Render/RenderAccessor.h"
 
 ImguiSystem::ImguiSystem(
 		ImguiDebugData& debugData,

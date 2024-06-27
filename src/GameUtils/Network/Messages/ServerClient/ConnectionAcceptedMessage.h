@@ -1,7 +1,5 @@
 #pragma once
 
-#include "GameData/Network/ConnectionId.h"
-
 #include "HAL/Network/ConnectionManager.h"
 
 class GameStateRewinder;

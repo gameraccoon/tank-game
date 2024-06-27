@@ -24,7 +24,8 @@
 #include "GameUtils/ResourceManagement/ResourceManager.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-#include "GameLogic/Render/RenderAccessor.h"
+#include "EngineLogic/Render/RenderAccessor.h"
+
 #include "GameLogic/Systems/DebugDrawSystem.h"
 
 DebugDrawSystem::DebugDrawSystem(

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
-
-#include "GameData/Network/ConnectionId.h"
-#include "GameData/Network/GameplayCommand.h"
+#include "EngineData/Network/ConnectionId.h"
 
 #include "HAL/Network/ConnectionManager.h"
 
