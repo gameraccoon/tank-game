@@ -22,30 +22,12 @@ void MovementSystem::update()
 	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
 		[](MovementComponent* movement, TransformComponent* transform)
 	{
-		const OptionalDirection4 direction = movement->getMoveDirection();
-		Vector2D moveDirection = ZERO_VECTOR;
-		switch (direction)
-		{
-		case OptionalDirection4::Up:
-			moveDirection = Vector2D(0, -1);
-			break;
-		case OptionalDirection4::Down:
-			moveDirection = Vector2D(0, 1);
-			break;
-		case OptionalDirection4::Left:
-			moveDirection = Vector2D(-1, 0);
-			break;
-		case OptionalDirection4::Right:
-			moveDirection = Vector2D(1, 0);
-			break;
-		case OptionalDirection4::None:
-			break;
-		}
+		const Vector2D moveDirection = movement->getMoveDirection();
 		transform->setLocation(transform->getLocation() + moveDirection * movement->getSpeed());
 
-		if (direction != OptionalDirection4::None)
+		if (!moveDirection.isZeroLength())
 		{
-			transform->setDirection(static_cast<Direction4>(direction));
+			transform->setDirection(moveDirection);
 		}
 	});
 }

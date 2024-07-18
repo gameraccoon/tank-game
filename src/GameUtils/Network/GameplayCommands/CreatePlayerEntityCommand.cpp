@@ -43,7 +43,7 @@ namespace Network
 
 			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
 			transform->setLocation(mPos);
-			transform->setDirection(Direction4::Up);
+			transform->setDirection(Vector2D(0.0f, -1.0f));
 
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
 			movement->setSpeed(0.5f);

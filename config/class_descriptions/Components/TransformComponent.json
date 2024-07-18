@@ -9,9 +9,9 @@
 		},
 		{
 			"name": "direction",
-			"type": "Direction4",
-			"default": " = Direction4::Up",
-			"includes": ["\"GameData/Enums/Direction4.generated.h\""]
+			"type": "Vector2D",
+			"default": " = ZERO_VECTOR",
+			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
 		}
 	]
 }

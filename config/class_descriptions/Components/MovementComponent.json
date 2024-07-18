@@ -9,9 +9,9 @@
 		},
 		{
 			"name": "moveDirection",
-			"type": "OptionalDirection4",
-			"default": " = OptionalDirection4::None",
-			"includes": ["\"GameData/Enums/OptionalDirection4.generated.h\""]
+			"type": "Vector2D",
+			"default": " = ZERO_VECTOR",
+			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
 		}
 	]
 }

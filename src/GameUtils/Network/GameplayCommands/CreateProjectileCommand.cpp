@@ -21,7 +21,7 @@
 
 namespace Network
 {
-	CreateProjectileCommand::CreateProjectileCommand(Vector2D pos, Direction4 direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept
+	CreateProjectileCommand::CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept
 		: mPos(pos)
 		, mDirection(direction)
 		, mSpeed(speed)
@@ -44,7 +44,7 @@ namespace Network
 
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(projectileEntity);
 			movement->setSpeed(mSpeed);
-			movement->setMoveDirection(static_cast<OptionalDirection4>(mDirection));
+			movement->setMoveDirection(mDirection);
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(projectileEntity);
 			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D(0.5f, 0.5f)}, RelativeResourcePath("resources/textures/spawn-1.png"));
@@ -89,7 +89,8 @@ namespace Network
 		Serialization::AppendNumber<f32>(inOutStream, mPos.y);
 		Serialization::AppendNumber<f32>(inOutStream, mSpeed);
 		Serialization::AppendNumber<u64>(inOutStream, mOwnerNetworkEntityId);
-		Serialization::AppendNumber<u8>(inOutStream, static_cast<u8>(mDirection));
+		Serialization::AppendNumber<f32>(inOutStream, mDirection.x);
+		Serialization::AppendNumber<f32>(inOutStream, mDirection.y);
 	}
 
 	GameplayCommand::Ptr CreateProjectileCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
@@ -99,9 +100,10 @@ namespace Network
 		const float projectilePosY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 		const float projectileSpeed = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 		const NetworkEntityId ownerNetworkEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0);
-		const Direction4 direction = static_cast<Direction4>(Serialization::ReadNumber<u8>(stream, inOutCursorPos).value_or(0));
+		const float directionX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
+		const float directionY = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);
 
-		return std::make_unique<CreateProjectileCommand>(Vector2D(projectilePosX, projectilePosY), direction, projectileSpeed, serverEntityId, ownerNetworkEntityId);
+		return std::make_unique<CreateProjectileCommand>(Vector2D(projectilePosX, projectilePosY), Vector2D(directionX, directionY), projectileSpeed, serverEntityId, ownerNetworkEntityId);
 	}
 
 	GameplayCommandType CreateProjectileCommand::GetType()

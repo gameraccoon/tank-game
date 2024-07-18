@@ -158,45 +158,52 @@ void DebugDrawSystem::update()
 
 	if (renderMode && renderMode->getIsDrawDebugInputEnabled())
 	{
-		const Vector2D crossCenterOffset{60, 280};
-		const Vector2D crossPieceSize{23, 23};
-		const float crossPieceOffset = 25;
+		constexpr Vector2D crossCenterOffset{60, 280};
+		constexpr Vector2D crossPieceSize{23, 23};
+		constexpr float crossPieceOffset = 25;
 		const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputForUpdate(timeValue.lastFixedUpdateIndex);
 		const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
 		const float verticalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveVertical);
 
-		if (horizontalMove < 0.0f)
+		const bool isMoveUpPressed = lastInput.isKeyActive(GameplayInput::InputKey::MoveUp);
+		const bool isMoveDownPressed = lastInput.isKeyActive(GameplayInput::InputKey::MoveDown);
+		const bool isMoveLeftPressed = lastInput.isKeyActive(GameplayInput::InputKey::MoveLeft);
+		const bool isMoveRightPressed = lastInput.isKeyActive(GameplayInput::InputKey::MoveRight);
+
+		if (horizontalMove < 0.0f || isMoveLeftPressed)
 		{
 			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 			quadData.position = crossCenterOffset + Vector2D(-crossPieceOffset, 0.0f);
 			quadData.size = crossPieceSize;
 			quadData.spriteHandle = mArrowLeftTextureHandle;
-			quadData.alpha = std::clamp(-horizontalMove, 0.0f, 1.0f);
+			quadData.alpha = isMoveLeftPressed ? 1.0f : std::clamp(-horizontalMove, 0.0f, 1.0f);
 		}
-		else if (horizontalMove > 0.0f)
+
+		if (horizontalMove > 0.0f || isMoveRightPressed)
 		{
 			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 			quadData.position = crossCenterOffset + Vector2D(crossPieceOffset, 0.0f);
 			quadData.size = crossPieceSize;
 			quadData.spriteHandle = mArrowRightTextureHandle;
-			quadData.alpha = std::clamp(horizontalMove, 0.0f, 1.0f);
+			quadData.alpha = isMoveRightPressed ? 1.0f : std::clamp(horizontalMove, 0.0f, 1.0f);
 		}
 
-		if (verticalMove > 0.0f)
+		if (verticalMove > 0.0f || isMoveDownPressed)
 		{
 			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 			quadData.position = crossCenterOffset + Vector2D(0.0f, crossPieceOffset);
 			quadData.size = crossPieceSize;
 			quadData.spriteHandle = mArrowDownTextureHandle;
-			quadData.alpha = std::clamp(verticalMove, 0.0f, 1.0f);
+			quadData.alpha = isMoveDownPressed ? 1.0f : std::clamp(verticalMove, 0.0f, 1.0f);
 		}
-		else if (verticalMove < 0.0f)
+
+		if (verticalMove < 0.0f || isMoveUpPressed)
 		{
 			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 			quadData.position = crossCenterOffset + Vector2D(0.0f, -crossPieceOffset);
 			quadData.size = crossPieceSize;
 			quadData.spriteHandle = mArrowUpTextureHandle;
-			quadData.alpha = std::clamp(-verticalMove, 0.0f, 1.0f);
+			quadData.alpha = isMoveUpPressed ? 1.0f : std::clamp(-verticalMove, 0.0f, 1.0f);
 		}
 	}
 

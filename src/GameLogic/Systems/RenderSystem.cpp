@@ -1,11 +1,11 @@
 #include "EngineCommon/precomp.h"
 
+
 #ifndef DISABLE_SDL
 
 #include <algorithm>
 #include <ranges>
 
-#include "EngineCommon/Types/TemplateAliases.h"
 #include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/Components/BackgroundTextureComponent.generated.h"
@@ -76,24 +76,9 @@ void RenderSystem::update()
 		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent>(
 			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform)
 		{
-			Vector2D location = transform->getLocation() + drawShift;
-			Direction4 direction = transform->getDirection();
-			float rotation = 0.0f;
-			switch (direction)
-			{
-			case Direction4::Up:
-				rotation = 0.0f;
-				break;
-			case Direction4::Down:
-				rotation = PI;
-				break;
-			case Direction4::Left:
-				rotation = -HALF_PI;
-				break;
-			case Direction4::Right:
-				rotation = HALF_PI;
-				break;
-			}
+			const Vector2D location = transform->getLocation() + drawShift;
+			const Vector2D direction = transform->getDirection();
+			const float rotation = direction.rotation().getValue() + PI * 0.5f;
 
 			for (const auto& data : spriteRender->getSpriteDatas())
 			{

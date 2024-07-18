@@ -43,24 +43,7 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 
 	auto moveEntityBack = [](TransformComponent* transform, const MovementComponent* movement)
 	{
-		Vector2D moveDirection = ZERO_VECTOR;
-		switch (movement->getMoveDirection())
-		{
-		case OptionalDirection4::Up:
-			moveDirection = Vector2D(0, -1);
-			break;
-		case OptionalDirection4::Down:
-			moveDirection = Vector2D(0, 1);
-			break;
-		case OptionalDirection4::Left:
-			moveDirection = Vector2D(-1, 0);
-			break;
-		case OptionalDirection4::Right:
-			moveDirection = Vector2D(1, 0);
-			break;
-		case OptionalDirection4::None:
-			break;
-		}
+		const Vector2D moveDirection = movement->getMoveDirection();
 		transform->setLocation(transform->getLocation() - moveDirection);
 	};
 
@@ -82,23 +65,30 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 			if (Collision::DoCollide(firstBoundingBox, firstTransformComponent->getLocation(),
 				secondBoundingBox, secondTransformComponent->getLocation()))
 			{
-				OptionalDirection4 firstMovementDirection = firstMovementComponent->getMoveDirection();
-				OptionalDirection4 secondMovementDirection = secondMovementComponent->getMoveDirection();
+				Vector2D firstMovementDirection = firstMovementComponent->getMoveDirection();
+				Vector2D secondMovementDirection = secondMovementComponent->getMoveDirection();
 
 				// if one of the objects is not moving, we move the other one
-				if (firstMovementDirection == OptionalDirection4::None)
+				if (firstMovementDirection.isZeroLength())
 				{
 					moveEntityBack(secondTransformComponent, secondMovementComponent);
 					continue;
 				}
-				else if (secondMovementDirection == OptionalDirection4::None)
+				if (secondMovementDirection.isZeroLength())
 				{
 					moveEntityBack(firstTransformComponent, firstMovementComponent);
 					continue;
 				}
 
-				// if both are moving the same direction, we move back the one that is moving faster
-				if (firstMovementDirection == secondMovementDirection)
+				// move back the one that is moving faster
+				if (firstMovementDirection.qSize() > secondMovementDirection.qSize())
+				{
+					moveEntityBack(firstTransformComponent, firstMovementComponent);
+				}
+				else
+				{
+					moveEntityBack(secondTransformComponent, secondMovementComponent);
+				}
 				{
 					if (firstMovementComponent->getSpeed() > secondMovementComponent->getSpeed())
 					{
@@ -109,16 +99,6 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 						moveEntityBack(secondTransformComponent, secondMovementComponent);
 					}
 					continue;
-				}
-
-				// resolve based on movement direction order (just make it deterministic)
-				if (static_cast<int>(firstMovementDirection) < static_cast<int>(secondMovementDirection))
-				{
-					moveEntityBack(firstTransformComponent, firstMovementComponent);
-				}
-				else
-				{
-					moveEntityBack(secondTransformComponent, secondMovementComponent);
 				}
 			}
 		}

@@ -23,80 +23,31 @@ void ControlSystem::update()
 	EntityManager& entityManager = world.getEntityManager();
 
 	entityManager.forEachComponentSetWithEntity<const GameplayInputComponent, MovementComponent>(
-		[&entityManager](Entity entity, const GameplayInputComponent* gameplayInput, MovementComponent* movement)
+		[&entityManager](const Entity entity, const GameplayInputComponent* gameplayInput, MovementComponent* movement)
 	{
 		const GameplayInput::FrameState& inputState = gameplayInput->getCurrentFrameState();
 
 		const bool isShootPressed = inputState.isKeyActive(GameplayInput::InputKey::Shoot);
 
-		bool isMoveUpPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveUp);
-		bool isMoveDownPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveDown);
-		int verticalMovement = (isMoveDownPressed ? 1 : 0) - (isMoveUpPressed ? 1 : 0);
-		bool isMoveLeftPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveLeft);
-		bool isMoveRightPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveRight);
-		int horizontalMovement = (isMoveRightPressed ? 1 : 0) - (isMoveLeftPressed ? 1 : 0);
-
-		if (verticalMovement != 0 && horizontalMovement != 0)
-		{
-			// we can move only horizontally or vertically, not both
-			// decide on which button was pressed last
-			const GameplayTimestamp horizontalTimeFlip = inputState.getLastFlipTime(isMoveUpPressed ? GameplayInput::InputKey::MoveUp : GameplayInput::InputKey::MoveDown);
-			const GameplayTimestamp verticalTimeFlip = inputState.getLastFlipTime(isMoveLeftPressed ? GameplayInput::InputKey::MoveLeft : GameplayInput::InputKey::MoveRight);
-
-			if (horizontalTimeFlip < verticalTimeFlip)
-			{
-				verticalMovement = 0;
-			}
-			else
-			{
-				horizontalMovement = 0;
-			}
-		}
+		const bool isMoveUpPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveUp);
+		const bool isMoveDownPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveDown);
+		float verticalMovement = (isMoveDownPressed ? 1.0f : 0.0f) - (isMoveUpPressed ? 1.0f : 0.0f);
+		const bool isMoveLeftPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveLeft);
+		const bool isMoveRightPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveRight);
+		float horizontalMovement = (isMoveRightPressed ? 1.0f : 0.0f) - (isMoveLeftPressed ? 1.0f : 0.0f);
 
 		// if buttons are not pressed, use the axis values
-		if (verticalMovement == 0 && horizontalMovement == 0)
+		if (verticalMovement == 0.0f && horizontalMovement == 0.0f)
 		{
-			// find the biggest axis value
-			const float verticalAxisValue = inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical);
-			const float horizontalAxisValue = inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
-
-			if (verticalAxisValue != 0 || horizontalAxisValue != 0)
-			{
-				if (std::abs(verticalAxisValue) > std::abs(horizontalAxisValue))
-				{
-					verticalMovement = verticalAxisValue > 0 ? 1 : -1;
-				}
-				else
-				{
-					horizontalMovement = horizontalAxisValue > 0 ? 1 : -1;
-				}
-			}
+			horizontalMovement = inputState.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);
+			verticalMovement = inputState.getAxisValue(GameplayInput::InputAxis::MoveVertical);
 		}
 
-		// map to movement direction
-		OptionalDirection4 movementDirection = OptionalDirection4::None;
-		if (verticalMovement < 0)
-		{
-			movementDirection = OptionalDirection4::Up;
-		}
-		else if (verticalMovement > 0)
-		{
-			movementDirection = OptionalDirection4::Down;
-		}
-		else if (horizontalMovement > 0)
-		{
-			movementDirection = OptionalDirection4::Right;
-		}
-		else if (horizontalMovement < 0)
-		{
-			movementDirection = OptionalDirection4::Left;
-		}
-
-		movement->setMoveDirection(movementDirection);
+		movement->setMoveDirection(Vector2D(horizontalMovement, verticalMovement));
 
 		if (auto [characterState] = entityManager.getEntityComponents<CharacterStateComponent>(entity); characterState != nullptr)
 		{
-			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, movementDirection != OptionalDirection4::None);
+			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, movement->getMoveDirection().isZeroLength());
 			characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isShootPressed);
 		}
 	});

@@ -6,7 +6,6 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
-#include "GameData/Enums/OptionalDirection4.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
@@ -49,7 +48,7 @@ void CharacterStateSystem::update()
 			CharacterState state = characterState->getState();
 			if (!CanMove(state))
 			{
-				movement->setMoveDirection(OptionalDirection4::None);
+				movement->setMoveDirection(ZERO_VECTOR);
 			}
 		});
 
