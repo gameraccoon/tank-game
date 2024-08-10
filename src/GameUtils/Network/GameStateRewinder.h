@@ -70,7 +70,7 @@ public:
 	bool hasInputForUpdate(u32 updateIdx) const;
 	const GameplayInput::FrameState& getInputForUpdate(u32 updateIdx) const;
 	void setInputForUpdate(u32 updateIdx, const GameplayInput::FrameState& newInput);
-	void setInitialClientUpdateIndex(u32 newFrameIndex);
+	void setInitialClientUpdateIndex(u32 newUpdateIndex);
 	bool isInitialClientUpdateIndexSet() const { return mIsInitialClientUpdateIndexSet; }
 
 private:

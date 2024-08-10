@@ -19,8 +19,8 @@ void MovementSystem::update()
 	SCOPED_PROFILER("MovementSystem::update");
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
-	world.getEntityManager().forEachComponentSet<MovementComponent, TransformComponent>(
-		[](MovementComponent* movement, TransformComponent* transform)
+	world.getEntityManager().forEachComponentSet<const MovementComponent, TransformComponent>(
+		[](const MovementComponent* movement, TransformComponent* transform)
 	{
 		const Vector2D moveDirection = movement->getMoveDirection();
 		transform->setLocation(transform->getLocation() + moveDirection * movement->getSpeed());
