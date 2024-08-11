@@ -11,7 +11,8 @@ public:
 
 public:
 	ResourceHandle() = default;
-	explicit ResourceHandle(IndexType index) : resourceIndex(index) {}
+	explicit ResourceHandle(IndexType index)
+		: resourceIndex(index) {}
 
 	std::strong_ordering operator<=>(const ResourceHandle& other) const = default;
 
@@ -23,7 +24,8 @@ public:
 
 namespace std
 {
-	template<> struct hash<ResourceHandle>
+	template<>
+	struct hash<ResourceHandle>
 	{
 		size_t operator()(ResourceHandle resourceHandle) const noexcept
 		{

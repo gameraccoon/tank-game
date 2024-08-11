@@ -1,11 +1,12 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameData/WorldLayer.h"
+
 #include <nlohmann/json.hpp>
 
 #include "GameData/Serialization/Json/ComponentSetHolder.h"
 #include "GameData/Serialization/Json/EntityManager.h"
 #include "GameData/Serialization/Json/JsonComponentSerializer.h"
-#include "GameData/WorldLayer.h"
 
 void WorldLayer::overrideBy(const WorldLayer& otherWorld)
 {
@@ -22,8 +23,8 @@ WorldLayer::WorldLayer(const ComponentFactory& componentFactory)
 nlohmann::json WorldLayer::toJson(const Json::ComponentSerializationHolder& jsonSerializerHolder)
 {
 	return nlohmann::json{
-		{"entity_manager", Json::SerializeEntityManager(entityManager, jsonSerializerHolder)},
-		{"world_components", Json::SerializeComponentSetHolder(worldComponents, jsonSerializerHolder)}
+		{ "entity_manager", Json::SerializeEntityManager(entityManager, jsonSerializerHolder) },
+		{ "world_components", Json::SerializeComponentSetHolder(worldComponents, jsonSerializerHolder) }
 	};
 }
 

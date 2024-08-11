@@ -9,7 +9,7 @@ class IRenderAccessor
 {
 public:
 	virtual void submitData(std::unique_ptr<RenderData>&& newData, int gameInstanceIndex) = 0;
-	virtual ~IRenderAccessor() {};
+	virtual ~IRenderAccessor(){};
 };
 
 class RenderAccessorGameRef

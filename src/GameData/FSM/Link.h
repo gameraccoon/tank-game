@@ -84,5 +84,5 @@ namespace FSM
 			BlackboardKeyType mName;
 			ValueType mExpectedValue;
 		};
-	}
-}
+	} // namespace LinkRules
+} // namespace FSM

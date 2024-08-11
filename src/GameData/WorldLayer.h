@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GameData/EcsDefinitions.h"
-
 #include "GameData/Serialization/Json/JsonComponentSerializer.h"
 
 class WorldLayer

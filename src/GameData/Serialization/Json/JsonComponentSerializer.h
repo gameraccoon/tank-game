@@ -47,4 +47,4 @@ namespace Json
 		std::unordered_map<StringId, size_t> mClassNameToSerializer;
 	};
 
-} // namespace RaccoonEcs
+} // namespace Json

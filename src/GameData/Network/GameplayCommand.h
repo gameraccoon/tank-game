@@ -49,4 +49,4 @@ namespace Network
 		GameplayCommandList gameplayGeneratedCommands;
 		GameplayCommandList externalCommands;
 	};
-}
+} // namespace Network

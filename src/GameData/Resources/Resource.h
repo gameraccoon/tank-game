@@ -1,8 +1,8 @@
 #pragma once
 
+#include <functional>
 #include <list>
 #include <memory>
-#include <functional>
 
 class ResourceManager;
 class UniqueAny;
@@ -24,7 +24,7 @@ public:
 		None
 	};
 
-	using InitFn = UniqueAny(*)(UniqueAny&&, ResourceManager&, ResourceHandle);
+	using InitFn = UniqueAny (*)(UniqueAny&&, ResourceManager&, ResourceHandle);
 
 	struct InitStep
 	{

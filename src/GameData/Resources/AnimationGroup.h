@@ -1,15 +1,15 @@
 #pragma once
 
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "EngineCommon/Types/String/StringId.h"
 
-#include "GameData/Resources/ResourceHandle.h"
 #include "GameData/FSM/Blackboard.h"
+#include "GameData/Resources/ResourceHandle.h"
 
-template <typename StateIdType>
+template<typename StateIdType>
 class AnimationGroup
 {
 public:
