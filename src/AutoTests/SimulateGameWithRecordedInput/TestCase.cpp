@@ -4,7 +4,7 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
+#include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/TankServerGame.h"
 

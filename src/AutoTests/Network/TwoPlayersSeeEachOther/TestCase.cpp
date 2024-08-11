@@ -6,7 +6,7 @@
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
+#include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"

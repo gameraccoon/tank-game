@@ -9,7 +9,8 @@
 #include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
+#include "EngineUtils/Application/ArgumentsParser.h"
+
 #include "GameUtils/Network/TcpClient.h"
 
 #include "GameLogic/Game/ApplicationData.h"

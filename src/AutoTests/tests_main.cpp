@@ -6,7 +6,7 @@
 
 #include "EngineCommon/Random/Random.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
+#include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "AutoTests/BaseTestCase.h"
 #include "AutoTests/Network/PlayerConnectedToServer/TestCase.h"
@@ -18,33 +18,22 @@ using CasesMap = std::map<std::string, std::function<std::unique_ptr<BaseTestCas
 
 static CasesMap GetCases()
 {
-	return CasesMap
-	({
-		{
-			"PlayerConnectedToServer",
-			[](){
-				return std::make_unique<PlayerConnectedToServerTestCase>();
-			}
-		},
-		{
-			"Shoot",
-			[](){
-				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 1, 220);
-			}
-		},
-		{
-			"Shoot2Players",
-			[](){
-				return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 2, 220);
-			}
-		},
-		{
-			"TwoPlayersSeeEachOther",
-			[](){
-				return std::make_unique<TwoPlayersSeeEachOtherTestCase>();
-			}
-		},
+	CasesMap cases;
+
+	cases.emplace("PlayerConnectedToServer", []() {
+		return std::make_unique<PlayerConnectedToServerTestCase>();
 	});
+	cases.emplace("Shoot", []() {
+		return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 1, 220);
+	});
+	cases.emplace("Shoot2Players", []() {
+		return std::make_unique<SimulateGameWithRecordedInputTestCase>("resources/autotests/shoot/input", 2, 220);
+	});
+	cases.emplace("TwoPlayersSeeEachOther", []() {
+		return std::make_unique<TwoPlayersSeeEachOtherTestCase>();
+	});
+
+	return cases;
 }
 
 bool ValidateChecklist(const TestChecklist& checklist)

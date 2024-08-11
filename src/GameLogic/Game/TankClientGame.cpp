@@ -14,9 +14,9 @@
 
 #include "HAL/Base/Engine.h"
 
+#include "EngineUtils/Application/ArgumentsParser.h"
 #include "EngineUtils/ResourceManagement/ResourceManager.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
 #include "GameUtils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
 #include "GameUtils/Network/GameStateRewinder.h"
 #include "GameUtils/World/GameDataLoader.h"

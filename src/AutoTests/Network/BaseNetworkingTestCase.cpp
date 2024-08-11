@@ -4,7 +4,7 @@
 
 #include "EngineCommon/TimeConstants.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
+#include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
@@ -12,8 +12,8 @@
 
 #include "AutoTests/BasicTestChecks.h"
 
-BaseNetworkingTestCase::BaseNetworkingTestCase(int clentsCount)
-	: mClientsCount(clentsCount)
+BaseNetworkingTestCase::BaseNetworkingTestCase(int clientsCount)
+	: mClientsCount(clientsCount)
 {}
 
 BaseNetworkingTestCase::~BaseNetworkingTestCase() = default;
