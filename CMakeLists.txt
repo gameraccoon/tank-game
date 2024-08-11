@@ -25,7 +25,6 @@ else()
 	set(APP_NAME GameMain)
 endif()
 
-project(${APP_NAME})
 set(EXECUTABLE_NAME Game)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -111,13 +110,15 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 endif()
 
+# requirements
+find_package(Python3 COMPONENTS Interpreter)
+
 # code generation
 execute_process(
-	COMMAND ${PYTHON_EXECUTABLE} "${GAME_BASE_DIR}/scripts/build/code_generate.py" WORKING_DIRECTORY "${GAME_BASE_DIR}"
+	COMMAND ${Python3_EXECUTABLE} "${GAME_BASE_DIR}/scripts/build/code_generate.py"
+	WORKING_DIRECTORY ${GAME_BASE_DIR}
+	COMMAND_ERROR_IS_FATAL ANY
 )
-
-# requirements
-find_package(Python3 3.5)
 
 include_directories(
 	${EXTERNALS_DIR}/include
@@ -339,7 +340,10 @@ endif()
 
 # symlink resources dir
 if(NOT EXISTS "${GAME_BIN_DIR}/resources")
-	execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources")
+	execute_process(
+		COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources"
+		COMMAND_ERROR_IS_FATAL ANY
+	)
 endif()
 
 if(WIN32)
@@ -353,7 +357,7 @@ endif()
 # pre-compile additional code generation
 add_custom_target(
 	AdditionalCodeGeneration
-	COMMAND ${PYTHON_EXECUTABLE} ${GAME_BASE_DIR}/scripts/build/precompile_code_generate.py ${GAME_BASE_DIR}
+	COMMAND ${Python3_EXECUTABLE} ${GAME_BASE_DIR}/scripts/build/precompile_code_generate.py ${GAME_BASE_DIR}
 	COMMENT "C++ pre-compile additional code generation"
 )
 add_dependencies(EngineCommon AdditionalCodeGeneration)
