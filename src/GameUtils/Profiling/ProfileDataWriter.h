@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "Base/Profile/ScopedProfiler.h"
+#include "EngineCommon/Profile/ScopedProfiler.h"
 
 class ProfileDataWriter
 {

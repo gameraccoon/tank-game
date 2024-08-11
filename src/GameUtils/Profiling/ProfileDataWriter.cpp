@@ -5,8 +5,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include "Utils/Profiling/ProfileDataWriter.h"
 #include <nlohmann/json.hpp>
+
+#include "GameUtils/Profiling/ProfileDataWriter.h"
 
 void ProfileDataWriter::PrintScopedProfileToFile(const std::string& fileName, const ProfileData& profileData)
 {
