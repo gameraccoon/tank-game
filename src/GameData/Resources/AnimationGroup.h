@@ -1,12 +1,10 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <vector>
 
 #include "EngineCommon/Types/String/StringId.h"
 
-#include "GameData/FSM/Blackboard.h"
 #include "GameData/Resources/ResourceHandle.h"
 
 template<typename StateIdType>
