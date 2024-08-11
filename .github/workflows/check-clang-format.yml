@@ -2,6 +2,10 @@ name: Ubuntu - check clang-format
 
 on:
   push:
+    paths:
+      - .github/workflows/check-clang-format.yml
+      - src/**
+      - .clang-format
   workflow_dispatch:
 jobs:
   run-clang-format:
