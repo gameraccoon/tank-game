@@ -31,20 +31,19 @@ namespace Network::ServerClient
 	{
 		using namespace DisconnectMessageInternal;
 
-		return std::visit(Overload{
-			[](const DisconnectReason::IncompatibleNetworkProtocolVersion& value)
-			{
-				return FormatString(
-					"Can't connect to the server because of incompatible network protocol version. Client version is %u Server version is %u", value.clientVersion, value.serverVersion
-				);
+		return std::visit(
+			Overload{
+				[](const DisconnectReason::IncompatibleNetworkProtocolVersion& value) {
+					return FormatString(
+						"Can't connect to the server because of incompatible network protocol version. Client version is %u Server version is %u", value.clientVersion, value.serverVersion
+					);
+				},
+				[](DisconnectReason::ClientShutdown) { return std::string("Client has disconnected, reason: shutdown"); },
+				[](DisconnectReason::ServerShutdown) { return std::string("Server has disconnected, reason: shutdown"); },
+				[](DisconnectReason::Unknown value) { return FormatString("Disconnected. The disconnect is initiated by the other side. Reason: Unknown(%u)", value); },
 			},
-			[](DisconnectReason::ClientShutdown)
-			{ return std::string("Client has disconnected, reason: shutdown"); },
-			[](DisconnectReason::ServerShutdown)
-			{ return std::string("Server has disconnected, reason: shutdown"); },
-			[](DisconnectReason::Unknown value)
-			{ return FormatString("Disconnected. The disconnect is initiated by the other side. Reason: Unknown(%u)", value); },
-		}, reason);
+			reason
+		);
 	}
 
 	HAL::Network::Message CreateDisconnectMessage(DisconnectReason::Value reason)
@@ -56,14 +55,16 @@ namespace Network::ServerClient
 		Serialization::AppendNumber<u8>(connectMessageData, static_cast<u8>(reason.index()));
 		static_assert(std::variant_size_v<DisconnectReason::Value> <= std::numeric_limits<u8>::max(), "u8 is not enough to store the variant index");
 
-		std::visit(Overload{
-			[&connectMessageData](const DisconnectReason::IncompatibleNetworkProtocolVersion& value)
-			{
-				Serialization::AppendNumber<u32>(connectMessageData, value.serverVersion);
-				Serialization::AppendNumber<u32>(connectMessageData, value.clientVersion);
+		std::visit(
+			Overload{
+				[&connectMessageData](const DisconnectReason::IncompatibleNetworkProtocolVersion& value) {
+					Serialization::AppendNumber<u32>(connectMessageData, value.serverVersion);
+					Serialization::AppendNumber<u32>(connectMessageData, value.clientVersion);
+				},
+				[](auto) {},
 			},
-			[](auto){},
-		}, reason);
+			reason
+		);
 
 		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::Disconnect),
@@ -88,17 +89,16 @@ namespace Network::ServerClient
 		CreateVariant(reason, reasonIdx);
 
 		std::visit(Overload{
-			[&streamIndex, &message](DisconnectReason::IncompatibleNetworkProtocolVersion& value)
-			{
-				value.serverVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
-				value.clientVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
-			},
-			[reasonIdx](DisconnectReason::Unknown& value)
-			{
-				value.reasonIdx = reasonIdx;
-			},
-			[](auto){},
-		}, reason);
+					   [&streamIndex, &message](DisconnectReason::IncompatibleNetworkProtocolVersion& value) {
+						   value.serverVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+						   value.clientVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+					   },
+					   [reasonIdx](DisconnectReason::Unknown& value) {
+						   value.reasonIdx = reasonIdx;
+					   },
+					   [](auto) {},
+				   },
+				   reason);
 
 		return reason;
 	}

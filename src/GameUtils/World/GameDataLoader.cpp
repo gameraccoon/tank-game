@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <map>
 
 #include <nlohmann/json.hpp>
 
@@ -45,8 +44,8 @@ namespace GameDataLoader
 		{
 			std::ofstream mapFile(levelPath);
 			nlohmann::json mapJson({
-				{"version", levelVersion},
-				{"world", world.toJson(jsonSerializerHolder)}
+				{ "version", levelVersion },
+				{ "world", world.toJson(jsonSerializerHolder) },
 			});
 
 			mapFile << std::setw(4) << mapJson << std::endl;

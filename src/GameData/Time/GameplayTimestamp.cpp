@@ -23,7 +23,7 @@ GameplayTimestamp GameplayTimestamp::getIncreasedByUpdateCount(s32 passedUpdates
 	return GameplayTimestamp(mTimestamp + passedUpdates * TimeMultiplier);
 }
 
-GameplayTimestamp GameplayTimestamp::getDecreasedByUpdateCount(s32 updatesAgo) const noexcept
+GameplayTimestamp GameplayTimestamp::getDecreasedByUpdateCount(const s32 updatesAgo) const noexcept
 {
 	Assert(isInitialized(), "Timestamp should be initialized before being used");
 	return GameplayTimestamp(mTimestamp - updatesAgo * TimeMultiplier);
@@ -32,7 +32,7 @@ GameplayTimestamp GameplayTimestamp::getDecreasedByUpdateCount(s32 updatesAgo) c
 void to_json(nlohmann::json& outJson, const GameplayTimestamp timestamp)
 {
 	outJson = nlohmann::json::object({
-		{"value", timestamp.mTimestamp}
+		{ "value", timestamp.mTimestamp },
 	});
 }
 
