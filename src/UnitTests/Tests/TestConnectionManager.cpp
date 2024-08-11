@@ -6,9 +6,9 @@
 
 #include <gtest/gtest.h>
 
-#include "HAL/Network/ConnectionManager.h"
+#include "EngineCommon/Types/ComplexTypes/ScopeFinalizer.h"
 
-#include "GameUtils/Functional/ScopeFinalizer.h"
+#include "HAL/Network/ConnectionManager.h"
 
 // These tests are flaky and contaminate other tests
 // (the testing framework may flag some random tests as
