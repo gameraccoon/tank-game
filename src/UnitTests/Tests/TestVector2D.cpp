@@ -6,12 +6,11 @@
 
 #include "EngineData/Geometry/Vector2D.h"
 
-
 TEST(Vector2D, Creation)
 {
 	Vector2D testVectorA(5.2f, -0.39f);
 	Vector2D testVectorB(testVectorA);
-		
+
 	EXPECT_FLOAT_EQ(testVectorA.x, 5.2f);
 	EXPECT_FLOAT_EQ(testVectorA.y, -0.39f);
 	EXPECT_FLOAT_EQ(testVectorB.x, 5.2f);
@@ -38,9 +37,9 @@ TEST(Vector2D, Comparison)
 	Vector2D testVectorC(5.199998f, -0.390001f);
 	Vector2D testVectorD(5.3f, -0.39f);
 
-	EXPECT_TRUE(testVectorA == testVectorB); // A == B
-	EXPECT_TRUE(testVectorA.isNearlyEqualTo(testVectorB)); // A == B
-	EXPECT_TRUE(testVectorA.isNearlyEqualTo(testVectorC)); // A == C
+	EXPECT_TRUE(testVectorA == testVectorB);                // A == B
+	EXPECT_TRUE(testVectorA.isNearlyEqualTo(testVectorB));  // A == B
+	EXPECT_TRUE(testVectorA.isNearlyEqualTo(testVectorC));  // A == C
 	EXPECT_FALSE(testVectorA.isNearlyEqualTo(testVectorD)); // A != D
 }
 
@@ -159,12 +158,12 @@ TEST(Vector2D, GetRotation)
 	Vector2D testVectorC(0.0f, 1.0f);
 	Vector2D testVectorD(0.0f, -1.0f);
 	Vector2D testVectorE(0.0f, 0.0f);
-		
+
 	EXPECT_FLOAT_EQ(0.0f, testVectorA.rotation().getValue());
 	EXPECT_FLOAT_EQ(PI, testVectorB.rotation().getValue());
-	EXPECT_FLOAT_EQ(PI/2, testVectorC.rotation().getValue());
-	EXPECT_FLOAT_EQ(-PI/2, testVectorD.rotation().getValue());
-	EXPECT_FLOAT_EQ(0.0f, testVectorE.rotation().getValue());		//Invalid parameter should not cause errors
+	EXPECT_FLOAT_EQ(PI / 2, testVectorC.rotation().getValue());
+	EXPECT_FLOAT_EQ(-PI / 2, testVectorD.rotation().getValue());
+	EXPECT_FLOAT_EQ(0.0f, testVectorE.rotation().getValue()); //Invalid parameter should not cause errors
 }
 
 TEST(Vector2D, DotProduct)
@@ -179,7 +178,7 @@ TEST(Vector2D, Project)
 {
 	Vector2D oX(1.0f, 0.0f);
 	Vector2D oYxFive(0.0f, 5.0f);
-		
+
 	Vector2D testVectorA(5.2f, -0.39f);
 	Vector2D testVectorB(16.9f, 803.27f);
 

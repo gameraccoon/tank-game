@@ -6,9 +6,9 @@
 
 namespace TestCollisionInternal
 {
-	static BoundingBox RECTANGULAR_COLLISION{Vector2D(-50.0f, -60.0f), Vector2D(50.0f, 60.0f)};
+	static BoundingBox RECTANGULAR_COLLISION{ Vector2D(-50.0f, -60.0f), Vector2D(50.0f, 60.0f) };
 
-	static BoundingBox BIG_RECTANGULAR_COLLISION{Vector2D(-100.0f, -100.0f), Vector2D(100.0f, 100.0f)};
+	static BoundingBox BIG_RECTANGULAR_COLLISION{ Vector2D(-100.0f, -100.0f), Vector2D(100.0f, 100.0f) };
 }
 
 TEST(Collision, TwoRectangularCollisions_FarApart_DoNotCollide)

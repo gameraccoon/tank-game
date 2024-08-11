@@ -4,7 +4,6 @@
 
 #include "GameUtils/Network/Messages/ServerClient/DisconnectMessage.h"
 
-
 TEST(DisconnectMessage, DisconnectMessageReceived_CarriesTheProvidedReason)
 {
 	HAL::Network::Message message = Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(20u, 10u));

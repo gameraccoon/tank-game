@@ -1,8 +1,8 @@
 #include "EngineCommon/precomp.h"
 
-#include <gtest/gtest.h>
-
 #include <vector>
+
+#include <gtest/gtest.h>
 
 #include "GameUtils/Network/BoundCheckedHistory.h"
 

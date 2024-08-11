@@ -11,7 +11,6 @@
 #include "GameUtils/Network/GameStateRewinder.h"
 #include "GameUtils/Network/Messages/ServerClient/ConnectionAcceptedMessage.h"
 
-
 namespace TestConnectionAcceptedMessageInternal
 {
 	struct TestClientGame

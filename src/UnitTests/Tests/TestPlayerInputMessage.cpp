@@ -18,8 +18,8 @@ namespace PlayerInputMessageInternal
 	struct TestGame
 	{
 		ComponentFactory componentFactory;
-		WorldLayer world{componentFactory};
-		GameData gameData{componentFactory};
+		WorldLayer world{ componentFactory };
+		GameData gameData{ componentFactory };
 		GameStateRewinder stateRewinder;
 
 		explicit TestGame(GameStateRewinder::HistoryType historyType)
@@ -35,7 +35,7 @@ namespace PlayerInputMessageInternal
 		time->setValue(&testGame->stateRewinder.getTimeData());
 		return testGame;
 	}
-}
+} // namespace PlayerInputMessageInternal
 
 TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 {
@@ -72,7 +72,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 5u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 5u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{ { connectionId, 0 } }), 5u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
@@ -163,7 +163,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializePartlyKnownInput_NewInputsAdded)
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 5u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 5u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{ { connectionId, 0 } }), 5u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1);
@@ -262,7 +262,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeInputWithAGap_NewInputsAddedMiss
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
 		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId), 7u);
-		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{{connectionId, 0}}), 7u);
+		EXPECT_EQ(serverGame->stateRewinder.getLastKnownInputUpdateIdxForPlayers(std::vector<std::pair<ConnectionId, s32>>{ { connectionId, 0 } }), 7u);
 
 		{
 			const GameplayInput::FrameState& frame1Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 1u);
