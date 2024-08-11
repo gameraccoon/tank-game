@@ -8,7 +8,7 @@
 
 #include "GameData/Resources/TileGridParams.h"
 
-#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "EngineUtils/ResourceManagement/ResourceManager.h"
 
 #include "GameLogic/Resources/TileSet.h"
 

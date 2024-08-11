@@ -13,7 +13,8 @@
 
 #include "HAL/Graphics/Sprite.h"
 
-#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "EngineUtils/ResourceManagement/ResourceManager.h"
+
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "GameLogic/Resources/AnimationGroup.h"

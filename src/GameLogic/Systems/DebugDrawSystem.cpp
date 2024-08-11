@@ -20,8 +20,9 @@
 #include "HAL/Graphics/Font.h"
 #include "HAL/Graphics/Sprite.h"
 
+#include "EngineUtils/ResourceManagement/ResourceManager.h"
+
 #include "GameUtils/Network/GameStateRewinder.h"
-#include "GameUtils/ResourceManagement/ResourceManager.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
 #include "EngineLogic/Render/RenderAccessor.h"

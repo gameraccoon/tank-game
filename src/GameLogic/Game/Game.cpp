@@ -17,7 +17,7 @@
 #endif
 #include "HAL/Base/Engine.h"
 
-#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "EngineUtils/ResourceManagement/ResourceManager.h"
 
 #include "EngineLogic/Render/RenderAccessor.h"
 

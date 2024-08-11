@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "GameData/Resources/ResourceHandle.h"
+#include "EngineData/Resources/ResourceHandle.h"
 
 struct TileSetParams
 {

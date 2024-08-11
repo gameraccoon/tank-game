@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GameData/Resources/Resource.h"
+#include "EngineData/Resources/Resource.h"
+
 #include "GameData/Resources/TileGridParams.h"
 
 class AbsoluteResourcePath;

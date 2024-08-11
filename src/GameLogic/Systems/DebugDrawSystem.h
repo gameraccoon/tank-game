@@ -2,7 +2,7 @@
 
 #include <raccoon-ecs/utils/system.h>
 
-#include "GameData/Resources/ResourceHandle.h"
+#include "EngineData/Resources/ResourceHandle.h"
 
 #include "HAL/EngineFwd.h"
 

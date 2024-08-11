@@ -12,7 +12,7 @@
 
 #include "HAL/Graphics/Sprite.h"
 
-#include "GameUtils/ResourceManagement/ResourceManager.h"
+#include "EngineUtils/ResourceManagement/ResourceManager.h"
 
 namespace Graphics
 {
