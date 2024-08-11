@@ -19,7 +19,7 @@ CMAKE_DEPENDENT_OPTION(BUILD_AUTO_TESTS "Build AutoTests project with normal bui
 CMAKE_DEPENDENT_OPTION(DISABLE_SDL "Are we building version without graphics, e.g. for dedicated server" OFF "NOT DEDICATED_SERVER" ON)
 CMAKE_DEPENDENT_OPTION(IMGUI_ENABLED "Enable imgui in the build" ON "NOT DISABLE_SDL" OFF)
 
-if (DEDICATED_SERVER)
+if(DEDICATED_SERVER)
 	set(APP_NAME DedicatedServer)
 else()
 	set(APP_NAME GameMain)
@@ -45,45 +45,45 @@ set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL2IMAGE_INSTALL OFF CACHE BOOL "" FORCE)
 
-file (STRINGS "${GAME_BASE_DIR}/VersionInfo" EXECUTABLE_VERSION)
+file(STRINGS "${GAME_BASE_DIR}/VersionInfo" EXECUTABLE_VERSION)
 file(STRINGS "${GAME_BASE_DIR}/BuildNum" BUILD_NUMBER)
 project(${APP_NAME} VERSION ${EXECUTABLE_VERSION})
 
 file(MAKE_DIRECTORY ${GAME_BIN_DIR})
 
 # definitions
-if (DEBUG_CHECKS)
+if(DEBUG_CHECKS)
 	add_definitions(-DDEBUG_CHECKS -DRACCOON_ECS_DEBUG_CHECKS_ENABLED)
 endif(DEBUG_CHECKS)
 
-if (ENABLE_SCOPED_PROFILER)
+if(ENABLE_SCOPED_PROFILER)
 	add_definitions(-DENABLE_SCOPED_PROFILER)
 endif(ENABLE_SCOPED_PROFILER)
 
-if (MEMLEAK_DETECTION)
+if(MEMLEAK_DETECTION)
 	add_definitions(-DDETECT_MEMORY_LEAKS)
 	if(MEMLEAK_REDEFINE_NEW)
 		add_definitions(-DREDEFINE_NEW)
 	endif()
 endif()
 
-if (DEDICATED_SERVER)
+if(DEDICATED_SERVER)
 	add_definitions(-DDEDICATED_SERVER)
 endif()
 
-if (DISABLE_SDL)
+if(DISABLE_SDL)
 	add_definitions(-DDISABLE_SDL)
 endif()
 
-if (IMGUI_ENABLED)
+if(IMGUI_ENABLED)
 	add_definitions(-DIMGUI_ENABLED)
 endif()
 
-if (CONCURRENT_ACCESS_DETECTION)
+if(CONCURRENT_ACCESS_DETECTION)
 	add_definitions(-DCONCURRENT_ACCESS_DETECTION)
 endif(CONCURRENT_ACCESS_DETECTION)
 
-if (FAKE_NETWORK)
+if(FAKE_NETWORK)
 	add_definitions(-DFAKE_NETWORK)
 endif()
 
@@ -92,9 +92,9 @@ add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
 
 # compiler parameters
-if (MSVC)
-	if (CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-	string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+if(MSVC)
+	if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+		string(REGEX REPLACE "/W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 	endif()
 	set(PROJECT_CXX_FLAGS /W4 /std:c++latest /wd4996)
 	set(EXTERNALS_CXX_FLAGS /W0 /std:c++latest /wd4996 /wd4458)
@@ -147,8 +147,6 @@ endmacro(mark_option_internal _var)
 # All the things that are going to be included anywhere and not related
 # to any specific game
 add_folder_as_library(${ENGINE_SRC_DIR}/EngineCommon EngineCommon)
-# Some game related data that can be included anywhere throughout the game
-add_folder_as_library(${GAME_SRC_DIR}/GameCommon GameCommon)
 # Data types that can be stored in engine components
 add_folder_as_library(${ENGINE_SRC_DIR}/EngineData EngineData)
 # Data types that can be stored in game-specific ECS components
@@ -169,12 +167,12 @@ add_executable(${APP_NAME} "${APP_SRC}")
 target_compile_options(${APP_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
 
 # configure VS specific project parameters
-if (MSVC)
+if(MSVC)
 	set_target_properties(${APP_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_BIN_DIR}")
 	set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${APP_NAME})
 endif()
 
-if (NOT DISABLE_SDL)
+if(NOT DISABLE_SDL)
 	# SDL2
 	add_subdirectory(${EXTERNALS_DIR}/sources/SDL EXCLUDE_FROM_ALL)
 	include_directories(${EXTERNALS_DIR}/sources/SDL/include)
@@ -189,7 +187,7 @@ if (NOT DISABLE_SDL)
 endif()
 
 # ImGui
-if (IMGUI_ENABLED)
+if(IMGUI_ENABLED)
 	add_library(Imgui EXCLUDE_FROM_ALL
 		${EXTERNALS_DIR}/sources/imgui/imgui.cpp
 		${EXTERNALS_DIR}/sources/imgui/imgui_demo.cpp
@@ -204,9 +202,9 @@ if (IMGUI_ENABLED)
 endif()
 
 # GameNetworkingSockets
-if (NOT FAKE_NETWORK)
+if(NOT FAKE_NETWORK)
 	include_directories(${EXTERNALS_DIR}/sources/GameNetworkingSockets/include)
-	if (NOT WIN32)
+	if(NOT WIN32)
 		set(BUILD_STATIC_LIB OFF)
 		add_subdirectory(${EXTERNALS_DIR}/sources/GameNetworkingSockets)
 		# hide options of GameNetworkingSockets from project Cmake GUI
@@ -237,18 +235,17 @@ set(GENERAL_PROJECT_LIBS
 	EngineUtils
 	GameData
 	EngineData
-	GameCommon
 	EngineCommon
 )
 
-if (NOT FAKE_NETWORK)
+if(NOT FAKE_NETWORK)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		GameNetworkingSockets
 	)
 endif()
 
-if (NOT DISABLE_SDL)
+if(NOT DISABLE_SDL)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		SDL2::SDL2-static
@@ -258,15 +255,15 @@ if (NOT DISABLE_SDL)
 	)
 endif()
 
-if (IMGUI_ENABLED)
+if(IMGUI_ENABLED)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		Imgui
 	)
 endif()
 
-if (NOT DISABLE_SDL)
-	if (WIN32)
+if(NOT DISABLE_SDL)
+	if(WIN32)
 		set(GENERAL_PROJECT_LIBS
 			${GENERAL_PROJECT_LIBS}
 			opengl32
@@ -281,12 +278,12 @@ if (NOT DISABLE_SDL)
 	endif()
 endif()
 
-if (WIN32)
+if(WIN32)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		ws2_32
 	)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
 		stdc++
@@ -310,7 +307,7 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 # Unit tests
-if (BUILD_UNIT_TESTS)
+if(BUILD_UNIT_TESTS)
 	set(UNITTESTS_NAME UnitTests)
 	file(GLOB_RECURSE UNITTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/UnitTests/*")
 	set(UNITTESTS_SRC
@@ -321,31 +318,31 @@ if (BUILD_UNIT_TESTS)
 	add_executable(${UNITTESTS_NAME} ${UNITTESTS_SRC})
 	target_compile_definitions(${UNITTESTS_NAME} PRIVATE -DRACCOON_ECS_TOOLMODE)
 	target_compile_options(${UNITTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
-	if (WIN32)
+	if(WIN32)
 		set_target_properties(${UNITTESTS_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_BIN_DIR}")
 	endif()
 	target_link_libraries(${UNITTESTS_NAME} ${GENERAL_PROJECT_LIBS})
 endif()
 
 # Autotests
-if (BUILD_AUTO_TESTS)
+if(BUILD_AUTO_TESTS)
 	set(AUTOTESTS_NAME AutoTests)
 	file(GLOB_RECURSE AUTOTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/AutoTests/*")
 	add_executable(${AUTOTESTS_NAME} ${AUTOTESTS_SRC})
 	target_compile_options(${AUTOTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
 	set_target_properties(${AUTOTESTS_NAME} PROPERTIES UNITY_BUILD ${ENABLE_UNITY_BUILD})
-	if (WIN32)
+	if(WIN32)
 		set_target_properties(${AUTOTESTS_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_BIN_DIR}")
 	endif()
 	target_link_libraries(${AUTOTESTS_NAME} ${GENERAL_PROJECT_LIBS})
 endif()
 
 # symlink resources dir
-if (NOT EXISTS "${GAME_BIN_DIR}/resources")
+if(NOT EXISTS "${GAME_BIN_DIR}/resources")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources")
 endif()
 
-if (WIN32)
+if(WIN32)
 	# copy dlls
 	file(GLOB WIN32_DLLS
 		"${EXTERNALS_DIR}/dll/${BIN_PLATFORM}/*"
@@ -359,4 +356,4 @@ add_custom_target(
 	COMMAND ${PYTHON_EXECUTABLE} ${GAME_BASE_DIR}/scripts/build/precompile_code_generate.py ${GAME_BASE_DIR}
 	COMMENT "C++ pre-compile additional code generation"
 )
-add_dependencies(GameCommon AdditionalCodeGeneration)
+add_dependencies(EngineCommon AdditionalCodeGeneration)
