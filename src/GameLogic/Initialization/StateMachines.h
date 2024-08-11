@@ -1,7 +1,8 @@
 #pragma once
 
+#include "EngineData/FSM/StateMachine.h"
+
 #include "GameData/Components/StateMachineComponent.generated.h"
-#include "GameData/FSM/StateMachine.h"
 
 namespace StateMachines
 {
