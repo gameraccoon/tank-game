@@ -10,7 +10,7 @@
 
 #include "EngineUtils/Application/ArgumentsParser.h"
 
-DebugRecordedInput::DebugRecordedInput(int instanceIndex)
+DebugRecordedInput::DebugRecordedInput(const int instanceIndex)
 	: mInstanceIndex(instanceIndex)
 {
 }
@@ -91,7 +91,7 @@ void DebugRecordedInput::processArguments(const ArgumentsParser& arguments)
 	}
 }
 
-void DebugRecordedInput::appendInputDataToFile(const HAL::InputControllersData& inputData)
+void DebugRecordedInput::appendInputDataToFile(const HAL::InputControllersData& inputData) const
 {
 	if (!mRecordedInputDataFile)
 	{
@@ -169,7 +169,7 @@ std::vector<HAL::InputControllersData> DebugRecordedInput::loadInputDataFromFile
 	HAL::InputControllersData inputData;
 
 	size_t cursorPos = 0;
-	const size_t oneInputFrameSize =
+	constexpr size_t oneInputFrameSize =
 		BitsetTraits<Input::PlayerControllerStates::KeyboardButtonCount>::ByteCount
 		+ BitsetTraits<Input::PlayerControllerStates::MouseButtonCount>::ByteCount
 		+ Input::PlayerControllerStates::MouseAxesCount * sizeof(float)

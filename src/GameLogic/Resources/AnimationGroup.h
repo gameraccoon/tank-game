@@ -3,15 +3,12 @@
 #ifndef DISABLE_SDL
 
 #include <map>
-#include <memory>
 #include <vector>
 
 #include "EngineCommon/Types/String/StringId.h"
 
 #include "EngineData/Resources/Resource.h"
 #include "EngineData/Resources/ResourceHandle.h"
-
-#include "HAL/Graphics/Sprite.h"
 
 class RelativeResourcePath;
 

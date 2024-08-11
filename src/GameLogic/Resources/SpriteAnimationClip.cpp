@@ -47,11 +47,11 @@ namespace Graphics
 		return result;
 	}
 
-	static UniqueAny CreateAnimationClip(UniqueAny&& resource, ResourceManager& resourceManager, ResourceHandle handle)
+	static UniqueAny CreateAnimationClip(UniqueAny&& resource, ResourceManager& resourceManager, const ResourceHandle handle)
 	{
 		SCOPED_PROFILER("CreateAnimationClip");
 
-		const AbsoluteResourcePath* pathPtr = resource.cast<AbsoluteResourcePath>();
+		const RelativeResourcePath* pathPtr = resource.cast<RelativeResourcePath>();
 
 		if (!pathPtr)
 		{
@@ -59,9 +59,9 @@ namespace Graphics
 			return {};
 		}
 
-		const AbsoluteResourcePath& path = *pathPtr;
+		const RelativeResourcePath& path = *pathPtr;
 
-		std::vector<RelativeResourcePath> framePaths = LoadSpriteAnimClipData(path);
+		std::vector<RelativeResourcePath> framePaths = LoadSpriteAnimClipData(resourceManager.getAbsoluteResourcePath(path));
 		std::vector<ResourceHandle> frames;
 		for (const auto& animFramePath : framePaths)
 		{
@@ -83,7 +83,7 @@ namespace Graphics
 		return !mSprites.empty();
 	}
 
-	const ResourceHandle& SpriteAnimationClip::getSprite(float progress) const
+	const ResourceHandle& SpriteAnimationClip::getSprite(const float progress) const
 	{
 		return mSprites[std::min(mSprites.size() * static_cast<size_t>(progress), mSprites.size() - 1)];
 	}

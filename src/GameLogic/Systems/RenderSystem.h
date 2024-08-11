@@ -15,10 +15,10 @@ struct RenderData;
 /**
  * System that handles rendering of world objects
  */
-class RenderSystem : public RaccoonEcs::System
+class RenderSystem final : public RaccoonEcs::System
 {
 public:
-	RenderSystem(
+	explicit RenderSystem(
 		WorldHolder& worldHolder,
 		ResourceManager& resourceManager
 	) noexcept;

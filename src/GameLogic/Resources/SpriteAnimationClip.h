@@ -2,7 +2,6 @@
 
 #ifndef DISABLE_SDL
 
-#include <memory>
 #include <vector>
 
 #include "EngineData/Resources/Resource.h"
@@ -10,7 +9,7 @@
 
 namespace Graphics
 {
-	class SpriteAnimationClip : public Resource
+	class SpriteAnimationClip final : public Resource
 	{
 	public:
 		SpriteAnimationClip() = default;

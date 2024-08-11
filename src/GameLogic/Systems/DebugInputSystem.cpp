@@ -55,7 +55,7 @@ void DebugInputSystem::update()
 	processDebugInput();
 }
 
-void DebugInputSystem::processDebugInput()
+void DebugInputSystem::processDebugInput() const
 {
 	SCOPED_PROFILER("DebugInputSystem::processDebugInput");
 

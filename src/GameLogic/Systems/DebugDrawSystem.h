@@ -13,10 +13,10 @@ class WorldHolder;
 /**
  * System that handles rendering of world objects
  */
-class DebugDrawSystem : public RaccoonEcs::System
+class DebugDrawSystem final : public RaccoonEcs::System
 {
 public:
-	DebugDrawSystem(
+	explicit DebugDrawSystem(
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
 		ResourceManager& resourceManager

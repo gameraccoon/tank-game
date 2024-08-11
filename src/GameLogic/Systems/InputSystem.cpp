@@ -67,7 +67,7 @@ static Input::InputBindings GetDebugInputBindings()
 	return result;
 }
 
-void InputSystem::processGameplayInput()
+void InputSystem::processGameplayInput() const
 {
 	SCOPED_PROFILER("InputSystem::processGameplayInput");
 
