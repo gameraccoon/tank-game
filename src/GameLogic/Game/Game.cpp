@@ -10,14 +10,15 @@
 #include "GameData/Time/TimeData.h"
 
 #include "EngineUtils/Multithreading/ThreadPool.h"
-
-#include "GameUtils/Application/ArgumentsParser.h"
 #ifdef ENABLE_SCOPED_PROFILER
-#include "Utils/Profiling/ProfileDataWriter.h"
+#include "EngineUtils/Profiling/ProfileDataWriter.h"
 #endif
+
 #include "HAL/Base/Engine.h"
 
 #include "EngineUtils/ResourceManagement/ResourceManager.h"
+
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "EngineLogic/Render/RenderAccessor.h"
 

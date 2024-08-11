@@ -3,7 +3,7 @@
 #include "GameLogic/Game/ApplicationData.h"
 
 #ifdef ENABLE_SCOPED_PROFILER
-#include "Utils/Profiling/ProfileDataWriter.h"
+#include "EngineUtils/Profiling/ProfileDataWriter.h"
 #endif // ENABLE_SCOPED_PROFILER
 
 #include "GameLogic/Game/TankServerGame.h"
