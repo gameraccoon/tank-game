@@ -114,7 +114,7 @@ TEST(ThreadPool, ExecuteTaskGroupWithoutFinalizer)
 	std::atomic<int> callCount = 0;
 
 	ThreadPool threadPool{ 2 };
-	auto task = std::make_pair([&callCount] { ++callCount; return nullptr; }, std::function<void(std::any&&)>{});
+	const auto task = std::make_pair([&callCount] { ++callCount; return nullptr; }, std::function<void(std::any&&)>{});
 	std::vector tasks(20, task);
 
 	threadPool.executeTasks(std::move(tasks));
@@ -129,7 +129,7 @@ TEST(ThreadPool, ExecuteTaskGroupWithFinalizer)
 	int finalizeCount = 0;
 
 	ThreadPool threadPool{ 2 };
-	auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
+	const auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
 	std::vector tasks(20, task);
 	threadPool.executeTasks(std::move(tasks));
 	threadPool.finalizeTasks();
@@ -144,7 +144,7 @@ TEST(ThreadPool, ExecuteTaskGroupIncludingMainThread)
 	int finalizeCount = 0;
 
 	ThreadPool threadPool{ 2 };
-	auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
+	const auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
 	std::vector tasks(20, task);
 	threadPool.executeTasks(std::move(tasks));
 	threadPool.processAndFinalizeTasks();
@@ -159,7 +159,7 @@ TEST(ThreadPool, ExecuteTaskGroupOnlyInMainThread)
 	int finalizeCount = 0;
 
 	ThreadPool threadPool{};
-	auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
+	const auto task = std::make_pair([&callCount] { ++callCount; return 1; }, [&finalizeCount](std::any&& val) { finalizeCount += std::any_cast<int>(val); });
 	std::vector tasks(20, task);
 	threadPool.executeTasks(std::move(tasks));
 	threadPool.processAndFinalizeTasks();
@@ -174,7 +174,7 @@ TEST(ThreadPool, CreateNewTasksInTasks)
 	std::atomic<int> taskCountdown = 5;
 
 	ThreadPool threadPool{ 2 };
-	auto task = std::make_pair(
+	const auto task = std::make_pair(
 		[&callCount, &taskCountdown, &threadPool] {
 			++callCount;
 			const int value = --taskCountdown;
@@ -200,7 +200,7 @@ TEST(ThreadPool, CreateNewTasksInFinalizers)
 	std::atomic<int> taskCountdown = 5;
 
 	ThreadPool threadPool{ 2 };
-	auto task = std::make_pair(
+	const auto task = std::make_pair(
 		[&callCount, &taskCountdown] {
 			++callCount;
 			const int countdown = --taskCountdown;

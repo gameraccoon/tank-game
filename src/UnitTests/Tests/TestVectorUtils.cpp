@@ -8,7 +8,7 @@ class NonCopyableClassForRemoveIndexes
 {
 public:
 	NonCopyableClassForRemoveIndexes() = default;
-	explicit NonCopyableClassForRemoveIndexes(int value)
+	explicit NonCopyableClassForRemoveIndexes(const int value)
 		: value(value) {}
 	NonCopyableClassForRemoveIndexes(const NonCopyableClassForRemoveIndexes&) = delete;
 	NonCopyableClassForRemoveIndexes& operator=(const NonCopyableClassForRemoveIndexes&) = delete;
@@ -38,14 +38,14 @@ TEST(VectorUtils, RemoveIndexes)
 	{
 		std::vector<size_t> testVector{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		VectorUtils::RemoveIndexes(testVector, { 3, 4, 7 });
-		std::vector<size_t> expectedResult{ 0, 1, 2, 5, 6, 8, 9 };
+		const std::vector<size_t> expectedResult{ 0, 1, 2, 5, 6, 8, 9 };
 		EXPECT_EQ(expectedResult, testVector);
 	}
 
 	{
 		std::vector<std::string> testVector{ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 		VectorUtils::RemoveIndexes(testVector, { 3, 4, 7 });
-		std::vector<std::string> expectedResult{ "0", "1", "2", "5", "6", "8", "9" };
+		const std::vector<std::string> expectedResult{ "0", "1", "2", "5", "6", "8", "9" };
 		EXPECT_EQ(expectedResult, testVector);
 	}
 
@@ -73,7 +73,7 @@ TEST(VectorUtils, RemoveIndexes)
 	{
 		std::vector<size_t> testVector{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 		VectorUtils::RemoveIndexes(testVector, { 3, 4, 4, 7 });
-		std::vector<size_t> expectedResult{ 0, 1, 2, 5, 6, 8, 9 };
+		const std::vector<size_t> expectedResult{ 0, 1, 2, 5, 6, 8, 9 };
 		EXPECT_EQ(expectedResult, testVector);
 	}
 }

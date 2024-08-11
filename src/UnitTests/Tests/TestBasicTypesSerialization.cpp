@@ -11,32 +11,77 @@ TEST(BasicTypesSerialization, WriteNumber_Position)
 	stream.assign(3, std::byte(0));
 	size_t streamPos = 1;
 	Serialization::WriteNumber<u8>(stream, static_cast<u8>(0xFFu), streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0xFF), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0xFF),
+		std::byte(0)
+	}), stream);
 
 	stream.assign(4, std::byte(0));
 	streamPos = 1;
 	Serialization::WriteNumber<u16>(stream, static_cast<u16>(0xFFFFu), streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0xFF), std::byte(0xFF), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0)
+	}), stream);
 
 	stream.assign(6, std::byte(0));
 	streamPos = 1;
 	Serialization::WriteNumber<u32>(stream, static_cast<u32>(0xFFFFFFFFu), streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0)
+	}), stream);
 
 	stream.assign(10, std::byte(0));
 	streamPos = 1;
 	Serialization::WriteNumber<u64>(stream, static_cast<u64>(0xFFFFFFFFFFFFFFFFull), streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0xFF), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0xFF),
+		std::byte(0)
+	}), stream);
 
 	stream.assign(6, std::byte(0));
 	streamPos = 1;
 	Serialization::WriteNumber<f32>(stream, 2.36942782762e-38f, streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0)
+	}), stream);
 
 	stream.assign(10, std::byte(0));
 	streamPos = 1;
 	Serialization::WriteNumber<f64>(stream, 7.748604185489348e-304, streamPos);
-	EXPECT_EQ(std::vector<std::byte>({ std::byte(0), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0x01), std::byte(0) }), stream);
+	EXPECT_EQ(std::vector<std::byte>({
+		std::byte(0),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0x01),
+		std::byte(0)
+	}), stream);
 }
 
 TEST(BasicTypesSerialization, AppendNumber_Size)
@@ -114,16 +159,16 @@ TEST(BasicTypesSerialization, AppendNumber_ReadNumber)
 {
 	std::vector<std::byte> stream;
 
-	const s8 testSignedInt8 = -4;
-	const s16 testSignedInt16 = -3;
-	const s32 testSignedInt32 = -2;
-	const s64 testSignedInt64 = -1;
-	const u8 testUnsignedInt8 = 1u;
-	const u16 testUnsignedInt16 = 2u;
-	const u32 testUnsignedInt32 = 3u;
-	const u64 testUnsignedInt64 = 4u;
-	const f32 testFloat32 = -5.0f;
-	const f64 testFloat64 = 6.0;
+	constexpr s8 testSignedInt8 = -4;
+	constexpr s16 testSignedInt16 = -3;
+	constexpr s32 testSignedInt32 = -2;
+	constexpr s64 testSignedInt64 = -1;
+	constexpr u8 testUnsignedInt8 = 1u;
+	constexpr u16 testUnsignedInt16 = 2u;
+	constexpr u32 testUnsignedInt32 = 3u;
+	constexpr u64 testUnsignedInt64 = 4u;
+	constexpr f32 testFloat32 = -5.0f;
+	constexpr f64 testFloat64 = 6.0;
 
 	Serialization::AppendNumber<s8>(stream, testSignedInt8);
 	Serialization::AppendNumber<s16>(stream, testSignedInt16);
