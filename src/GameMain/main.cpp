@@ -6,11 +6,11 @@
 
 #include "EngineCommon/Random/Random.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
-#include "GameUtils/Network/TcpClient.h"
-
 #include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
+
+#include "GameUtils/Application/ArgumentsParser.h"
+#include "GameUtils/Network/TcpClient.h"
 
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
@@ -24,8 +24,8 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 	{
 		HAL::Network::DebugBehavior networkDebugBehavior;
 		const int latency = arguments.getIntArgumentValue("net-lag").getValueOr(100);
-		networkDebugBehavior.packetLagMs_Recv = latency/2;
-		networkDebugBehavior.packetLagMs_Send = latency/2;
+		networkDebugBehavior.packetLagMs_Recv = latency / 2;
+		networkDebugBehavior.packetLagMs_Send = latency / 2;
 		networkDebugBehavior.packetLossPct_Recv = 5.0f;
 		networkDebugBehavior.packetLossPct_Send = 5.0f;
 		networkDebugBehavior.packetReorderPct_Send = 0.5f;
@@ -33,10 +33,10 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 		networkDebugBehavior.packetDupPct_Send = 0.5f;
 		networkDebugBehavior.packetDupPct_Recv = 0.5f;
 		// assume worst case 256 kbit/sec connection
-		networkDebugBehavior.rateLimitBps_Send = 32*1024;
-		networkDebugBehavior.rateLimitBps_Recv = 32*1024;
-		networkDebugBehavior.rateLimitOneBurstBytes_Send = 4*1024;
-		networkDebugBehavior.rateLimitOneBurstBytes_Recv = 4*1024;
+		networkDebugBehavior.rateLimitBps_Send = 32 * 1024;
+		networkDebugBehavior.rateLimitBps_Recv = 32 * 1024;
+		networkDebugBehavior.rateLimitOneBurstBytes_Send = 4 * 1024;
+		networkDebugBehavior.rateLimitOneBurstBytes_Recv = 4 * 1024;
 
 		HAL::ConnectionManager::SetDebugBehavior(networkDebugBehavior);
 	}

@@ -42,7 +42,8 @@ namespace ConsoleCommands
 		{
 			if (std::find_if(commands.begin(), commands.end(), [&argument](const CommandInfo& commandInfo) {
 					return commandInfo.command == argument;
-				}) == commands.end())
+				})
+				== commands.end())
 			{
 				std::cout << "Command --" << argument << " not found, use --help to see the list of available commands" << std::endl;
 				return true;
