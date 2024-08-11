@@ -38,7 +38,7 @@ static void HelpMarker(const char* desc)
 
 void ImguiComponentInspectorWindow::applyFilters(ImguiDebugData& debugData)
 {
-	 mPropertyFiltersWidget.getFilteredEntities(debugData, mFilteredEntities);
+	mPropertyFiltersWidget.getFilteredEntities(debugData, mFilteredEntities);
 }
 
 void ImguiComponentInspectorWindow::showEntityId()
@@ -63,7 +63,7 @@ void ImguiComponentInspectorWindow::showFilteredEntities()
 		if (ImGui::TreeNode("Filtered entities"))
 		{
 			ImGui::BeginGroup();
-			auto scrollBoxSize = ImVec2(200.0f, std::min(180.0f, static_cast<float>(mFilteredEntities.size()) * 17.0f + ImGui::GetStyle().FramePadding.y*4));
+			auto scrollBoxSize = ImVec2(200.0f, std::min(180.0f, static_cast<float>(mFilteredEntities.size()) * 17.0f + ImGui::GetStyle().FramePadding.y * 4));
 			if (ImGui::BeginChild("FilteredEntities", scrollBoxSize, true))
 			{
 				for (Entity filteredEntity : mFilteredEntities)
@@ -93,8 +93,7 @@ void ImguiComponentInspectorWindow::showComponentsInspector(ImguiDebugData& debu
 
 		std::vector<TypedComponent> components;
 		debugData.worldHolder.getDynamicWorldLayer().getEntityManager().getAllEntityComponents(entity, components);
-		std::ranges::sort(components, [](const auto& a, const auto& b)
-		{
+		std::ranges::sort(components, [](const auto& a, const auto& b) {
 			return a.typeId < b.typeId;
 		});
 
@@ -119,7 +118,8 @@ void ImguiComponentInspectorWindow::showComponentsInspector(ImguiDebugData& debu
 	if (!hasFoundAnything && mSelectedEntity.isValid())
 	{
 		ImGui::Text("No inspectable entity with such ID found");
-		ImGui::SameLine(); HelpMarker("An entity without any components also can't be inspectable");
+		ImGui::SameLine();
+		HelpMarker("An entity without any components also can't be inspectable");
 	}
 }
 

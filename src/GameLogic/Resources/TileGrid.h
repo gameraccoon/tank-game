@@ -23,4 +23,4 @@ namespace Graphics
 	private:
 		TileGridParams mParams;
 	};
-}
+} // namespace Graphics

@@ -2,9 +2,9 @@
 
 #ifndef DEDICATED_SERVER
 
-#include "GameUtils/Application/ArgumentsParser.h"
-
 #include "GameData/Render/RenderAccessorGameRef.h"
+
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/TankClientGame.h"
 

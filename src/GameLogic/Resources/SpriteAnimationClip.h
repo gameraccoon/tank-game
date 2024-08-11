@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-#include "GameData/Resources/ResourceHandle.h"
 #include "GameData/Resources/Resource.h"
+#include "GameData/Resources/ResourceHandle.h"
 
 namespace Graphics
 {
@@ -28,6 +28,6 @@ namespace Graphics
 	private:
 		std::vector<ResourceHandle> mSprites;
 	};
-}
+} // namespace Graphics
 
 #endif // !DISABLE_SDL

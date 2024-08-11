@@ -36,5 +36,5 @@ private:
 	// after a few frames without updates the server will pause the simulation (in case we stepped on a breakpoint)
 	static constexpr u32 SERVER_IDLE_TIMEOUT_UPDATES_TO_PAUSE = 3;
 	// about a minute without any network activity will cause the server to shut down
-	static constexpr u32 SERVER_IDLE_TIMEOUT_UPDATES_TO_QUIT = 60*60;
+	static constexpr u32 SERVER_IDLE_TIMEOUT_UPDATES_TO_QUIT = 60 * 60;
 };

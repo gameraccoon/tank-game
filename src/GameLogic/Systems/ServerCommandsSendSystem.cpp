@@ -12,7 +12,6 @@
 #include "GameUtils/Network/Messages/ServerClient/GameplayCommandsMessage.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 ServerCommandsSendSystem::ServerCommandsSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)

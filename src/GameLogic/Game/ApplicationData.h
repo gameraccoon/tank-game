@@ -4,22 +4,23 @@
 
 #include "EngineCommon/Types/String/ResourcePath.h"
 
+#include "HAL/Base/Engine.h"
+
 #include "EngineUtils/Multithreading/ThreadPool.h"
 
 #include "GameUtils/ResourceManagement/ResourceManager.h"
-
-#include "HAL/Base/Engine.h"
 
 #include "EngineLogic/Render/RenderThreadManager.h"
 
 class ApplicationData
 {
 public:
-		enum class Render
-		{
-			Enabled,
-			Disabled,
-		};
+	enum class Render
+	{
+		Enabled,
+		Disabled,
+	};
+
 public:
 	static constexpr int DefaultWorkerThreadCount = 3;
 

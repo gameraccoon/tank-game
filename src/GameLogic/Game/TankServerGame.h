@@ -6,9 +6,9 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
-#include "GameUtils/Network/GameStateRewinder.h"
-
 #include "HAL/Network/ConnectionManager.h"
+
+#include "GameUtils/Network/GameStateRewinder.h"
 
 #include "GameLogic/Game/Game.h"
 
@@ -39,7 +39,7 @@ private:
 	void updateHistory();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Server, getComponentFactory()};
+	GameStateRewinder mGameStateRewinder{ GameStateRewinder::HistoryType::Server, getComponentFactory() };
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldPauseGame = false;
 	bool mShouldQuitGame = false;

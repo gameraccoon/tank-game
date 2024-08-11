@@ -41,7 +41,7 @@ namespace StateMachines
 		}
 	}
 
-	void RegisterStateMachines(StateMachineComponent *stateMachine)
+	void RegisterStateMachines(StateMachineComponent* stateMachine)
 	{
 		if (!stateMachine)
 		{
@@ -50,4 +50,4 @@ namespace StateMachines
 
 		RegisterCharacterSM(stateMachine->getCharacterSMRef());
 	}
-}
+} // namespace StateMachines

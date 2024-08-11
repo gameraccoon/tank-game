@@ -29,9 +29,10 @@
 #include "GameLogic/Systems/DebugDrawSystem.h"
 
 DebugDrawSystem::DebugDrawSystem(
-		WorldHolder& worldHolder,
-		GameStateRewinder& gameStateRewinder,
-		ResourceManager& resourceManager) noexcept
+	WorldHolder& worldHolder,
+	GameStateRewinder& gameStateRewinder,
+	ResourceManager& resourceManager
+) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 	, mResourceManager(resourceManager)
@@ -43,7 +44,7 @@ void RemoveOldDrawElement(std::vector<T>& vector, GameplayTimestamp now)
 {
 	std::erase_if(
 		vector,
-		[now](const T& val){ return val.isLifeTimeExceeded(now); }
+		[now](const T& val) { return val.isLifeTimeExceeded(now); }
 	);
 }
 
@@ -75,17 +76,16 @@ void DebugDrawSystem::update()
 	if (renderMode && renderMode->getIsDrawDebugCollisionsEnabled())
 	{
 		entityManager.forEachComponentSet<const CollisionComponent, const TransformComponent>(
-			[&renderData, &collisionSpriteHandle = mCollisionSpriteHandle, drawShift](const CollisionComponent* collision, const TransformComponent* transform)
-		{
-			const Vector2D location = transform->getLocation() + drawShift;
-			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-			quadData.position = Vector2D(collision->getBoundingBox().minX + location.x, collision->getBoundingBox().minY + location.y);
-			quadData.rotation = 0.0f;
-			quadData.size = Vector2D(collision->getBoundingBox().maxX-collision->getBoundingBox().minX,
-				collision->getBoundingBox().maxY-collision->getBoundingBox().minY);
-			quadData.spriteHandle = collisionSpriteHandle;
-			quadData.anchor = ZERO_VECTOR;
-		});
+			[&renderData, &collisionSpriteHandle = mCollisionSpriteHandle, drawShift](const CollisionComponent* collision, const TransformComponent* transform) {
+				const Vector2D location = transform->getLocation() + drawShift;
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+				quadData.position = Vector2D(collision->getBoundingBox().minX + location.x, collision->getBoundingBox().minY + location.y);
+				quadData.rotation = 0.0f;
+				quadData.size = Vector2D(collision->getBoundingBox().maxX - collision->getBoundingBox().minX, collision->getBoundingBox().maxY - collision->getBoundingBox().minY);
+				quadData.spriteHandle = collisionSpriteHandle;
+				quadData.anchor = ZERO_VECTOR;
+			}
+		);
 	}
 
 	if (renderMode && renderMode->getIsDrawDebugPrimitivesEnabled())
@@ -103,7 +103,7 @@ void DebugDrawSystem::update()
 				if (!screenPoint.name.empty())
 				{
 					TextRenderData& textData = TemplateHelpers::EmplaceVariant<TextRenderData>(renderData->layers);
-					textData.color = {255, 255, 255, 255};
+					textData.color = { 255, 255, 255, 255 };
 					textData.fontHandle = mFontHandle;
 					textData.pos = screenPoint.screenPos;
 					textData.text = screenPoint.name;
@@ -122,7 +122,7 @@ void DebugDrawSystem::update()
 				if (!worldPoint.name.empty())
 				{
 					TextRenderData& textData = TemplateHelpers::EmplaceVariant<TextRenderData>(renderData->layers);
-					textData.color = {255, 255, 255, 255};
+					textData.color = { 255, 255, 255, 255 };
 					textData.fontHandle = mFontHandle;
 					textData.pos = screenPos;
 					textData.text = worldPoint.name;
@@ -137,7 +137,7 @@ void DebugDrawSystem::update()
 				Vector2D diff = screenPosEnd - screenPosStart;
 				quadData.position = (screenPosStart + screenPosEnd) * 0.5f;
 				quadData.rotation = diff.rotation().getValue();
-				quadData.size = {diff.size(), pointSize.y};
+				quadData.size = { diff.size(), pointSize.y };
 				quadData.spriteHandle = mLineTextureHandle;
 			}
 		}
@@ -146,20 +146,20 @@ void DebugDrawSystem::update()
 	if (renderMode && renderMode->getIsDrawDebugCharacterInfoEnabled())
 	{
 		entityManager.forEachComponentSet<const CharacterStateComponent, const TransformComponent>(
-			[&renderData, fontHandle = mFontHandle, drawShift](const CharacterStateComponent* characterState, const TransformComponent* transform)
-		{
-			TextRenderData& textData = TemplateHelpers::EmplaceVariant<TextRenderData>(renderData->layers);
-			textData.color = {255, 255, 255, 255};
-			textData.fontHandle = fontHandle;
-			textData.pos = transform->getLocation() + drawShift;
-			textData.text = ID_TO_STR(enum_to_string(characterState->getState()));
-		});
+			[&renderData, fontHandle = mFontHandle, drawShift](const CharacterStateComponent* characterState, const TransformComponent* transform) {
+				TextRenderData& textData = TemplateHelpers::EmplaceVariant<TextRenderData>(renderData->layers);
+				textData.color = { 255, 255, 255, 255 };
+				textData.fontHandle = fontHandle;
+				textData.pos = transform->getLocation() + drawShift;
+				textData.text = ID_TO_STR(enum_to_string(characterState->getState()));
+			}
+		);
 	}
 
 	if (renderMode && renderMode->getIsDrawDebugInputEnabled())
 	{
-		constexpr Vector2D crossCenterOffset{60, 280};
-		constexpr Vector2D crossPieceSize{23, 23};
+		constexpr Vector2D crossCenterOffset{ 60, 280 };
+		constexpr Vector2D crossPieceSize{ 23, 23 };
 		constexpr float crossPieceOffset = 25;
 		const GameplayInput::FrameState& lastInput = mGameStateRewinder.getInputForUpdate(timeValue.lastFixedUpdateIndex);
 		const float horizontalMove = lastInput.getAxisValue(GameplayInput::InputAxis::MoveHorizontal);

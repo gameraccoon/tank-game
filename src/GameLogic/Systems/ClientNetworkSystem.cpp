@@ -96,8 +96,7 @@ void ClientNetworkSystem::update()
 		case NetworkMessageId::WorldSnapshot:
 			Network::ServerClient::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
 			break;
-		case NetworkMessageId::Disconnect:
-		{
+		case NetworkMessageId::Disconnect: {
 			const auto reason = Network::ServerClient::ApplyDisconnectMessage(message);
 			LogInfo(Network::ServerClient::ReasonToString(reason));
 			mShouldQuitGameRef = true;

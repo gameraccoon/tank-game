@@ -34,35 +34,35 @@ void CharacterStateSystem::update()
 		EntityManager& entityManager = world.getEntityManager();
 		// update states
 		entityManager.forEachComponentSet<CharacterStateComponent>(
-			[&stateMachine](CharacterStateComponent* characterState)
-		{
-			// calculate state
-			CharacterState state = stateMachine->getCharacterSM().getNextState(characterState->getBlackboard(), characterState->getState());
-			characterState->setState(state);
-		});
+			[&stateMachine](CharacterStateComponent* characterState) {
+				// calculate state
+				CharacterState state = stateMachine->getCharacterSM().getNextState(characterState->getBlackboard(), characterState->getState());
+				characterState->setState(state);
+			}
+		);
 
 		// update movements
 		entityManager.forEachComponentSet<const CharacterStateComponent, MovementComponent>(
-			[](const CharacterStateComponent* characterState, MovementComponent* movement)
-		{
-			CharacterState state = characterState->getState();
-			if (!CanMove(state))
-			{
-				movement->setMoveDirection(ZERO_VECTOR);
+			[](const CharacterStateComponent* characterState, MovementComponent* movement) {
+				CharacterState state = characterState->getState();
+				if (!CanMove(state))
+				{
+					movement->setMoveDirection(ZERO_VECTOR);
+				}
 			}
-		});
+		);
 
 		// update animation
 		entityManager.forEachComponentSet<const CharacterStateComponent, AnimationGroupsComponent>(
-			[](const CharacterStateComponent* characterState, AnimationGroupsComponent* animationGroups)
-		{
-			CharacterState state = characterState->getState();
+			[](const CharacterStateComponent* characterState, AnimationGroupsComponent* animationGroups) {
+				CharacterState state = characterState->getState();
 
-			auto& animBlackboard = animationGroups->getBlackboardRef();
-			animBlackboard.setValue<StringId>(STR_TO_ID("charState"), enum_to_string(state));
+				auto& animBlackboard = animationGroups->getBlackboardRef();
+				animBlackboard.setValue<StringId>(STR_TO_ID("charState"), enum_to_string(state));
 
-			animBlackboard.setValue<bool>(enum_to_string(CharacterStateBlackboardKeys::TryingToMove), characterState->getBlackboard().getValue<bool>(CharacterStateBlackboardKeys::TryingToMove, false));
-			animBlackboard.setValue<bool>(enum_to_string(CharacterStateBlackboardKeys::ReadyToRun), characterState->getBlackboard().getValue<bool>(CharacterStateBlackboardKeys::ReadyToRun, false));
-		});
+				animBlackboard.setValue<bool>(enum_to_string(CharacterStateBlackboardKeys::TryingToMove), characterState->getBlackboard().getValue<bool>(CharacterStateBlackboardKeys::TryingToMove, false));
+				animBlackboard.setValue<bool>(enum_to_string(CharacterStateBlackboardKeys::ReadyToRun), characterState->getBlackboard().getValue<bool>(CharacterStateBlackboardKeys::ReadyToRun, false));
+			}
+		);
 	}
 }

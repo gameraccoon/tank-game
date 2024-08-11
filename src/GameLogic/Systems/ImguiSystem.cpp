@@ -28,8 +28,9 @@
 #include "GameLogic/Imgui/ImguiDebugData.h"
 
 ImguiSystem::ImguiSystem(
-		ImguiDebugData& debugData,
-		HAL::Engine& engine) noexcept
+	ImguiDebugData& debugData,
+	HAL::Engine& engine
+) noexcept
 	: mEngine(engine)
 	, mDebugData(debugData)
 	, mHasPreviousFrameProcessedOnRenderThread(std::make_shared<bool>(true))
@@ -91,8 +92,7 @@ void ImguiSystem::update()
 	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 	CustomRenderFunction& syncData = TemplateHelpers::EmplaceVariant<CustomRenderFunction>(renderData->layers);
-	syncData.renderThreadFn = [&mutex = mRenderDataMutex, previousFrameProcessed = mHasPreviousFrameProcessedOnRenderThread]
-	{
+	syncData.renderThreadFn = [&mutex = mRenderDataMutex, previousFrameProcessed = mHasPreviousFrameProcessedOnRenderThread] {
 		std::lock_guard l(mutex);
 		ImGui_ImplOpenGL2_NewFrame();
 		ImGuiIO& io = ImGui::GetIO();

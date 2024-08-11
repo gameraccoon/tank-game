@@ -15,9 +15,9 @@
 #ifdef ENABLE_SCOPED_PROFILER
 #include "Utils/Profiling/ProfileDataWriter.h"
 #endif
-#include "GameUtils/ResourceManagement/ResourceManager.h"
-
 #include "HAL/Base/Engine.h"
+
+#include "GameUtils/ResourceManagement/ResourceManager.h"
 
 #include "EngineLogic/Render/RenderAccessor.h"
 
@@ -97,7 +97,8 @@ void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 	mDebugBehavior.postInnerUpdate(*this);
 }
 
-void Game::notPausablePostFrameUpdate(float dt) {
+void Game::notPausablePostFrameUpdate(float dt)
+{
 	SCOPED_PROFILER("Game::notPausablePostFrameUpdate");
 
 	TimeData& timeData = getTimeData();

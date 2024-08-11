@@ -77,8 +77,7 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLa
 	}
 	else
 	{
-		connectionManager.sendMessageToClient(connectionId,
-			Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(Network::NetworkProtocolVersion, result.clientNetworkProtocolVersion)));
+		connectionManager.sendMessageToClient(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(Network::NetworkProtocolVersion, result.clientNetworkProtocolVersion)));
 		connectionManager.disconnectClient(connectionId);
 	}
 }

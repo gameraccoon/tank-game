@@ -27,12 +27,11 @@ namespace ImguiPropertyFiltration
 	void ImguiPropertyFiltersWidget::init(ImguiDebugData& debugData)
 	{
 		auto propertyDescriptions = PropertyDescriptorsRegistration::GetDescriptions();
-		debugData.componentFactory.forEachComponentType([&propertyDescriptions](StringId className)
-		{
+		debugData.componentFactory.forEachComponentType([&propertyDescriptions](StringId className) {
 			std::string componentName = ID_TO_STR(className);
 			std::string lowerComponentName = componentName;
-			std::transform(lowerComponentName.begin(), lowerComponentName.end(), lowerComponentName.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
-			propertyDescriptions.emplace_back(std::vector<std::string>{lowerComponentName}, ComponentAvailabilityPropertyDescriptor::Create(componentName, className));
+			std::transform(lowerComponentName.begin(), lowerComponentName.end(), lowerComponentName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+			propertyDescriptions.emplace_back(std::vector<std::string>{ lowerComponentName }, ComponentAvailabilityPropertyDescriptor::Create(componentName, className));
 		});
 		mPropertyDescriptors.construct(std::move(propertyDescriptions));
 	}
@@ -64,31 +63,31 @@ namespace ImguiPropertyFiltration
 
 		if (ImGui::InputTextWithHint("##FilterSearch", "Search Query", mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer)))
 		{
-//			{
-//				Entity::EntityId id = 0;
-//				std::string_view strId(mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer));
-//				std::stringstream ss;
-//				if (strId[0] == '0' && strId[1] == 'x') {
-//					ss << std::hex;
-//				}
-//				ss << strId;
-//				ss >> id;
-//				Entity entity(id);
-//
-//				if (debugData.worldHolder.getDynamicWorldLayer().getEntityManager().hasEntity(entity))
-//				{
-//					mExplicitlySetEntity = entity;
-//					return;
-//				}
-//				else
-//				{
-//					mExplicitlySetEntity = {};
-//				}
-//			}
+			//			{
+			//				Entity::EntityId id = 0;
+			//				std::string_view strId(mFilterQueryBuffer, IM_ARRAYSIZE(mFilterQueryBuffer));
+			//				std::stringstream ss;
+			//				if (strId[0] == '0' && strId[1] == 'x') {
+			//					ss << std::hex;
+			//				}
+			//				ss << strId;
+			//				ss >> id;
+			//				Entity entity(id);
+			//
+			//				if (debugData.worldHolder.getDynamicWorldLayer().getEntityManager().hasEntity(entity))
+			//				{
+			//					mExplicitlySetEntity = entity;
+			//					return;
+			//				}
+			//				else
+			//				{
+			//					mExplicitlySetEntity = {};
+			//				}
+			//			}
 
 			std::string strId(mFilterQueryBuffer, std::strlen(mFilterQueryBuffer));
 			// tolower
-			std::transform(strId.begin(), strId.end(), strId.begin(), [](unsigned char c){ return static_cast<char>(std::tolower(c)); });
+			std::transform(strId.begin(), strId.end(), strId.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
 			if (strId.size() >= MinimalSearchLen)
 			{

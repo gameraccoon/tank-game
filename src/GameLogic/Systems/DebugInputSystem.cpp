@@ -20,7 +20,7 @@ DebugInputSystem::DebugInputSystem(
 	WorldHolder& worldHolder,
 	const HAL::InputControllersData& inputData,
 	bool& shouldPauseGame
-	) noexcept
+) noexcept
 	: mWorldHolder(worldHolder)
 	, mInputData(inputData)
 	, mShouldPauseGame(shouldPauseGame)

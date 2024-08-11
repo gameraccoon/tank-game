@@ -2,14 +2,14 @@
 
 #ifndef DISABLE_SDL
 
+#include <map>
 #include <memory>
 #include <vector>
-#include <map>
 
 #include "EngineCommon/Types/String/StringId.h"
 
-#include "GameData/Resources/ResourceHandle.h"
 #include "GameData/Resources/Resource.h"
+#include "GameData/Resources/ResourceHandle.h"
 
 #include "HAL/Graphics/Sprite.h"
 
@@ -37,6 +37,6 @@ namespace Graphics
 		StringId mStateMachineId;
 		StringId mDefaultState;
 	};
-}
+} // namespace Graphics
 
 #endif // !DISABLE_SDL

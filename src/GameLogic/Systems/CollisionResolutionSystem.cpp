@@ -41,8 +41,7 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 		return;
 	}
 
-	auto moveEntityBack = [](TransformComponent* transform, const MovementComponent* movement)
-	{
+	auto moveEntityBack = [](TransformComponent* transform, const MovementComponent* movement) {
 		const Vector2D moveDirection = movement->getMoveDirection();
 		transform->setLocation(transform->getLocation() - moveDirection);
 	};
@@ -62,8 +61,7 @@ void CollisionResolutionSystem::resolveMovingEntities() const
 			const MovementComponent* secondMovementComponent = std::get<2>(collisionComponents[j]);
 			TransformComponent* secondTransformComponent = std::get<3>(collisionComponents[j]);
 
-			if (Collision::DoCollide(firstBoundingBox, firstTransformComponent->getLocation(),
-				secondBoundingBox, secondTransformComponent->getLocation()))
+			if (Collision::DoCollide(firstBoundingBox, firstTransformComponent->getLocation(), secondBoundingBox, secondTransformComponent->getLocation()))
 			{
 				Vector2D firstMovementDirection = firstMovementComponent->getMoveDirection();
 				Vector2D secondMovementDirection = secondMovementComponent->getMoveDirection();

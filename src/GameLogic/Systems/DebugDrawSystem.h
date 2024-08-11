@@ -19,7 +19,8 @@ public:
 	DebugDrawSystem(
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
-		ResourceManager& resourceManager) noexcept;
+		ResourceManager& resourceManager
+	) noexcept;
 
 	void update() override;
 	void init() override;

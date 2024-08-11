@@ -16,9 +16,9 @@
 
 #include "GameUtils/Application/ArgumentsParser.h"
 #include "GameUtils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
+#include "GameUtils/Network/GameStateRewinder.h"
 #include "GameUtils/ResourceManagement/ResourceManager.h"
 #include "GameUtils/World/GameDataLoader.h"
-#include "GameUtils/Network/GameStateRewinder.h"
 
 #include "GameLogic/Game/TankClientGame.h"
 #include "GameLogic/Systems/AnimationSystem.h"

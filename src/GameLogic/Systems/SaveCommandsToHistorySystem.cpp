@@ -9,11 +9,10 @@
 #include "GameUtils/Network/GameStateRewinder.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 SaveCommandsToHistorySystem::SaveCommandsToHistorySystem(
-		WorldHolder& worldHolder,
-		GameStateRewinder& gameStateRewinder
-	) noexcept
+	WorldHolder& worldHolder,
+	GameStateRewinder& gameStateRewinder
+) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
 {

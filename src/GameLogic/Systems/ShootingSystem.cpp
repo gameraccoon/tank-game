@@ -31,22 +31,22 @@ void ShootingSystem::update()
 	NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
 
 	entityManager.forEachComponentSetWithEntity<const WeaponComponent, const TransformComponent, const CharacterStateComponent>(
-		[&gameplayCommands, networkEntityIdGenerator, &entityManager, networkIdMapping](Entity entity, const WeaponComponent* weapon, const TransformComponent* transform, const CharacterStateComponent* characterState)
-	{
-		if (characterState->getState() == CharacterState::Shoot || characterState->getState() == CharacterState::WalkAndShoot)
-		{
-			if (weapon->getProjectileEntity().isValid() && entityManager.hasEntity(weapon->getProjectileEntity().getEntity()))
+		[&gameplayCommands, networkEntityIdGenerator, &entityManager, networkIdMapping](Entity entity, const WeaponComponent* weapon, const TransformComponent* transform, const CharacterStateComponent* characterState) {
+			if (characterState->getState() == CharacterState::Shoot || characterState->getState() == CharacterState::WalkAndShoot)
 			{
-				// we already have a projectile, don't spawn another one
-				return;
-			}
+				if (weapon->getProjectileEntity().isValid() && entityManager.hasEntity(weapon->getProjectileEntity().getEntity()))
+				{
+					// we already have a projectile, don't spawn another one
+					return;
+				}
 
-			const NetworkEntityId projectileNetworkId = networkEntityIdGenerator->getGeneratorRef().generateNext();
-			if (auto entityIt = networkIdMapping->getEntityToNetworkId().find(entity); entityIt != networkIdMapping->getEntityToNetworkId().end())
-			{
-				const NetworkEntityId ownerNetworkId = entityIt->second;
-				gameplayCommands->getDataRef().list.emplace_back(std::make_unique<Network::CreateProjectileCommand>(transform->getLocation(), transform->getDirection(), 1.0f, projectileNetworkId, ownerNetworkId));
+				const NetworkEntityId projectileNetworkId = networkEntityIdGenerator->getGeneratorRef().generateNext();
+				if (auto entityIt = networkIdMapping->getEntityToNetworkId().find(entity); entityIt != networkIdMapping->getEntityToNetworkId().end())
+				{
+					const NetworkEntityId ownerNetworkId = entityIt->second;
+					gameplayCommands->getDataRef().list.emplace_back(std::make_unique<Network::CreateProjectileCommand>(transform->getLocation(), transform->getDirection(), 1.0f, projectileNetworkId, ownerNetworkId));
+				}
 			}
 		}
-	});
+	);
 }

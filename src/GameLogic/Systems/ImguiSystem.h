@@ -3,8 +3,9 @@
 #ifdef IMGUI_ENABLED
 #ifndef DISABLE_SDL
 
-#include <mutex>
 #include <memory>
+#include <mutex>
+
 #include <raccoon-ecs/utils/system.h>
 
 #include "HAL/EngineFwd.h"
@@ -23,7 +24,8 @@ class ImguiSystem : public RaccoonEcs::System
 public:
 	ImguiSystem(
 		ImguiDebugData& debugData,
-		HAL::Engine& engine) noexcept;
+		HAL::Engine& engine
+	) noexcept;
 
 	void update() override;
 	void init() override;

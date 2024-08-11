@@ -7,7 +7,6 @@
 
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 ApplyGameplayCommandsSystem::ApplyGameplayCommandsSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)

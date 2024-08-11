@@ -6,8 +6,8 @@
 
 #include "imgui/imgui.h"
 
-#include "GameData/GameData.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
+#include "GameData/GameData.h"
 
 #include "GameUtils/SharedManagers/WorldHolder.h"
 

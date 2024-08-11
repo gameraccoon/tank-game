@@ -26,8 +26,7 @@ namespace ImguiPropertyFiltration
 		{
 			std::erase_if(
 				inOutEntities,
-				[this, &entityManager](Entity entity)
-				{
+				[this, &entityManager](Entity entity) {
 					return !isConditionPassed(entityManager, entity);
 				}
 			);

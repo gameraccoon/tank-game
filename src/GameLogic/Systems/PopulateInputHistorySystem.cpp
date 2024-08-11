@@ -10,7 +10,6 @@
 #include "GameUtils/Network/GameStateRewinder.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 PopulateInputHistorySystem::PopulateInputHistorySystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)

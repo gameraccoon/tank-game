@@ -2,9 +2,9 @@
 
 #ifndef DEDICATED_SERVER
 
-#include "HAL/Network/ConnectionManager.h"
-
 #include "GameData/Render/RenderAccessorGameRef.h"
+
+#include "HAL/Network/ConnectionManager.h"
 
 #include "GameUtils/Network/FrameTimeCorrector.h"
 #include "GameUtils/Network/GameStateRewinder.h"
@@ -43,17 +43,17 @@ private:
 	void processCorrections();
 
 private:
-	GameStateRewinder mGameStateRewinder{GameStateRewinder::HistoryType::Client, getComponentFactory()};
+	GameStateRewinder mGameStateRewinder{ GameStateRewinder::HistoryType::Client, getComponentFactory() };
 	HAL::ConnectionManager mConnectionManager;
 	bool mShouldPauseGame = false;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
 	FrameTimeCorrector mFrameTimeCorrector;
 
-	HAL::Network::NetworkAddress mServerAddress{HAL::Network::NetworkAddress::Ipv4({127, 0, 0, 1}, 14436)};
+	HAL::Network::NetworkAddress mServerAddress{ HAL::Network::NetworkAddress::Ipv4({ 127, 0, 0, 1 }, 14436) };
 
 #ifdef IMGUI_ENABLED
-	ImguiDebugData mImguiDebugData{getWorldHolder(), getComponentFactory(), {}, {}};
+	ImguiDebugData mImguiDebugData{ getWorldHolder(), getComponentFactory(), {}, {} };
 #endif // IMGUI_ENABLED
 };
 

@@ -12,7 +12,7 @@ ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, 
 	: WorkerThreadsCount(workerThreadsCount)
 	, ExtraThreadsCount(extraThreadsCount)
 	, RenderThreadId(ResourceLoadingThreadId + 1 + workerThreadsCount + extraThreadsCount)
-	, threadPool(workerThreadsCount, [this]{ threadSaveProfileData(ThreadPool::GetThisThreadId()); }, ResourceLoadingThreadId + 1)
+	, threadPool(workerThreadsCount, [this] { threadSaveProfileData(ThreadPool::GetThisThreadId()); }, ResourceLoadingThreadId + 1)
 	, resourceManager(workingDirectoryPath)
 	, renderEnabled(render == Render::Enabled)
 {
@@ -29,7 +29,7 @@ ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, 
 void ApplicationData::startRenderThread()
 {
 	engine->releaseRenderContext();
-	renderThread.startThread(resourceManager, engine.value(), [&engineRef = *engine]{ engineRef.acquireRenderContext(); });
+	renderThread.startThread(resourceManager, engine.value(), [&engineRef = *engine] { engineRef.acquireRenderContext(); });
 }
 #endif // !DISABLE_SDL
 
@@ -65,11 +65,11 @@ void ApplicationData::writeProfilingData()
 		for (int i = 0; i < WorkerThreadsCount; ++i)
 		{
 			// zero is reserved for main thread
-			data.threadNames[ResourceLoadingThreadId + 1 + i] = std::string("Worker Thread #") + std::to_string(i+1);
+			data.threadNames[ResourceLoadingThreadId + 1 + i] = std::string("Worker Thread #") + std::to_string(i + 1);
 		}
 		for (int i = 0; i < ExtraThreadsCount; ++i)
 		{
-			data.threadNames[getAdditionalThreadIdByIndex(i)] = std::string("Extra Thread #") + std::to_string(i+1);
+			data.threadNames[getAdditionalThreadIdByIndex(i)] = std::string("Extra Thread #") + std::to_string(i + 1);
 		}
 		if (RenderThreadId != -1)
 		{

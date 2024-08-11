@@ -1,12 +1,12 @@
 #pragma once
 
 #include <any>
+#include <memory>
 #include <optional>
 #include <vector>
-#include <memory>
 
-#include "GameData/EcsDefinitions.h"
 #include "GameData/Debug/SubstringSearcher.h"
+#include "GameData/EcsDefinitions.h"
 
 #include "GameLogic/Imgui/ComponentInspector/PropertyFilters/AbstractPropertyFilter.h"
 

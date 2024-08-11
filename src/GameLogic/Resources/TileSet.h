@@ -23,4 +23,4 @@ namespace Graphics
 	private:
 		TileSetParams mParams;
 	};
-}
+} // namespace Graphics

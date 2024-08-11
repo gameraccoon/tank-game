@@ -18,7 +18,7 @@ namespace Graphics
 {
 	static TileSetParams::Material GetTileSetMaterialFromProperties(const nlohmann::json& propertiesJson)
 	{
-		static std::unordered_map<std::string, TileSetParams::Material> stringToEnumMapping {
+		static std::unordered_map<std::string, TileSetParams::Material> stringToEnumMapping{
 			{ "brick", TileSetParams::Material::Brick },
 			{ "metal", TileSetParams::Material::Metal },
 			{ "water", TileSetParams::Material::Water },
@@ -53,14 +53,14 @@ namespace Graphics
 				result.indexesConversion[id] = result.tiles.size();
 #ifndef DISABLE_SDL
 				std::string imagePath = tileJson.at("image").get<std::string>();
-				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(RelativeResourcePath{ std::string("resources") + imagePath.substr(2)});
+				ResourceHandle spriteHandle = resourceManager.lockResource<Sprite>(RelativeResourcePath{ std::string("resources") + imagePath.substr(2) });
 				result.tiles.emplace_back(spriteHandle, GetTileSetMaterialFromProperties(tileJson.at("properties")));
 #else
 				result.tiles.emplace_back(ResourceHandle(), GetTileSetMaterialFromProperties(tileJson.at("properties")));
 #endif // !DISABLE_SDL
 			}
 		}
-		catch(const std::exception& e)
+		catch (const std::exception& e)
 		{
 			LogError("Can't open tile set file '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
@@ -119,4 +119,4 @@ namespace Graphics
 	{
 		return {};
 	}
-}
+} // namespace Graphics

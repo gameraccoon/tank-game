@@ -42,7 +42,8 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-	if (!mGameStateRewinder.isInitialClientUpdateIndexSet()) {
+	if (!mGameStateRewinder.isInitialClientUpdateIndexSet())
+	{
 		return;
 	}
 

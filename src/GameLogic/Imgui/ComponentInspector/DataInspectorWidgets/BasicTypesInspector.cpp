@@ -2,8 +2,6 @@
 
 #ifdef IMGUI_ENABLED
 
-#include "GameLogic/Imgui/ComponentInspector/DataInspectorWidgets/BasicTypesInspector.h"
-
 #include <cstring>
 
 #include "EngineCommon/Types/String/StringId.h"
@@ -11,6 +9,8 @@
 #include "EngineData/Geometry/Vector2D.h"
 
 #include "GameData/Time/GameplayTimestamp.h"
+
+#include "GameLogic/Imgui/ComponentInspector/DataInspectorWidgets/BasicTypesInspector.h"
 
 namespace ImguiDataInspection
 {
@@ -64,6 +64,6 @@ namespace ImguiDataInspection
 			data = STR_TO_ID(std::string(buffer));
 		}
 	}
-}
+} // namespace ImguiDataInspection
 
 #endif // IMGUI_ENABLED

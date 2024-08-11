@@ -2,9 +2,9 @@
 
 #ifdef IMGUI_ENABLED
 
-#include "GameLogic/Imgui/ComponentInspector/DataInspectorWidgets/TypesInspector.h"
-
 #include <cstring>
+
+#include "GameLogic/Imgui/ComponentInspector/DataInspectorWidgets/TypesInspector.h"
 
 namespace ImguiDataInspection
 {
@@ -12,4 +12,3 @@ namespace ImguiDataInspection
 }
 
 #endif // IMGUI_ENABLED
-

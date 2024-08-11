@@ -1,6 +1,5 @@
 #include "EngineCommon/precomp.h"
 
-
 #ifndef DISABLE_SDL
 
 #include <algorithm>
@@ -28,9 +27,9 @@
 #include "GameLogic/Systems/RenderSystem.h"
 
 RenderSystem::RenderSystem(
-		WorldHolder& worldHolder,
-		ResourceManager& resourceManager
-	) noexcept
+	WorldHolder& worldHolder,
+	ResourceManager& resourceManager
+) noexcept
 	: mWorldHolder(worldHolder)
 	, mResourceManager(resourceManager)
 {
@@ -74,23 +73,23 @@ void RenderSystem::update()
 	{
 		SCOPED_PROFILER("draw visible entities");
 		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent>(
-			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform)
-		{
-			const Vector2D location = transform->getLocation() + drawShift;
-			const Vector2D direction = transform->getDirection();
-			const float rotation = direction.rotation().getValue() + PI * 0.5f;
+			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform) {
+				const Vector2D location = transform->getLocation() + drawShift;
+				const Vector2D direction = transform->getDirection();
+				const float rotation = direction.rotation().getValue() + PI * 0.5f;
 
-			for (const auto& data : spriteRender->getSpriteDatas())
-			{
-				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
-				quadData.spriteHandle = data.spriteHandle;
-				quadData.position = location;
-				quadData.size = data.params.size;
-				quadData.anchor = data.params.anchor;
-				quadData.rotation = rotation;
-				quadData.alpha = 1.0f;
+				for (const auto& data : spriteRender->getSpriteDatas())
+				{
+					QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
+					quadData.spriteHandle = data.spriteHandle;
+					quadData.position = location;
+					quadData.size = data.params.size;
+					quadData.anchor = data.params.anchor;
+					quadData.rotation = rotation;
+					quadData.alpha = 1.0f;
+				}
 			}
-		});
+		);
 	}
 
 	{
@@ -129,42 +128,42 @@ void RenderSystem::drawBackground(RenderData& renderData, WorldLayer& worldLayer
 void RenderSystem::drawTileGridLayer(RenderData& renderData, WorldLayer& worldLayer, const Vector2D drawShift, const size_t layerIdx)
 {
 	worldLayer.getEntityManager().forEachComponentSet<const TileGridComponent, const TransformComponent>(
-		[&drawShift, &renderData, layerIdx](const TileGridComponent* tileGrid, const TransformComponent* transform)
-	{
-		const TileGridParams& tileGridData = tileGrid->getGridData();
-		if (tileGridData.layers.size() <= layerIdx)
-		{
-			return;
-		}
-		const std::vector<size_t>& layer = tileGridData.layers[layerIdx];
-
-		const Vector2D location = transform->getLocation() + drawShift;
-		const Vector2D tileSize = Vector2D{ static_cast<float>(tileGridData.originalTileSize.x), static_cast<float>(tileGridData.originalTileSize.y) };
-
-		for (size_t i = 0, iSize = layer.size(); i < iSize; ++i)
-		{
-			const size_t tileIndex = layer[i];
-			if (tileIndex == TileSetParams::EmptyTileIndex)
+		[&drawShift, &renderData, layerIdx](const TileGridComponent* tileGrid, const TransformComponent* transform) {
+			const TileGridParams& tileGridData = tileGrid->getGridData();
+			if (tileGridData.layers.size() <= layerIdx)
 			{
-				continue;
+				return;
 			}
+			const std::vector<size_t>& layer = tileGridData.layers[layerIdx];
 
-			if (tileGridData.tiles.size() <= tileIndex)
+			const Vector2D location = transform->getLocation() + drawShift;
+			const Vector2D tileSize = Vector2D{ static_cast<float>(tileGridData.originalTileSize.x), static_cast<float>(tileGridData.originalTileSize.y) };
+
+			for (size_t i = 0, iSize = layer.size(); i < iSize; ++i)
 			{
-				continue;
+				const size_t tileIndex = layer[i];
+				if (tileIndex == TileSetParams::EmptyTileIndex)
+				{
+					continue;
+				}
+
+				if (tileGridData.tiles.size() <= tileIndex)
+				{
+					continue;
+				}
+
+				const TileSetParams::Tile& tile = tileGridData.tiles[tileIndex];
+
+				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData.layers);
+				quadData.spriteHandle = tile.spriteHandle;
+				quadData.position = location + Vector2D::HadamardProduct(tileSize, Vector2D{ static_cast<float>(i % tileGridData.gridSize.x), static_cast<float>(i / tileGridData.gridSize.y) });
+				quadData.size = tileSize;
+				quadData.anchor = ZERO_VECTOR;
+				quadData.rotation = 0;
+				quadData.alpha = 1.0f;
 			}
-
-			const TileSetParams::Tile& tile = tileGridData.tiles[tileIndex];
-
-			QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData.layers);
-			quadData.spriteHandle = tile.spriteHandle;
-			quadData.position = location + Vector2D::HadamardProduct(tileSize, Vector2D{ static_cast<float>(i % tileGridData.gridSize.x), static_cast<float>(i / tileGridData.gridSize.y) });
-			quadData.size = tileSize;
-			quadData.anchor = ZERO_VECTOR;
-			quadData.rotation = 0;
-			quadData.alpha = 1.0f;
 		}
-	});
+	);
 }
 
 #endif // !DISABLE_SDL

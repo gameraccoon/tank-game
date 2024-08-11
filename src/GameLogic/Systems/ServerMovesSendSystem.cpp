@@ -16,7 +16,6 @@
 #include "GameUtils/Network/Messages/ServerClient/MovesMessage.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 ServerMovesSendSystem::ServerMovesSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)

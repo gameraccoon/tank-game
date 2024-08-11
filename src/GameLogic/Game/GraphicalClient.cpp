@@ -2,10 +2,8 @@
 
 #ifndef DISABLE_SDL
 
-#include "GameLogic/Game/GraphicalClient.h"
-
 #include "GameLogic/Game/ApplicationData.h"
-
+#include "GameLogic/Game/GraphicalClient.h"
 
 GraphicalClient::GraphicalClient(ApplicationData& applicationData, int instanceIndex)
 	: game(&applicationData.engine.value(), applicationData.resourceManager, applicationData.threadPool, instanceIndex)

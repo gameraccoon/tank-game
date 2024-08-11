@@ -8,7 +8,6 @@
 
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-
 ApplyInputToEntitySystem::ApplyInputToEntitySystem(WorldHolder& worldHolder) noexcept
 	: mWorldHolder(worldHolder)
 {
@@ -36,4 +35,3 @@ void ApplyInputToEntitySystem::update()
 		gameplayInput->setCurrentFrameState(gameplayInputState);
 	}
 }
-

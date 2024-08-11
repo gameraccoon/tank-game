@@ -52,7 +52,7 @@ namespace Graphics
 				result.firstTileId = tileset.at("firstgid").get<size_t>();
 			}
 		}
-		catch(const std::exception& e)
+		catch (const std::exception& e)
 		{
 			LogError("Can't open tile grid data '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
@@ -162,4 +162,4 @@ namespace Graphics
 	{
 		return {};
 	}
-}
+} // namespace Graphics
