@@ -6,8 +6,8 @@
 
 #include "GameUtils/Application/ArgumentsParser.h"
 
-#include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/ApplicationData.h"
+#include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"
 
 #include "AutoTests/BasicTestChecks.h"
@@ -93,20 +93,23 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	while (checklist.getChecks().empty() || (!checklist.areAllChecksValidated() && !checklist.hasAnyCheckFailed()))
 	{
 		// if the server requests us to stop
-		if (mServerGame->shouldQuitGame()) {
+		if (mServerGame->shouldQuitGame())
+		{
 			break;
 		}
 
 		// if any of the clients request us to stop
 		for (int i = 0; i < mClientsCount; ++i)
 		{
-			if (mClientGames[i]->shouldQuitGame()) {
+			if (mClientGames[i]->shouldQuitGame())
+			{
 				break;
 			}
 		}
 
 		// if external stop condition is met
-		if (shouldStop()) {
+		if (shouldStop())
+		{
 			break;
 		}
 

@@ -1,11 +1,9 @@
 #pragma once
 
-#include "AutoTests/TestCheckList.h"
-
 #include "raccoon-ecs/utils/system.h"
 
+#include "AutoTests/TestCheckList.h"
 class ArgumentsParser;
-class WorldHolder;
 
 class BaseTestCase
 {

@@ -23,4 +23,3 @@ bool UpdateLagger::shouldUpdate()
 	}
 	return true;
 }
-

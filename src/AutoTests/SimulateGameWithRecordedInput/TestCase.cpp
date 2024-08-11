@@ -2,9 +2,9 @@
 
 #include "AutoTests/SimulateGameWithRecordedInput/TestCase.h"
 
-#include "GameUtils/Application/ArgumentsParser.h"
-
 #include "HAL/Network/ConnectionManager.h"
+
+#include "GameUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/TankServerGame.h"
 

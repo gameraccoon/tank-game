@@ -16,31 +16,35 @@ namespace PlayerConnectedToServerTestCaseInternal
 	class ServerCheckSystem final : public RaccoonEcs::System
 	{
 	public:
-		ServerCheckSystem(WorldHolder &worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
+		ServerCheckSystem(WorldHolder& worldHolder, SimpleTestCheck& connectionCheck, SimpleTestCheck& keepConnectedCheck)
 			: mWorldHolder(worldHolder)
 			, mConnectionCheck(connectionCheck)
 			, mKeepConnectedCheck(keepConnectedCheck)
 		{}
 
-		void update() final {
+		void update() final
+		{
 			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
-			const NetworkIdMappingComponent *networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
-			if (!networkIdMapping->getNetworkIdToEntity().empty()) {
+			const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
+			if (!networkIdMapping->getNetworkIdToEntity().empty())
+			{
 				mConnectionCheck.checkAsPassed();
 				++mConnectedFramesCount;
-				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed()) {
+				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed())
+				{
 					mKeepConnectedCheck.checkAsPassed();
 				}
 			}
-			else if (mConnectionCheck.hasPassed()) {
+			else if (mConnectionCheck.hasPassed())
+			{
 				mKeepConnectedCheck.checkAsFailed();
 			}
 		}
 
 	private:
-		WorldHolder &mWorldHolder;
-		SimpleTestCheck &mConnectionCheck;
-		SimpleTestCheck &mKeepConnectedCheck;
+		WorldHolder& mWorldHolder;
+		SimpleTestCheck& mConnectionCheck;
+		SimpleTestCheck& mKeepConnectedCheck;
 		size_t mConnectedFramesCount = 0;
 	};
 
@@ -54,14 +58,16 @@ namespace PlayerConnectedToServerTestCaseInternal
 			, mGotSelfEntityReplicatedCheck(gotSelfEntityReplicatedCheck)
 		{}
 
-		void update() final {
+		void update() final
+		{
 			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 			if (clientGameData->getControlledPlayer().isValid())
 			{
 				mConnectionCheck.checkAsPassed();
 				++mConnectedFramesCount;
-				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed()) {
+				if (mConnectedFramesCount > 50 && !mKeepConnectedCheck.hasPassed())
+				{
 					mKeepConnectedCheck.checkAsPassed();
 				}
 			}
@@ -91,7 +97,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 		SimpleTestCheck& mGotSelfEntityReplicatedCheck;
 		size_t mConnectedFramesCount = 0;
 	};
-}
+} // namespace PlayerConnectedToServerTestCaseInternal
 
 PlayerConnectedToServerTestCase::PlayerConnectedToServerTestCase()
 	: BaseNetworkingTestCase(1)

@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "EngineCommon//Random/Random.h"
-
 #include <raccoon-ecs/error_handling.h>
+
+#include "EngineCommon/Random/Random.h"
 
 #include "GameUtils/Application/ArgumentsParser.h"
 
@@ -50,7 +50,7 @@ static CasesMap GetCases()
 bool ValidateChecklist(const TestChecklist& checklist)
 {
 	size_t failedChecksCount = 0;
-	for(const auto& check : checklist.getChecks())
+	for (const auto& check : checklist.getChecks())
 	{
 		if (!check->hasPassed())
 		{
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 	RaccoonEcs::gErrorHandler = [](const std::string& error) { ReportFatalError(error); };
 #endif // RACCOON_ECS_DEBUG_CHECKS_ENABLED
 
-	gGlobalAssertHandler = []{ std::terminate(); };
+	gGlobalAssertHandler = [] { std::terminate(); };
 
 	auto cases = GetCases();
 
