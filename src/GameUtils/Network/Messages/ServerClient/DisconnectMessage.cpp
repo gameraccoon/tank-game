@@ -9,18 +9,20 @@
 
 namespace Network::ServerClient
 {
-	namespace DisconnectMessageInternal {
+	namespace DisconnectMessageInternal
+	{
 		template<class... Ts>
-		struct Overload : Ts... {
+		struct Overload : Ts...
+		{
 			using Ts::operator()...;
 		};
 		template<class... Ts>
 		Overload(Ts...) -> Overload<Ts...>;
 
-		template <typename... Ts>
+		template<typename... Ts>
 		void CreateVariant(std::variant<Ts...>& variant, std::size_t i)
 		{
-			static constexpr std::variant<Ts...> table[] = { Ts{ }... };
+			static constexpr std::variant<Ts...> table[] = { Ts{}... };
 			variant = table[i];
 		}
 	}

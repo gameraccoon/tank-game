@@ -2,15 +2,15 @@
 
 #include "GameUtils/Network/TcpClient.h"
 
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 
 #if USED_COMPILER == COMPILER_MSVC
 
-#include <WS2tcpip.h>
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 
 struct TcpClient::Impl
 {
@@ -42,21 +42,25 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	addrinfo *servinfo;
-	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0) {
+	addrinfo* servinfo;
+	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0)
+	{
 		LogInfo("getaddrinfo: %s", gai_strerror(rv));
 		return false;
 	}
 
 	// loop through all the results and connect to the first we can
 	addrinfo* p;
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+	for (p = servinfo; p != NULL; p = p->ai_next)
+	{
+		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
 			LogError("client: can't create socket");
 			continue;
 		}
 
-		if (connect(mPimpl->socket, p->ai_addr, static_cast<int>(p->ai_addrlen)) == -1) {
+		if (connect(mPimpl->socket, p->ai_addr, static_cast<int>(p->ai_addrlen)) == -1)
+		{
 			LogError("client: can't connect to the server");
 			closesocket(mPimpl->socket);
 			continue;
@@ -65,7 +69,8 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 		break;
 	}
 
-	if (p == NULL) {
+	if (p == NULL)
+	{
 		LogError("client: failed to connect to the server");
 		return false;
 	}
@@ -100,11 +105,11 @@ std::optional<std::string> TcpClient::receiveMessage()
 
 #else
 
+#include <arpa/inet.h>
 #include <netdb.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
+#include <unistd.h>
 
 struct TcpClient::Impl
 {
@@ -130,21 +135,25 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	addrinfo *servinfo;
-	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0) {
+	addrinfo* servinfo;
+	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0)
+	{
 		LogInfo("getaddrinfo: %s", gai_strerror(rv));
 		return false;
 	}
 
 	// loop through all the results and connect to the first we can
 	addrinfo* p;
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+	for (p = servinfo; p != NULL; p = p->ai_next)
+	{
+		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+		{
 			LogError("client: can't create socket");
 			continue;
 		}
 
-		if (connect(mPimpl->socket, p->ai_addr, p->ai_addrlen) == -1) {
+		if (connect(mPimpl->socket, p->ai_addr, p->ai_addrlen) == -1)
+		{
 			LogError("client: can't connect to the server");
 			close(mPimpl->socket);
 			continue;
@@ -153,14 +162,16 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 		break;
 	}
 
-	if (p == NULL) {
+	if (p == NULL)
+	{
 		LogError("client: failed to connect to the server");
 		return false;
 	}
 
 	sockaddr* sa = p->ai_addr;
 	void* in_addr = nullptr;
-	if (sa->sa_family == AF_INET) {
+	if (sa->sa_family == AF_INET)
+	{
 		in_addr = &(((struct sockaddr_in*)sa)->sin_addr);
 	}
 	else

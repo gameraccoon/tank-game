@@ -1,7 +1,7 @@
 #pragma once
 
-#include "EngineData/Geometry/Vector2D.h"
 #include "EngineData/Geometry/BoundingBox.h"
+#include "EngineData/Geometry/Vector2D.h"
 
 namespace Collision
 {

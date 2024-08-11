@@ -1,14 +1,15 @@
 #pragma once
 
-#include <string>
 #include <filesystem>
+#include <string>
 
 #include "GameData/EcsDefinitions.h"
 
 class WorldLayer;
 class GameData;
 
-namespace Json {
+namespace Json
+{
 	class ComponentSerializationHolder;
 }
 

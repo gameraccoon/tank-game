@@ -1,10 +1,11 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameUtils/Network/GameplayCommands/GameplayCommandsFactory.h"
+
 #include <neargye/magic_enum.hpp>
 
 #include "EngineCommon/Types/Serialization.h"
 
-#include "GameUtils/Network/GameplayCommands/GameplayCommandsFactory.h"
 #include "GameUtils/Network/GameplayCommands/GameplayCommandTypes.h"
 
 namespace Network

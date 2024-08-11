@@ -83,11 +83,11 @@ namespace GameDataLoader
 				world.fromJson(worldObject, jsonSerializerHolder);
 			}
 		}
-		catch(const nlohmann::detail::exception& e)
+		catch (const nlohmann::detail::exception& e)
 		{
 			ReportError("Can't parse world '%s': %s", levelPath.c_str(), e.what());
 		}
-		catch(const std::exception& e)
+		catch (const std::exception& e)
 		{
 			ReportError("Can't open world '%s': %s", levelPath.c_str(), e.what());
 		}
@@ -116,7 +116,7 @@ namespace GameDataLoader
 		try
 		{
 			std::ofstream mapFile(gameDataPath);
-			nlohmann::json mapJson({{"gameData", gameData.toJson(jsonSerializerHolder)}});
+			nlohmann::json mapJson({ { "gameData", gameData.toJson(jsonSerializerHolder) } });
 
 			mapFile << std::setw(4) << mapJson << std::endl;
 		}
@@ -150,13 +150,13 @@ namespace GameDataLoader
 				gameData.fromJson(worldObject, jsonSerializerHolder);
 			}
 		}
-		catch(const nlohmann::detail::exception& e)
+		catch (const nlohmann::detail::exception& e)
 		{
 			ReportError("Can't parse gameData '%s': %s", gameDataPath.c_str(), e.what());
 		}
-		catch(const std::exception& e)
+		catch (const std::exception& e)
 		{
 			ReportError("Can't open gameData '%s': %s", gameDataPath.c_str(), e.what());
 		}
 	}
-}
+} // namespace GameDataLoader

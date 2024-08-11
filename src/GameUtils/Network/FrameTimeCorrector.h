@@ -10,7 +10,7 @@ public:
 	std::chrono::duration<s64, std::micro> getFrameLengthCorrection() const;
 
 private:
-	std::chrono::duration<s64, std::micro> mCorrectionLeft{0};
+	std::chrono::duration<s64, std::micro> mCorrectionLeft{ 0 };
 	u32 mUpdatesToPeakCorrection = 0;
 	u32 mUpdatesToResetCorrection = 0;
 };

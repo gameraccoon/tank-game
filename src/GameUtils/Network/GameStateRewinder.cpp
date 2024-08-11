@@ -492,7 +492,8 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(const si
 	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>(lastUpdateIdx + 1 - inputSize));
 
 	const Impl::History::ForwardRange records = mPimpl->updateHistory.getRecordsUnsafe(firstInputUpdate, lastUpdateIdx);
-	for (const auto [updateData, updateIdx] : records) {
+	for (const auto [updateData, updateIdx] : records)
+	{
 		// first update may not have input set yet
 		if (updateIdx != firstInputUpdate || hasInputForUpdate(updateIdx))
 		{

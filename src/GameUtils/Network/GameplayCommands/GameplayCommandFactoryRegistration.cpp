@@ -2,10 +2,9 @@
 
 #include "GameUtils/Network/GameplayCommands/GameplayCommandFactoryRegistration.h"
 
-#include "GameUtils/Network/GameplayCommands/GameplayCommandsFactory.h"
-
 #include "GameUtils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 #include "GameUtils/Network/GameplayCommands/CreateProjectileCommand.h"
+#include "GameUtils/Network/GameplayCommands/GameplayCommandsFactory.h"
 
 namespace Network
 {

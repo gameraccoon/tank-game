@@ -88,7 +88,7 @@ namespace ResourceLoading
 			auto it = mDependencies.find(result[i]);
 			if (it != mDependencies.end())
 			{
-				auto removedRange = std::ranges::remove_if(it->second, [dependency](ResourceHandle handle){
+				auto removedRange = std::ranges::remove_if(it->second, [dependency](ResourceHandle handle) {
 					return handle == dependency;
 				});
 				Assert(!removedRange.empty(), "We've got a dependent resource missing info about its dependency");
@@ -110,4 +110,4 @@ namespace ResourceLoading
 
 		return result;
 	}
-}
+} // namespace ResourceLoading

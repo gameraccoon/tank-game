@@ -25,8 +25,8 @@ public:
 
 	public:
 		Iterator(T* element, IndexType recordUpdateIdx)
-			: mData{element}
-			, mRecordUpdateIdx{recordUpdateIdx}
+			: mData{ element }
+			, mRecordUpdateIdx{ recordUpdateIdx }
 		{
 		}
 
@@ -64,12 +64,12 @@ public:
 
 		ConstReference operator*() const
 		{
-			return {*mData, mRecordUpdateIdx};
+			return { *mData, mRecordUpdateIdx };
 		}
 
 		Reference operator*()
 		{
-			return {*mData, mRecordUpdateIdx};
+			return { *mData, mRecordUpdateIdx };
 		}
 
 	private:
@@ -79,9 +79,9 @@ public:
 
 public:
 	HistoryRange(T* begin, T* end, IndexType beginRecordUpdateIdx)
-		: mBegin{begin}
-		, mEnd{end}
-		, mBeginRecordUpdateIdx{beginRecordUpdateIdx}
+		: mBegin{ begin }
+		, mEnd{ end }
+		, mBeginRecordUpdateIdx{ beginRecordUpdateIdx }
 	{
 		if constexpr (IsForward)
 		{
@@ -95,15 +95,16 @@ public:
 
 	Iterator begin() const
 	{
-		return Iterator{mBegin, mBeginRecordUpdateIdx};
+		return Iterator{ mBegin, mBeginRecordUpdateIdx };
 	}
 
 	Iterator end() const
 	{
-		return Iterator{mEnd, mBeginRecordUpdateIdx + static_cast<IndexType>(mEnd - mBegin)};
+		return Iterator{ mEnd, mBeginRecordUpdateIdx + static_cast<IndexType>(mEnd - mBegin) };
 	}
 
-	[[nodiscard]] u32 getUpdatesCount() const {
+	[[nodiscard]] u32 getUpdatesCount() const
+	{
 		if constexpr (IsForward)
 		{
 			return static_cast<u32>(mEnd - mBegin);
@@ -191,7 +192,7 @@ public:
 		AssertFatal(firstIdx >= getFirstStoredUpdateIdx(), "Trying to get forward history range with first idx before the first stored (%u >= %u)", firstIdx, getFirstStoredUpdateIdx());
 		AssertFatal(lastIdx <= getLastStoredUpdateIdx(), "Trying to get forward history range with last idx after the last stored (%u <= %u)", lastIdx, getLastStoredUpdateIdx());
 
-		return ForwardRange{mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx() + 1), firstIdx};
+		return ForwardRange{ mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx() + 1), firstIdx };
 	}
 
 	ReverseRange getRecordsReverseUnsafe(IndexType firstIdx, IndexType lastIdx)
@@ -200,17 +201,17 @@ public:
 		AssertFatal(firstIdx >= getFirstStoredUpdateIdx(), "Trying to get reverse history range with first idx before the first stored (%u >= %u)", firstIdx, getFirstStoredUpdateIdx());
 		AssertFatal(lastIdx <= getLastStoredUpdateIdx(), "Trying to get reverse history range with last idx after the last stored (%u <= %u)", lastIdx, getLastStoredUpdateIdx());
 
-		return ReverseRange{mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx() - 1), lastIdx};
+		return ReverseRange{ mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx() - 1), lastIdx };
 	}
 
 	ForwardRange getAllRecords()
 	{
-		return ForwardRange{mRecords.data(), mRecords.data() + mRecords.size(), getFirstStoredUpdateIdx()};
+		return ForwardRange{ mRecords.data(), mRecords.data() + mRecords.size(), getFirstStoredUpdateIdx() };
 	}
 
 	ReverseRange getAllRecordsReverse()
 	{
-		return ReverseRange{mRecords.data() + (mRecords.size() - 1), mRecords.data() - 1, getLastStoredUpdateIdx()};
+		return ReverseRange{ mRecords.data() + (mRecords.size() - 1), mRecords.data() - 1, getLastStoredUpdateIdx() };
 	}
 
 	void setLastStoredUpdateIdxAndCleanNegativeUpdates(IndexType lastUpdateIdx)

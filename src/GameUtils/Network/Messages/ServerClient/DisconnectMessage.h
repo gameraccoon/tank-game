@@ -10,19 +10,30 @@ class WorldLayer;
 
 namespace Network::ServerClient
 {
-	namespace DisconnectReason {
-		struct IncompatibleNetworkProtocolVersion { u32 serverVersion; u32 clientVersion; };
-		struct ClientShutdown {};
-		struct ServerShutdown {};
-		struct Unknown { u32 reasonIdx; };
+	namespace DisconnectReason
+	{
+		struct IncompatibleNetworkProtocolVersion
+		{
+			u32 serverVersion;
+			u32 clientVersion;
+		};
+		struct ClientShutdown
+		{
+		};
+		struct ServerShutdown
+		{
+		};
+		struct Unknown
+		{
+			u32 reasonIdx;
+		};
 
 		using Value = std::variant<
-		    IncompatibleNetworkProtocolVersion,
+			IncompatibleNetworkProtocolVersion,
 			ClientShutdown,
 			ServerShutdown,
-			Unknown
-		>;
-	}
+			Unknown>;
+	} // namespace DisconnectReason
 
 	[[nodiscard]] std::string ReasonToString(const DisconnectReason::Value& reason);
 

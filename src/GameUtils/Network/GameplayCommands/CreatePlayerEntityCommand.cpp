@@ -50,14 +50,14 @@ namespace Network
 
 #ifndef DISABLE_SDL
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D{0.5f, 0.5f}}, RelativeResourcePath("resources/textures/tank-enemy-level1-1.png"));
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{ Vector2D(16, 16), Vector2D{ 0.5f, 0.5f } }, RelativeResourcePath("resources/textures/tank-enemy-level1-1.png"));
 #endif // !DISABLE_SDL
 
 			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
 			networkId->setId(mNetworkEntityId);
 
 			CollisionComponent* collision = worldEntityManager.addComponent<CollisionComponent>(controlledEntity);
-			collision->setBoundingBox(BoundingBox{Vector2D(-8, -8), Vector2D(8, 8)});
+			collision->setBoundingBox(BoundingBox{ Vector2D(-8, -8), Vector2D(8, 8) });
 
 			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
 			worldEntityManager.addComponent<WeaponComponent>(controlledEntity);
@@ -88,7 +88,7 @@ namespace Network
 
 	void CreatePlayerEntityCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
 	{
-		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4*2);
+		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4 * 2);
 
 		Serialization::AppendNumber<u8>(inOutStream, static_cast<u8>(receiverConnectionId == mOwnerConnectionId));
 		Serialization::AppendNumber<u64>(inOutStream, mNetworkEntityId);
@@ -123,4 +123,4 @@ namespace Network
 		, mOwnerConnectionId(ownerConnectionId)
 	{
 	}
-}
+} // namespace Network

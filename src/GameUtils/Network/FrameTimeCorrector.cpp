@@ -4,7 +4,8 @@
 
 void FrameTimeCorrector::updateIndexShift(s32 indexShift)
 {
-	if (mCorrectionLeft.count() == 0) {
+	if (mCorrectionLeft.count() == 0)
+	{
 		mCorrectionLeft = indexShift * TimeConstants::ONE_FIXED_UPDATE_DURATION;
 		return;
 	}

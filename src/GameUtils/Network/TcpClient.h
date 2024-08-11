@@ -1,10 +1,11 @@
 #pragma once
 
-#include <string>
-#include <optional>
 #include <memory>
+#include <optional>
+#include <string>
 
-class TcpClient {
+class TcpClient
+{
 public:
 	TcpClient();
 	TcpClient(const TcpClient&) = delete;

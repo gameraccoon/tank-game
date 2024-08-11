@@ -47,7 +47,7 @@ namespace Network
 			movement->setMoveDirection(mDirection);
 #ifndef DEDICATED_SERVER
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(projectileEntity);
-			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{Vector2D(16, 16), Vector2D(0.5f, 0.5f)}, RelativeResourcePath("resources/textures/spawn-1.png"));
+			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{ Vector2D(16, 16), Vector2D(0.5f, 0.5f) }, RelativeResourcePath("resources/textures/spawn-1.png"));
 #endif // !DEDICATED_SERVER
 
 			ProjectileComponent* projectile = worldEntityManager.addComponent<ProjectileComponent>(projectileEntity);
@@ -82,7 +82,7 @@ namespace Network
 
 	void CreateProjectileCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId /*receiverConnectionId*/) const
 	{
-		inOutStream.reserve(inOutStream.size() + 8 + 4*2 + 4*2 + 4);
+		inOutStream.reserve(inOutStream.size() + 8 + 4 * 2 + 4 * 2 + 4);
 
 		Serialization::AppendNumber<u64>(inOutStream, mNetworkEntityId);
 		Serialization::AppendNumber<f32>(inOutStream, mPos.x);
@@ -110,4 +110,4 @@ namespace Network
 	{
 		return GameplayCommandType::CreateProjectile;
 	}
-}
+} // namespace Network

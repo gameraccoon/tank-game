@@ -32,7 +32,8 @@ namespace Network
 		static GameplayCommandType GetType();
 
 	private:
-		enum class NetworkSide {
+		enum class NetworkSide
+		{
 			Client,
 			Server,
 		};

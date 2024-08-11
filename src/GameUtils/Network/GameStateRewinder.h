@@ -2,11 +2,10 @@
 
 #include <memory>
 
+#include "GameData/EcsDefinitions.h"
 #include "GameData/Input/GameplayInputFrameState.h"
 #include "GameData/Network/GameplayCommand.h"
 #include "GameData/Time/TimeData.h"
-
-#include "GameData/EcsDefinitions.h"
 
 class WorldLayer;
 struct MovementUpdateData;

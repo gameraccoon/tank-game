@@ -57,8 +57,7 @@ namespace Utils
 
 				if (i == 0
 					|| oneKeyHistory.changes[oneKeyHistory.count - 1].state != keyInfo.state
-					|| oneKeyHistory.changes[oneKeyHistory.count - 1].lastFlipTime != keyInfo.lastFlipTime
-				)
+					|| oneKeyHistory.changes[oneKeyHistory.count - 1].lastFlipTime != keyInfo.lastFlipTime)
 				{
 					oneKeyHistory.changes[oneKeyHistory.count].state = keyInfo.state;
 					oneKeyHistory.changes[oneKeyHistory.count].lastFlipTime = keyInfo.lastFlipTime;
@@ -97,7 +96,7 @@ namespace Utils
 
 			for (size_t changeIdx = 0; changeIdx < oneKeyHistory.count; ++changeIdx)
 			{
-				const KeyInputChange& keyChange	= oneKeyHistory.changes[changeIdx];
+				const KeyInputChange& keyChange = oneKeyHistory.changes[changeIdx];
 				const size_t endFrameIdx = (changeIdx < oneKeyHistory.count - 1) ? oneKeyHistory.changes[changeIdx + 1].index : inputsToSend;
 
 				static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE <= 256, "u8 is too small to fit history length");
@@ -147,4 +146,4 @@ namespace Utils
 
 		return result;
 	}
-}
+} // namespace Utils
