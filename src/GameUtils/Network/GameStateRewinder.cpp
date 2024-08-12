@@ -16,6 +16,27 @@
 class GameStateRewinder::Impl
 {
 public:
+	/// In the history for each update we store: game state, input, moves, and commands.
+	///
+	/// Game state is the actual state of the game world, including all entities and their components.
+	/// Game state is not communicated between client and server, it is only used for simulation.
+	/// The client can resimulate game states from the past if major desyncs are detected.
+	/// The server will keep the updates that it simulated untouched ((not implemented yet)but can look up the history to confirm the correctness of the clients' requests).
+	///
+	/// Input is the actual controller input recorded from hardware and converted into gameplay-related button states and axis values.
+	/// Input is client-authoritive, however if input is lost beyond thresholds, server will predict the input and store it as authoritive.
+	/// Input is sent from client to server and never back.
+	///
+	/// Moves is the information enough to position the entities in the world (and predict their movememnt if needed by the gameplay).
+	/// Moves are server-authoritive, client will predict them, and will correct them if the server sends different data.
+	/// Moves are sent from server to client and never back.
+	/// Messages with moves can be lost for some updates and not resent, because the client only cares about the latest movements.
+	///
+	/// Commands are important information about state changes, examples can be entity creations and removals, health changes, etc.
+	/// Commands are server-authoritive, client will predict them, and will rewind the game back in history to correct them and resimulate the game.
+	/// Commands are sent from server to client and never back.
+	/// Messages with commands are never lost, all of them are important for the client to have the same game state as the server.
+	/// (not implemented yet) If the messages are lost beyond the threshold, the client should request the server to resend the full state as if it just connected.
 	struct OneUpdateData
 	{
 		enum class SyncState : u8
