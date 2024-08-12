@@ -5,7 +5,6 @@
 #include "EngineCommon/Types/Serialization.h"
 
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
-#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
 
@@ -22,12 +21,12 @@ namespace Network::ServerClient
 		const size_t totalCommandsCount = commandList.gameplayGeneratedCommands.list.size() + commandList.externalCommands.list.size();
 		AssertFatal(totalCommandsCount < static_cast<size_t>(std::numeric_limits<u16>::max()), "We have more messages than our size type can store");
 		Serialization::AppendNumberNarrowCast<u16>(messageData, totalCommandsCount);
-		for (const Network::GameplayCommand::Ptr& gameplayCommand : commandList.externalCommands.list)
+		for (const GameplayCommand::Ptr& gameplayCommand : commandList.externalCommands.list)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(gameplayCommand->getType()));
 			gameplayCommand->serverSerialize(world, messageData, connectionId);
 		}
-		for (const Network::GameplayCommand::Ptr& gameplayCommand : commandList.gameplayGeneratedCommands.list)
+		for (const GameplayCommand::Ptr& gameplayCommand : commandList.gameplayGeneratedCommands.list)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(gameplayCommand->getType()));
 			gameplayCommand->serverSerialize(world, messageData, connectionId);

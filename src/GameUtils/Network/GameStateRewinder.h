@@ -52,9 +52,9 @@ public:
 	/// After we done with simulating the update, call this to switch to the new one
 	void advanceSimulationToNextUpdate(u32 newUpdateIdx);
 
-	/// Returns the last update index that is fully acknowledged by the server
+	/// Client-specific. Returns the last update index that is fully acknowledged by the server
 	u32 getLastConfirmedClientUpdateIdx() const;
-	/// Returns the first update index that the server disagrees with, and that is needs to be resimulated
+	/// Client-specific. Returns the first update index that the server disagrees with, and that is needs to be resimulated
 	u32 getFirstDesyncedUpdateIdx() const;
 
 	// command-related
@@ -86,8 +86,8 @@ public:
 	// meaningful only on client
 	/// Add movement that was simulated locally and is not yet confirmed by the server
 	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
-	/// Add movement received from the server
-	void applyAuthoritativeMoves(u32 updateIdx, bool isFinal, MovementUpdateData&& authoritativeMovementData);
+	/// Apply movement received from the server
+	void applyAuthoritativeMoves(u32 updateIdx, MovementUpdateData&& authoritativeMovementData);
 	/// Returns the movement for the specific update (unsafe)
 	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
 	/// Returns true if the update has confirmed movement from the server

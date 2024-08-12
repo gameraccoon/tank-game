@@ -56,9 +56,6 @@ void ServerMovesSendSystem::update()
 	TupleVector<const TransformComponent*, const NetworkIdComponent*> components;
 	world.getEntityManager().getComponents<const TransformComponent, const NetworkIdComponent>(components);
 
-	const std::optional<u32> lastAllPlayersInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayers(connections);
-	const u32 lastAllPlayersInputUpdateIdx = lastAllPlayersInputUpdateIdxOption.value_or(0);
-
 	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 	AssertFatal(time, "TimeComponent should be created before the game run");
 	const TimeData& timeValue = *time->getValue();
@@ -70,7 +67,7 @@ void ServerMovesSendSystem::update()
 
 		connectionManager->sendMessageToClient(
 			connectionId,
-			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, lastAllPlayersInputUpdateIdx, indexShift),
+			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, indexShift),
 			HAL::ConnectionManager::MessageReliability::Unreliable
 		);
 	}

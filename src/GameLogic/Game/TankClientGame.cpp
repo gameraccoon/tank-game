@@ -285,7 +285,10 @@ void TankClientGame::removeOldUpdates()
 	// don't keep more frames than max
 	const size_t maxUpdateToStore = std::min(updatesCountBeforeTrim, MAX_STORED_UPDATES_COUNT);
 	// if we have some confirmed frames that are now safe to remove
-	const u32 firstUpdateIdxToKeep = std::max(lastFullyConfirmedUpdateIdx, static_cast<u32>(lastUpdateIdx + 1 - maxUpdateToStore));
+	const u32 minBoundOfFramesToKeep = static_cast<u32>(lastUpdateIdx + 1 - maxUpdateToStore);
+	const u32 maxBoundOfFramesToKeep = lastUpdateIdx - 1;
+	AssertFatal(minBoundOfFramesToKeep <= maxBoundOfFramesToKeep, "Invalid bounds of frames");
+	const u32 firstUpdateIdxToKeep = std::clamp(lastFullyConfirmedUpdateIdx, minBoundOfFramesToKeep, maxBoundOfFramesToKeep);
 
 	mGameStateRewinder.trimOldUpdates(firstUpdateIdxToKeep);
 }

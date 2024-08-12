@@ -153,7 +153,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_TrimSomeOldFrames_OldFramesPushedIn
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.trimOldUpdates(2, [](int& frameValue) {
+	history.trimOldUpdates(2, [](const int& frameValue) {
 		ASSERT_EQ(frameValue, 0);
 	});
 
@@ -179,7 +179,7 @@ TEST(BoundCheckedHistory, HistoryWithUpdates_TrimAllOldFrames_OldFramesPushedInt
 	BoundCheckedHistory<int, int> history;
 	history.getOrCreateRecordByUpdateIdx(3);
 
-	history.trimOldUpdates(3, [](int& frameValue) {
+	history.trimOldUpdates(3, [](const int& frameValue) {
 		ASSERT_EQ(frameValue, 0);
 	});
 

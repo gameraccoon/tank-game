@@ -33,7 +33,7 @@ void ServerCommandsSendSystem::update()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+	const ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<const ServerConnectionsComponent>();
 
 	const auto& connections = serverConnections->getClientData();
 
@@ -52,12 +52,6 @@ void ServerCommandsSendSystem::update()
 		const u32 updateIdx = firstFrameUpdateIdx + i;
 
 		const Network::GameplayCommandHistoryRecord& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
-		if (updateCommands.gameplayGeneratedCommands.list.empty() && updateCommands.externalCommands.list.empty())
-		{
-			// no commands that frame
-			continue;
-		}
-
 		for (const auto [connectionId, oneClientData] : connections)
 		{
 			connectionManager->sendMessageToClient(

@@ -31,15 +31,14 @@ namespace Network::ServerClient
 		return (bitset & (1 << bitIndex)) != 0;
 	}
 
-	HAL::Network::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, u32 updateIdx, u32 lastKnownPlayerInputUpdateIdx, u32 lastKnownAllPlayersInputUpdateIdx, s32 indexShift)
+	HAL::Network::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, const u32 updateIdx, const u32 lastKnownPlayerInputUpdateIdx, const s32 indexShift)
 	{
 		std::vector<std::byte> movesMessageData;
 
 		const bool hasMissingInput = lastKnownPlayerInputUpdateIdx < updateIdx;
-		const bool hasFinalInputs = lastKnownAllPlayersInputUpdateIdx >= updateIdx;
 		const bool hasIndexShift = indexShift != 0;
 
-		Serialization::AppendNumber<u8>(movesMessageData, packBoolsIntoBitset<u8>(hasMissingInput, hasFinalInputs, hasIndexShift));
+		Serialization::AppendNumber<u8>(movesMessageData, packBoolsIntoBitset<u8>(hasMissingInput, hasIndexShift));
 		if (hasMissingInput)
 		{
 			Serialization::AppendNumber<u32>(movesMessageData, lastKnownPlayerInputUpdateIdx);
@@ -75,8 +74,7 @@ namespace Network::ServerClient
 		u32 lastReceivedInputUpdateIdx = 0;
 		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
 		const bool hasMissingInput = isBitSet<u8, 0>(bitset);
-		const bool hasFinalInput = isBitSet<u8, 1>(bitset);
-		const bool hasIndexShift = isBitSet<u8, 2>(bitset);
+		const bool hasIndexShift = isBitSet<u8, 1>(bitset);
 
 		if (hasMissingInput)
 		{
@@ -116,6 +114,6 @@ namespace Network::ServerClient
 
 		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
-		gameStateRewinder.applyAuthoritativeMoves(updateIdx, hasFinalInput, std::move(currentUpdateData));
+		gameStateRewinder.applyAuthoritativeMoves(updateIdx, std::move(currentUpdateData));
 	}
 } // namespace Network::ServerClient

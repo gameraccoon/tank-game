@@ -45,10 +45,8 @@ public:
 			NoData = 0,
 			// stored predicted data
 			Predicted = 1,
-			// (client-only) stored authoritative data from server that can still be overwritten by future corrections of the server state
-			NotFinalAuthoritative = 2,
-			// final data that can't be overwritten
-			FinalAuthoritative = 3,
+			// authoritive data that can't be overwritten (confirmed by the authoritive side of the connection)
+			Authoritative = 2,
 		};
 
 		enum class StateType : u8
@@ -194,13 +192,15 @@ void GameStateRewinder::advanceSimulationToNextUpdate(const u32 newUpdateIdx)
 
 u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 {
+	assertClientOnly();
+
 	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
 	for (const auto [updateData, updateIdx] : records)
 	{
 		const Impl::OneUpdateData::SyncState moveState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
 		const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
 
-		if (moveState == Impl::OneUpdateData::SyncState::FinalAuthoritative && commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
+		if (moveState == Impl::OneUpdateData::SyncState::Authoritative && commandsState == Impl::OneUpdateData::SyncState::Authoritative)
 		{
 			return updateIdx;
 		}
@@ -247,7 +247,7 @@ void GameStateRewinder::appendExternalCommandToHistory(const u32 updateIdx, Netw
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
 	const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
-	if (commandsState == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
+	if (commandsState == Impl::OneUpdateData::SyncState::Authoritative)
 	{
 		ReportError("Trying to append command to update %u that already has authoritative commands", updateIdx);
 		return;
@@ -265,7 +265,7 @@ void GameStateRewinder::applyAuthoritativeCommands(const u32 updateIdx, std::vec
 
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
-	if (updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands) == Impl::OneUpdateData::SyncState::FinalAuthoritative)
+	if (updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands) == Impl::OneUpdateData::SyncState::Authoritative)
 	{
 		ReportError("Trying to apply authoritative commands to update %u that already has final authoritative commands", updateIdx);
 		return;
@@ -277,7 +277,7 @@ void GameStateRewinder::applyAuthoritativeCommands(const u32 updateIdx, std::vec
 	}
 
 	updateData.gameplayCommands.gameplayGeneratedCommands.list = std::move(commands);
-	updateData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::NotFinalAuthoritative);
+	updateData.dataState.setState(Impl::OneUpdateData::StateType::Commands, Impl::OneUpdateData::SyncState::Authoritative);
 }
 
 void GameStateRewinder::writeSimulatedCommands(const u32 updateIdx, const Network::GameplayCommandList& updateCommands)
@@ -288,7 +288,7 @@ void GameStateRewinder::writeSimulatedCommands(const u32 updateIdx, const Networ
 	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
 
 	const Impl::OneUpdateData::SyncState commandsState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
-	if (commandsState == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || commandsState == Impl::OneUpdateData::SyncState::FinalAuthoritative)
+	if (commandsState == Impl::OneUpdateData::SyncState::Authoritative)
 	{
 		return;
 	}
@@ -305,7 +305,7 @@ bool GameStateRewinder::hasConfirmedCommandsForUpdate(const u32 updateIdx) const
 	{
 		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Commands);
-		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
+		return state == Impl::OneUpdateData::SyncState::Authoritative;
 	}
 
 	return false;
@@ -446,7 +446,7 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 	}
 }
 
-void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const bool isFinal, MovementUpdateData&& authoritativeMovementData)
+void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, MovementUpdateData&& authoritativeMovementData)
 {
 	assertClientOnly();
 	assertNotChangingFarFuture(updateIdx);
@@ -473,8 +473,7 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, const bool 
 			LogInfo("We got desynced movement data for update %u", updateIdx);
 		}
 
-		const Impl::OneUpdateData::SyncState newMovementDataState = isFinal ? Impl::OneUpdateData::SyncState::FinalAuthoritative : Impl::OneUpdateData::SyncState::NotFinalAuthoritative;
-		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, newMovementDataState);
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Authoritative);
 	}
 }
 
@@ -493,7 +492,7 @@ bool GameStateRewinder::hasConfirmedMovesForUpdate(const u32 updateIdx) const
 	{
 		const Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
 		const Impl::OneUpdateData::SyncState state = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
-		return state == Impl::OneUpdateData::SyncState::NotFinalAuthoritative || state == Impl::OneUpdateData::SyncState::FinalAuthoritative;
+		return state == Impl::OneUpdateData::SyncState::Authoritative;
 	}
 
 	return false;
