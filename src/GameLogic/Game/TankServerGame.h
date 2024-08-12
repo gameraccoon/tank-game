@@ -20,19 +20,19 @@ public:
 	TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex) noexcept;
 
 	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
-	void initResources() final;
-	void notPausablePreFrameUpdate(float dt) final;
-	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
-	void fixedTimeUpdate(float dt) final;
-	void notPausablePostFrameUpdate(float dt) final;
+	void initResources() override;
+	void notPausablePreFrameUpdate(float dt) override;
+	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) override;
+	void fixedTimeUpdate(float dt) override;
+	void notPausablePostFrameUpdate(float dt) override;
 
-	bool shouldPauseGame() const final { return mShouldPauseGame; }
-	bool shouldQuitGame() const final { return mShouldQuitGame; }
-	void quitGame() final { mShouldQuitGame = true; }
-	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const final { return std::chrono::microseconds(0); }
+	bool shouldPauseGame() const override { return mShouldPauseGame; }
+	bool shouldQuitGame() const override { return mShouldQuitGame; }
+	void quitGame() override { mShouldQuitGame = true; }
+	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const override { return std::chrono::microseconds(0); }
 
 protected:
-	TimeData& getTimeData() final;
+	TimeData& getTimeData() override;
 
 private:
 	void initSystems(bool shouldRender);

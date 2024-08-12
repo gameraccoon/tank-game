@@ -60,7 +60,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
-	std::optional<HAL::Network::NetworkAddress> newNetworkAddress = HAL::Network::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
+	const std::optional<HAL::Network::NetworkAddress> newNetworkAddress = HAL::Network::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
 	if (newNetworkAddress.has_value())
 	{
 		mServerAddress = *newNetworkAddress;
@@ -102,7 +102,7 @@ void TankClientGame::initResources()
 	Game::initResources();
 }
 
-void TankClientGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+void TankClientGame::dynamicTimePreFrameUpdate(const float dt, const int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankClientGame::dynamicTimePreFrameUpdate");
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
@@ -112,7 +112,7 @@ void TankClientGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 	processCorrections();
 }
 
-void TankClientGame::fixedTimeUpdate(float dt)
+void TankClientGame::fixedTimeUpdate(const float dt)
 {
 	SCOPED_PROFILER("TankClientGame::fixedTimeUpdate");
 
@@ -126,11 +126,11 @@ void TankClientGame::fixedTimeUpdate(float dt)
 	mFrameTimeCorrector.advanceOneUpdate();
 }
 
-void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpdates)
+void TankClientGame::dynamicTimePostFrameUpdate(const float dt, const int processedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankClientGame::dynamicTimePostFrameUpdate");
 
-	Game::dynamicTimePostFrameUpdate(dt, processedFixedUpdates);
+	Game::dynamicTimePostFrameUpdate(dt, processedFixedTimeUpdates);
 	if (mShouldQuitGameNextTick)
 	{
 		mShouldQuitGame = true;
@@ -139,7 +139,7 @@ void TankClientGame::dynamicTimePostFrameUpdate(float dt, int processedFixedUpda
 	auto [clientGameData] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<ClientGameDataComponent>();
 	if (clientGameData != nullptr)
 	{
-		ConnectionId connectionId = clientGameData->getClientConnectionId();
+		const ConnectionId connectionId = clientGameData->getClientConnectionId();
 		mConnectionManager.flushMessagesForServerConnection(connectionId);
 	}
 }

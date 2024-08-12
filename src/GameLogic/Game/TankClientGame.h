@@ -24,17 +24,17 @@ public:
 
 	void preStart(const ArgumentsParser& arguments, std::optional<RenderAccessorGameRef> renderAccessor);
 	void initResources() override;
-	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) final;
-	void fixedTimeUpdate(float dt) final;
-	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) final;
+	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) override;
+	void fixedTimeUpdate(float dt) override;
+	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) override;
 
-	bool shouldPauseGame() const final { return mShouldPauseGame; }
-	bool shouldQuitGame() const final { return mShouldQuitGame; }
-	void quitGame() final { mShouldQuitGameNextTick = true; }
-	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const final;
+	bool shouldPauseGame() const override { return mShouldPauseGame; }
+	bool shouldQuitGame() const override { return mShouldQuitGame; }
+	void quitGame() override { mShouldQuitGameNextTick = true; }
+	std::chrono::duration<int64_t, std::micro> getFrameLengthCorrection() const override;
 
 protected:
-	TimeData& getTimeData() final;
+	TimeData& getTimeData() override;
 
 private:
 	void initSystems();

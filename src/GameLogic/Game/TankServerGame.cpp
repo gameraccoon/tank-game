@@ -2,8 +2,6 @@
 
 #include "GameLogic/Game/TankServerGame.h"
 
-#include "EngineCommon/Types/TemplateHelpers.h"
-
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
@@ -38,7 +36,7 @@
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 #include "GameLogic/Systems/ShootingSystem.h"
 
-TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex) noexcept
+TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, const int instanceIndex) noexcept
 	: Game(nullptr, resourceManager, threadPool, instanceIndex)
 {
 }
@@ -85,7 +83,7 @@ void TankServerGame::initResources()
 	Game::initResources();
 }
 
-void TankServerGame::notPausablePreFrameUpdate(float dt)
+void TankServerGame::notPausablePreFrameUpdate(const float dt)
 {
 	SCOPED_PROFILER("TankServerGame::notPausablePreFrameUpdate");
 
@@ -94,7 +92,7 @@ void TankServerGame::notPausablePreFrameUpdate(float dt)
 	Game::notPausablePreFrameUpdate(dt);
 }
 
-void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+void TankServerGame::dynamicTimePreFrameUpdate(const float dt, const int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankServerGame::dynamicTimePreFrameUpdate");
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
@@ -102,7 +100,7 @@ void TankServerGame::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpd
 	updateHistory();
 }
 
-void TankServerGame::fixedTimeUpdate(float dt)
+void TankServerGame::fixedTimeUpdate(const float dt)
 {
 	SCOPED_PROFILER("TankServerGame::fixedTimeUpdate");
 
@@ -114,7 +112,7 @@ void TankServerGame::fixedTimeUpdate(float dt)
 	Game::fixedTimeUpdate(dt);
 }
 
-void TankServerGame::notPausablePostFrameUpdate(float dt)
+void TankServerGame::notPausablePostFrameUpdate(const float dt)
 {
 	SCOPED_PROFILER("TankServerGame::notPausablePostFrameUpdate");
 
@@ -128,7 +126,7 @@ TimeData& TankServerGame::getTimeData()
 	return mGameStateRewinder.getTimeData();
 }
 
-void TankServerGame::initSystems([[maybe_unused]] bool shouldRender)
+void TankServerGame::initSystems([[maybe_unused]] const bool shouldRender)
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
@@ -167,7 +165,7 @@ void TankServerGame::updateHistory()
 
 	const u32 lastProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
-	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+	const ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 	std::vector<std::pair<ConnectionId, s32>> players;
 	players.reserve(serverConnections->getClientData().size());
 	for (auto [connectionId, oneClientData] : serverConnections->getClientData())
