@@ -47,18 +47,18 @@ jobs:
       uses: KyleMayes/install-llvm-action@v2
       with:
         version: "18.1"
-        directory: ${{ runner.temp }}/llvm
+        directory: ${{runner.temp}}/llvm
         env: true
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v4
 
+    - name: Install GCC libraries
+      run: sudo apt-get install g++-12
+
     - name: Generate project
       shell: bash
       working-directory: ${{github.workspace}}/build/game
-      env:
-        CC: clang-18
-        CXX: clang++-18
       run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE --preset linux-ninja-clang
 
     - name: Build game
