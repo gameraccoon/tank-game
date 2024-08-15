@@ -46,7 +46,7 @@ jobs:
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2
       with:
-        version: "16.0"
+        version: "17.0"
         directory: ${{runner.temp}}/llvm
         env: true
 
