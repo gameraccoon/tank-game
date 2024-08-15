@@ -46,15 +46,12 @@ jobs:
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v2
       with:
-        version: "18.1"
+        version: "16.0"
         directory: ${{runner.temp}}/llvm
         env: true
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v4
-
-    - name: Install GCC libraries
-      run: sudo apt-get install g++-12
 
     - name: Generate project
       shell: bash
