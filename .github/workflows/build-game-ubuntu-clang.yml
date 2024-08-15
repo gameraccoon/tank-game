@@ -57,8 +57,8 @@ jobs:
       shell: bash
       working-directory: ${{github.workspace}}/build/game
       env:
-        CC: clang-16
-        CXX: clang++-16
+        CC: clang-18
+        CXX: clang++-18
       run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE --preset linux-ninja-clang
 
     - name: Build game
