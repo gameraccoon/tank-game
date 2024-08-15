@@ -47,6 +47,8 @@ jobs:
       uses: KyleMayes/install-llvm-action@v1
       with:
         version: "16.0"
+        directory: ${{ runner.temp }}/llvm
+        env: true
 
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v4
