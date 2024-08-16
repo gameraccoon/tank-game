@@ -6,6 +6,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 # parameters
+option(WEB_BUILD "Build for WebAssembly" OFF)
 option(DEBUG_CHECKS "Enable debug checks and assertions" ON)
 option(ENABLE_SCOPED_PROFILER "Enable profiler that records time of execution of scopes across threads" OFF)
 option(MEMLEAK_DETECTION "Enable memory leaks detection code (slow)" OFF)
@@ -130,7 +131,6 @@ include_directories(
 
 link_directories(
 	${EXTERNALS_DIR}/lib/${BIN_PLATFORM}
-	${GAME_BASE_DIR}/vs_project
 )
 
 function(add_folder_as_library folder_path name)
@@ -163,7 +163,11 @@ add_folder_as_library(${ENGINE_SRC_DIR}/EngineLogic EngineLogic)
 # ECS systems and glue code (specific to one game)
 add_folder_as_library(${GAME_SRC_DIR}/GameLogic GameLogic)
 
-file(GLOB_RECURSE APP_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/GameMain/*")
+if(WEB_BUILD)
+	file(GLOB_RECURSE APP_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/WebAssembly/*")
+else()
+	file(GLOB_RECURSE APP_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/GameMain/*")
+endif()
 add_executable(${APP_NAME} "${APP_SRC}")
 target_compile_options(${APP_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
 
@@ -174,17 +178,29 @@ if(MSVC)
 endif()
 
 if(NOT DISABLE_SDL)
-	# SDL2
-	add_subdirectory(${EXTERNALS_DIR}/sources/SDL EXCLUDE_FROM_ALL)
-	include_directories(${EXTERNALS_DIR}/sources/SDL/include)
+	if(WEB_BUILD)
+		# For web build we need to use SDL2, SDL2_image and SDL2_mixer ports for Emscripten
+		set(USE_FLAGS "-sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sSDL2_IMAGE_FORMATS='[\"png\"]' -sUSE_SDL_MIXER=2")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+	else()
+		# SDL2
+		add_subdirectory(${EXTERNALS_DIR}/sources/SDL EXCLUDE_FROM_ALL)
+		include_directories(${EXTERNALS_DIR}/sources/SDL/include)
 
-	#SDL_image
-	add_subdirectory(${EXTERNALS_DIR}/sources/SDL_image EXCLUDE_FROM_ALL)
-	include_directories(${EXTERNALS_DIR}/sources/SDL_image)
+		#SDL_image
+		add_subdirectory(${EXTERNALS_DIR}/sources/SDL_image EXCLUDE_FROM_ALL)
+		include_directories(${EXTERNALS_DIR}/sources/SDL_image)
 
-	#SDL_mixer
-	add_subdirectory(${EXTERNALS_DIR}/sources/SDL_mixer EXCLUDE_FROM_ALL)
-	include_directories(${EXTERNALS_DIR}/sources/SDL_mixer/include)
+		#SDL_mixer
+		add_subdirectory(${EXTERNALS_DIR}/sources/SDL_mixer EXCLUDE_FROM_ALL)
+		include_directories(${EXTERNALS_DIR}/sources/SDL_mixer/include)
+	endif()
+endif()
+
+if(WEB_BUILD)
+	set_target_properties(${APP_NAME} PROPERTIES LINK_FLAGS "--preload-file resources -s ASSERTIONS=1 -s GL_ASSERTIONS=1 -s LEGACY_GL_EMULATION=1")
 endif()
 
 # ImGui
@@ -249,11 +265,24 @@ endif()
 if(NOT DISABLE_SDL)
 	set(GENERAL_PROJECT_LIBS
 		${GENERAL_PROJECT_LIBS}
-		SDL2::SDL2-static
-		SDL2_image
-		SDL2_mixer
-		SDL2main
 	)
+
+	if(NOT WEB_BUILD)
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			SDL2::SDL2-static
+			SDL2_image
+			SDL2_mixer
+			SDL2main
+		)
+	else()
+		set(GENERAL_PROJECT_LIBS
+			${GENERAL_PROJECT_LIBS}
+			SDL2
+			SDL2_image_png
+			SDL2_mixer
+		)
+	endif()
 endif()
 
 if(IMGUI_ENABLED)
