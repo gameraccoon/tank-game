@@ -1,0 +1,67 @@
+name: Ubuntu - build for Emscripten
+
+on:
+  push:
+    paths:
+      - .github/workflows/build-game-ubuntu-emscripten.yml
+      - .gitmodules
+      - config/**
+      - external/**
+      - src/**
+      - scripts/**
+      - CMakeLists.txt
+      - CMakePresets.json
+  workflow_dispatch:
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release]
+    env:
+      BUILD_TYPE: ${{matrix.build_type}}
+
+    steps:
+    - name: Checkout code with lfs
+      uses: nschloe/action-cached-lfs-checkout@v1
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build/game
+
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://github.com/".insteadOf
+        git@github.com:
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Install and setup Emscripten SDK
+      shell: bash
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install latest
+        ./emsdk activate latest
+        source ./emsdk_env.sh
+
+    - name: Create build folder for web and prepare resources
+      run: |
+        mkdir -p ${{github.workspace}}/build/game-web
+        ln ${{github.workspace}}/resources ${{github.workspace}}/build/game-web/resources -s
+
+    - name: Generate project
+      shell: bash
+      working-directory: ${{github.workspace}}/build/game-web
+      run: cmake -DCMAKE_TOOLCHAIN_FILE=${{github.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G "Unix Makefiles" -DWEB_BUILD=ON -DFAKE_NETWORK=ON -DIMGUI_ENABLED=OFF -DBUILD_UNIT_TESTS=OFF -DBUILD_AUTO_TESTS=OFF ${{github.workspace}}
+
+    - name: Build game
+      working-directory: ${{github.workspace}}/build/game-web
+      shell: bash
+      run: make
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: web-build
+        path: ./bin
