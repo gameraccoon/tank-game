@@ -372,7 +372,7 @@ if(BUILD_AUTO_TESTS)
 endif()
 
 # symlink resources dir
-if(NOT EXISTS "${GAME_BIN_DIR}/resources")
+if(NOT EXISTS "${GAME_BIN_DIR}/resources" AND NOT WEB_BUILD)
 	execute_process(
 		COMMAND ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/resources" "${GAME_BIN_DIR}/resources"
 		COMMAND_ERROR_IS_FATAL ANY
