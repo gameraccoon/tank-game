@@ -13,5 +13,4 @@ cp -rL resources package/dedicated_server/
 rm -r package/dedicated_server/resources/animations
 rm -r package/dedicated_server/resources/atlas
 rm -r package/dedicated_server/resources/fonts
-rm -r package/dedicated_server/resources/prefabs
 rm -r package/dedicated_server/resources/textures
