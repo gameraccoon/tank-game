@@ -87,6 +87,10 @@ if(FAKE_NETWORK)
 	add_definitions(-DFAKE_NETWORK)
 endif()
 
+if(WEB_BUILD)
+	add_definitions(-DWEB_BUILD)
+endif()
+
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)

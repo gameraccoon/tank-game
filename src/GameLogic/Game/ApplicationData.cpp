@@ -20,7 +20,9 @@ ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, 
 	if (renderEnabled)
 	{
 		engine.emplace(800, 600);
+#ifndef WEB_BUILD
 		resourceManager.startLoadingThread([this] { threadSaveProfileData(ResourceLoadingThreadId); });
+#endif // !WEB_BUILD
 	}
 #endif // !DISABLE_SDL
 }

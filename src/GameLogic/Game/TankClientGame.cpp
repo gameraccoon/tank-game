@@ -83,7 +83,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	}
 
 	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().addComponent<GameplayCommandFactoryComponent>();
-	Network::RegisterGameplayCommands(gameplayFactory->getInstanceRef());
+	RegisterGameplayCommands(gameplayFactory->getInstanceRef());
 
 	Game::preStart(arguments);
 
@@ -269,7 +269,8 @@ void TankClientGame::removeOldUpdates()
 
 	WorldLayer& world = getWorldHolder().getDynamicWorldLayer();
 
-	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
+	const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+	const TimeData& lastUpdateTime = *time->getValue();
 
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 	const u32 firstUpdateIdx = mGameStateRewinder.getFirstStoredUpdateIdx();

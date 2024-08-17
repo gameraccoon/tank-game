@@ -31,6 +31,8 @@ struct EmscriptenLoopData
 #ifndef DISABLE_SDL
 	std::unique_ptr<GraphicalClient> client;
 	TankClientGame* game;
+	ResourceManager* resourceManager;
+	std::function<void()> renderFn;
 #else
 	std::unique_ptr<TankClientGame> game;
 #endif // DISABLE_SDL
@@ -46,8 +48,10 @@ static void mainLoopBody(void* data)
 	{
 #ifndef DISABLE_SDL
 		loopData.client->engine.parseEvents();
-		loopData.gameLoopRunner.loopBodyFn(*loopData.game, [&engine = loopData.client->engine]() {
+		loopData.gameLoopRunner.loopBodyFn(*loopData.game, [&engine = loopData.client->engine, &renderFn = loopData.renderFn, &resourceManager = *loopData.resourceManager]() {
 			engine.getLastFrameEvents().clear();
+			resourceManager.runThreadTasks(Resource::Thread::Loading);
+			renderFn();
 		});
 #else
 		loopData.gameLoopRunner.loopBodyFn(*loopData.game);
@@ -82,24 +86,29 @@ int main(const int argc, char** argv)
 #endif
 
 	ApplicationData applicationData(
-		ApplicationData::DefaultWorkerThreadCount,
+		0,
 		0,
 		std::filesystem::current_path(),
+#ifdef DISABLE_SDL
+		ApplicationData::Render::Disabled
+#else
 		ApplicationData::Render::Enabled
+#endif // DISABLE_SDL
 	);
 
 	std::optional<RenderAccessorGameRef> renderAccessor;
-#ifndef DISABLE_SDL
-	applicationData.startRenderThread();
-	applicationData.renderThread.setAmountOfRenderedGameInstances(1);
-
-	renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
-#endif // DISABLE_SDL
-
 	EmscriptenLoopData loopData;
 #ifndef DISABLE_SDL
+	applicationData.renderThread.setAmountOfRenderedGameInstances(1);
+	renderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
+
 	loopData.client = std::make_unique<GraphicalClient>(applicationData, 0);
 	loopData.game = &loopData.client->game;
+	// we need to manager the render "thread" in the main loop for emscripten
+	loopData.renderFn = [&client = *loopData.client, &applicationData]() {
+		applicationData.renderThread.runInMainThread(applicationData.renderThread.getAccessor(), applicationData.resourceManager, client.engine);
+	};
+	loopData.resourceManager = &applicationData.resourceManager;
 #else
 	loopData.game = std::make_unique<TankClientGame>(nullptr, applicationData.resourceManager, applicationData.threadPool, 0);
 #endif // DISABLE_SDL
