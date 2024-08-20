@@ -3,6 +3,7 @@
 #include "GameLogic/Resources/TileSet.h"
 
 #include <filesystem>
+#include <unordered_map>
 
 #include <nlohmann/json.hpp>
 
