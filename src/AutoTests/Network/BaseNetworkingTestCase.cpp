@@ -12,7 +12,7 @@
 
 #include "AutoTests/BasicTestChecks.h"
 
-BaseNetworkingTestCase::BaseNetworkingTestCase(int clientsCount)
+BaseNetworkingTestCase::BaseNetworkingTestCase(const int clientsCount)
 	: mClientsCount(clientsCount)
 {}
 
@@ -37,8 +37,6 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 	}
 #endif // !DISABLE_SDL
 
-	std::unique_ptr<std::thread> serverThread;
-
 	std::optional<RenderAccessorGameRef> serverRenderAccessor;
 
 #ifndef DISABLE_SDL
@@ -47,8 +45,7 @@ TestChecklist BaseNetworkingTestCase::start(const ArgumentsParser& arguments)
 		serverRenderAccessor = RenderAccessorGameRef(applicationData.renderThread.getAccessor(), 0);
 	}
 #endif // !DISABLE_SDL
-
-	ArgumentsParser serverArguments = overrideServerArguments(arguments);
+	const ArgumentsParser serverArguments = overrideServerArguments(arguments);
 	std::vector<ArgumentsParser> clientArguments;
 	clientArguments.reserve(mClientsCount);
 	for (int i = 0; i < mClientsCount; ++i)
@@ -148,7 +145,7 @@ void BaseNetworkingTestCase::updateServer()
 	mServerGame->notPausablePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 }
 
-void BaseNetworkingTestCase::updateClient(int clientIndex)
+void BaseNetworkingTestCase::updateClient(const int clientIndex)
 {
 	AssertFatal(clientIndex >= 0 && clientIndex < mClientsCount, "Invalid client index %d, clients count is %d", clientIndex, mClientsCount);
 	mClientGames[clientIndex]->notPausablePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);

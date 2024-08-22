@@ -22,7 +22,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 			, mKeepConnectedCheck(keepConnectedCheck)
 		{}
 
-		void update() final
+		void update() override
 		{
 			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 			const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
@@ -58,10 +58,10 @@ namespace PlayerConnectedToServerTestCaseInternal
 			, mGotSelfEntityReplicatedCheck(gotSelfEntityReplicatedCheck)
 		{}
 
-		void update() final
+		void update() override
 		{
 			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
-			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+			const ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<const ClientGameDataComponent>();
 			if (clientGameData->getControlledPlayer().isValid())
 			{
 				mConnectionCheck.checkAsPassed();
