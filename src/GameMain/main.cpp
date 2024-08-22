@@ -66,6 +66,12 @@ int main(const int argc, char** argv)
 	{
 		return AutoTests::RunTests(arguments) ? 0 : 1;
 	}
+#else
+	if (arguments.hasArgument("autotests"))
+	{
+		LogError("Autotests are not built in this configuration");
+		return 1;
+	}
 #endif // BUILD_AUTO_TESTS
 
 	if (arguments.hasArgument("connect-matchmaker"))
