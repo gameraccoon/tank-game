@@ -119,10 +119,10 @@ namespace AutoTests
 			return false;
 		}
 
-		const auto caseIt = cases.find(arguments.getArgumentValue("case").value());
+		const auto caseIt = cases.find(arguments.getArgumentValue("case").value_or(""));
 		if (caseIt == cases.end())
 		{
-			std::cout << "Unknown test '" << arguments.getArgumentValue("case").value() << "'\n";
+			std::cout << "Unknown test '" << arguments.getArgumentValue("case").value_or("") << "'\n";
 			return false;
 		}
 
