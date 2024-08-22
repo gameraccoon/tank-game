@@ -24,7 +24,7 @@
 #include "GameLogic/Initialization/StateMachines.h"
 
 Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex)
-	: HAL::GameBase(engine, resourceManager)
+	: GameBase(engine, resourceManager)
 	, mThreadPool(threadPool)
 	, mDebugBehavior(instanceIndex)
 {

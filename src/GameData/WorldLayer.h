@@ -6,7 +6,7 @@
 class WorldLayer
 {
 public:
-	WorldLayer(const ComponentFactory& componentFactory);
+	explicit WorldLayer(const ComponentFactory& componentFactory);
 
 	WorldLayer(const WorldLayer&) = default;
 	WorldLayer& operator=(const WorldLayer&) = delete;

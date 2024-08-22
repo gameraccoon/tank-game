@@ -17,6 +17,8 @@
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"
 
+#include "AutoTests/AutoTests.h"
+
 #include "GameMain/ConsoleCommands.h"
 
 static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
@@ -43,7 +45,7 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 	}
 }
 
-int main(int argc, char** argv)
+int main(const int argc, char** argv)
 {
 	INITIALIZE_STRING_IDS();
 
@@ -54,6 +56,13 @@ int main(int argc, char** argv)
 #endif // RACCOON_ECS_DEBUG_CHECKS_ENABLED
 
 	ArgumentsParser arguments(argc, argv);
+
+#ifdef BUILD_AUTO_TESTS
+	if (arguments.hasArgument("autotests"))
+	{
+		return AutoTests::RunTests(arguments) ? 0 : 1;
+	}
+#endif // BUILD_AUTO_TESTS
 
 	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
 	{
@@ -133,7 +142,6 @@ int main(int argc, char** argv)
 	}
 
 #ifndef DEDICATED_SERVER
-	std::unique_ptr<GraphicalClient> client;
 	std::unique_ptr<std::thread> client2Thread;
 	if (runFirstClient)
 	{
@@ -163,7 +171,7 @@ int main(int argc, char** argv)
 #ifndef DISABLE_SDL
 		if (isRenderingEnabled)
 		{
-			client = std::make_unique<GraphicalClient>(applicationData, client1GraphicalInstance);
+			std::unique_ptr<GraphicalClient> client = std::make_unique<GraphicalClient>(applicationData, client1GraphicalInstance);
 			client->run(arguments, RenderAccessorGameRef(applicationData.renderThread.getAccessor(), client1GraphicalInstance)); // blocking call
 		}
 		else

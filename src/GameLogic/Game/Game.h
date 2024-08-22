@@ -1,7 +1,5 @@
 #pragma once
 
-#include <thread>
-
 #include <raccoon-ecs/utils/systems_manager.h>
 
 #include "GameData/GameData.h"

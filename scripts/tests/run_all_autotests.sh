@@ -1,12 +1,12 @@
 #!/bin/bash
 
-cases_list=$(./bin/AutoTests --list)
+cases_list=$(./bin/GameMain --autotests --list)
 
 failed_cases=()
 
 while IFS= read -r case_name; do
 	echo Run test case $case_name
-	./bin/AutoTests --case $case_name "$@"
+	./bin/GameMain --autotests --case $case_name "$@"
 	if [ $? -ne 0 ]; then
 		failed_cases+=($case_name)
 	fi

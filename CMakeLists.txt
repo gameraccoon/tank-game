@@ -91,6 +91,10 @@ if(WEB_BUILD)
 	add_definitions(-DWEB_BUILD)
 endif()
 
+if(BUILD_AUTO_TESTS)
+	add_definitions(-DBUILD_AUTO_TESTS)
+endif()
+
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
@@ -166,6 +170,10 @@ add_folder_as_library(${ENGINE_SRC_DIR}/HAL Hal)
 add_folder_as_library(${ENGINE_SRC_DIR}/EngineLogic EngineLogic)
 # ECS systems and glue code (specific to one game)
 add_folder_as_library(${GAME_SRC_DIR}/GameLogic GameLogic)
+if(BUILD_AUTO_TESTS)
+	# Automatic tests that run predefined scenarios and validate against checklists
+	add_folder_as_library(${GAME_SRC_DIR}/AutoTests AutoTests)
+endif()
 
 if(WEB_BUILD)
 	file(GLOB_RECURSE APP_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/WebAssembly/*")
@@ -258,6 +266,13 @@ set(GENERAL_PROJECT_LIBS
 	EngineData
 	EngineCommon
 )
+
+if (BUILD_AUTO_TESTS)
+	set(GENERAL_PROJECT_LIBS
+		${GENERAL_PROJECT_LIBS}
+		AutoTests
+	)
+endif()
 
 if(NOT FAKE_NETWORK)
 	set(GENERAL_PROJECT_LIBS
@@ -356,19 +371,6 @@ if(BUILD_UNIT_TESTS)
 		set_target_properties(${UNITTESTS_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_BIN_DIR}")
 	endif()
 	target_link_libraries(${UNITTESTS_NAME} ${GENERAL_PROJECT_LIBS})
-endif()
-
-# Autotests
-if(BUILD_AUTO_TESTS)
-	set(AUTOTESTS_NAME AutoTests)
-	file(GLOB_RECURSE AUTOTESTS_SRC RELATIVE "" FOLLOW_SYMLINKS "${GAME_SRC_DIR}/AutoTests/*")
-	add_executable(${AUTOTESTS_NAME} ${AUTOTESTS_SRC})
-	target_compile_options(${AUTOTESTS_NAME} PRIVATE ${PROJECT_CXX_FLAGS})
-	set_target_properties(${AUTOTESTS_NAME} PROPERTIES UNITY_BUILD ${ENABLE_UNITY_BUILD})
-	if(WIN32)
-		set_target_properties(${AUTOTESTS_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${GAME_BIN_DIR}")
-	endif()
-	target_link_libraries(${AUTOTESTS_NAME} ${GENERAL_PROJECT_LIBS})
 endif()
 
 # symlink resources dir
