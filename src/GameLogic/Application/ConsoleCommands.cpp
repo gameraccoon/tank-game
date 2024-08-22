@@ -1,6 +1,6 @@
 #include "EngineCommon/precomp.h"
 
-#include "GameMain/ConsoleCommands.h"
+#include "GameLogic/Application/ConsoleCommands.h"
 
 #include <algorithm>
 #include <iostream>
@@ -35,6 +35,9 @@ namespace ConsoleCommands
 			{ "time-limit", "time-limit n", "end the game after the given amount of frames" },
 			{ "network-protocol-version", "network-protocol-version", "print network protocol version number" },
 			{ "net-lag", "net-lag [n]", "enable simulation of network lag with given latency in ms" },
+			{ "autotests", "autotests", "run autotests" },
+			{ "list", "list", "used together with --autotests, list all available tests" },
+			{ "case", "case <test_name>", "used together with --autotests, run the test case with the given name" },
 		};
 
 		// check that the given commands are valid

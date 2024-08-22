@@ -22,6 +22,7 @@
 
 #include "HAL/Base/GameLoop.h"
 
+#include "GameLogic/Application/ConsoleCommands.h"
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"
@@ -72,6 +73,11 @@ int main(const int argc, char** argv)
 	Random::gGlobalGenerator = Random::GlobalGeneratorType(std::random_device()());
 
 	ArgumentsParser arguments(argc, argv);
+
+	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
+	{
+		return 0;
+	}
 
 #ifdef BUILD_AUTO_TESTS
 	if (arguments.hasArgument("autotests"))

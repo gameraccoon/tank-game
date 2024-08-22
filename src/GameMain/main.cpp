@@ -13,13 +13,12 @@
 
 #include "GameUtils/Matchmaking/MatchmakingClient.h"
 
+#include "GameLogic/Application/ConsoleCommands.h"
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"
 
 #include "AutoTests/AutoTests.h"
-
-#include "GameMain/ConsoleCommands.h"
 
 static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 {
@@ -57,17 +56,17 @@ int main(const int argc, char** argv)
 
 	ArgumentsParser arguments(argc, argv);
 
+	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
+	{
+		return 0;
+	}
+
 #ifdef BUILD_AUTO_TESTS
 	if (arguments.hasArgument("autotests"))
 	{
 		return AutoTests::RunTests(arguments) ? 0 : 1;
 	}
 #endif // BUILD_AUTO_TESTS
-
-	if (ConsoleCommands::TryExecuteQuickConsoleCommands(arguments))
-	{
-		return 0;
-	}
 
 	if (arguments.hasArgument("connect-matchmaker"))
 	{
