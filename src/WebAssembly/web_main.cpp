@@ -26,6 +26,8 @@
 #include "GameLogic/Game/GraphicalClient.h"
 #include "GameLogic/Game/TankServerGame.h"
 
+#include "AutoTests/AutoTests.h"
+
 struct EmscriptenLoopData
 {
 #ifndef DISABLE_SDL
@@ -70,6 +72,14 @@ int main(const int argc, char** argv)
 	Random::gGlobalGenerator = Random::GlobalGeneratorType(std::random_device()());
 
 	ArgumentsParser arguments(argc, argv);
+
+#ifdef BUILD_AUTO_TESTS
+	if (arguments.hasArgument("autotests"))
+	{
+		return AutoTests::RunTests(arguments) ? 0 : 1;
+	}
+#endif // BUILD_AUTO_TESTS
+
 #ifdef MATCHMAKER_ADDRESS
 	const std::string matchmakerAddress = #MATCHMAKER_ADDRESS;
 	LogInfo("Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());

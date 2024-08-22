@@ -30,7 +30,7 @@ result = subprocess.run([
     '-DFAKE_NETWORK=ON',
     '-DIMGUI_ENABLED=OFF',
     '-DBUILD_UNIT_TESTS=OFF',
-    '-DBUILD_AUTO_TESTS=OFF',
+    '-DBUILD_AUTO_TESTS=ON',
     '../..'
 ])
 if result.returncode != 0:

@@ -184,7 +184,8 @@ canvas.emscripten { border: 0px none; background-color: black; }
         monitorRunDependencies: (left) => {
           this.totalDependencies = Math.max(this.totalDependencies, left);
           Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-        }
+        },
+        arguments: [ '--autotests', '--case', 'TwoPlayersSeeEachOther', '--no-render', '--threads-count', '0' ]
       };
       Module.setStatus('Downloading...');
       window.onerror = (event) => {

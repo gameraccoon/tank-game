@@ -110,20 +110,20 @@ namespace AutoTests
 			{
 				std::cout << casePair.first << "\n";
 			}
-			return 0;
+			return true;
 		}
 
 		if (!arguments.hasArgument("case"))
 		{
 			std::cout << "Test case name has not been provided, use:\n\t--list to get the list of available test cases\n\t--case <name> to run a specific test case\n";
-			return 1;
+			return false;
 		}
 
 		const auto caseIt = cases.find(arguments.getArgumentValue("case").value());
 		if (caseIt == cases.end())
 		{
 			std::cout << "Unknown test '" << arguments.getArgumentValue("case").value() << "'\n";
-			return 1;
+			return false;
 		}
 
 		LogInit("Random seed is %u", seed);
