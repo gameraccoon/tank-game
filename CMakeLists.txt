@@ -215,6 +215,45 @@ if(WEB_BUILD)
 	set_target_properties(${APP_NAME} PROPERTIES LINK_FLAGS "--preload-file resources -s ASSERTIONS=1 -s GL_ASSERTIONS=1 -s LEGACY_GL_EMULATION=1")
 endif()
 
+# Lua
+add_library(Lua EXCLUDE_FROM_ALL
+	${EXTERNALS_DIR}/sources/lua/src/lapi.c
+	${EXTERNALS_DIR}/sources/lua/src/lauxlib.c
+	${EXTERNALS_DIR}/sources/lua/src/lbaselib.c
+	${EXTERNALS_DIR}/sources/lua/src/lcode.c
+	${EXTERNALS_DIR}/sources/lua/src/lcorolib.c
+	${EXTERNALS_DIR}/sources/lua/src/lctype.c
+	${EXTERNALS_DIR}/sources/lua/src/ldblib.c
+	${EXTERNALS_DIR}/sources/lua/src/ldebug.c
+	${EXTERNALS_DIR}/sources/lua/src/ldo.c
+	${EXTERNALS_DIR}/sources/lua/src/ldump.c
+	${EXTERNALS_DIR}/sources/lua/src/lfunc.c
+	${EXTERNALS_DIR}/sources/lua/src/lgc.c
+	${EXTERNALS_DIR}/sources/lua/src/linit.c
+	${EXTERNALS_DIR}/sources/lua/src/liolib.c
+	${EXTERNALS_DIR}/sources/lua/src/llex.c
+	${EXTERNALS_DIR}/sources/lua/src/lmathlib.c
+	${EXTERNALS_DIR}/sources/lua/src/lmem.c
+	${EXTERNALS_DIR}/sources/lua/src/loadlib.c
+	${EXTERNALS_DIR}/sources/lua/src/lobject.c
+	${EXTERNALS_DIR}/sources/lua/src/lopcodes.c
+	${EXTERNALS_DIR}/sources/lua/src/loslib.c
+	${EXTERNALS_DIR}/sources/lua/src/lparser.c
+	${EXTERNALS_DIR}/sources/lua/src/lstate.c
+	${EXTERNALS_DIR}/sources/lua/src/lstring.c
+	${EXTERNALS_DIR}/sources/lua/src/lstrlib.c
+	${EXTERNALS_DIR}/sources/lua/src/ltable.c
+	${EXTERNALS_DIR}/sources/lua/src/ltablib.c
+	${EXTERNALS_DIR}/sources/lua/src/ltm.c
+	${EXTERNALS_DIR}/sources/lua/src/lundump.c
+	${EXTERNALS_DIR}/sources/lua/src/lutf8lib.c
+	${EXTERNALS_DIR}/sources/lua/src/lvm.c
+	${EXTERNALS_DIR}/sources/lua/src/lzio.c
+)
+add_dependencies(${APP_NAME} Lua)
+include_directories(${EXTERNALS_DIR}/sources/lua/src)
+target_compile_options(Lua PRIVATE ${EXTERNALS_C_FLAGS})
+
 # ImGui
 if(IMGUI_ENABLED)
 	add_library(Imgui EXCLUDE_FROM_ALL
@@ -265,6 +304,8 @@ set(GENERAL_PROJECT_LIBS
 	GameData
 	EngineData
 	EngineCommon
+
+	Lua
 )
 
 if (BUILD_AUTO_TESTS)
