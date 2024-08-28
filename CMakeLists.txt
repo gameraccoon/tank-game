@@ -99,6 +99,10 @@ add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLM_FORCE_RADIANS)
 add_definitions(-DRACCOON_ECS_COPYABLE_COMPONENTS)
 
+if (NOT WIN32)
+	add_definitions(-DLUA_USE_POSIX)
+endif()
+
 # compiler parameters
 if(MSVC)
 	if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
