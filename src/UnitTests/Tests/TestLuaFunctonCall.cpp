@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include <array>
+
 #include <gtest/gtest.h>
 
 #include "GameUtils/Scripting/LuaFunctionCall.h"
