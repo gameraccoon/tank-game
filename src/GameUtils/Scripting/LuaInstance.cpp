@@ -4,72 +4,41 @@
 
 #include <lua.hpp>
 
-LuaInstance::LuaInstance()
-	: luaState(*luaL_newstate())
+LuaInstance::LuaInstance() noexcept
+	: mLuaState(*luaL_newstate())
 {
-	luaL_openlibs(&luaState);
+	luaL_openlibs(&mLuaState);
 }
 
-LuaInstance::~LuaInstance()
+LuaInstance::~LuaInstance() noexcept
 {
-	lua_close(&luaState);
+	lua_close(&mLuaState);
 }
 
-int LuaInstance::execScript(const char* script)
+LuaExecResult LuaInstance::execScript(const char* script) noexcept
 {
-	int res = luaL_dostring(&luaState, script);
+	LuaExecResult result;
 
-	if (res != 0)
+	result.statusCode = luaL_dostring(&mLuaState, script);
+
+	if (result.statusCode != 0)
 	{
-		Log::Instance().writeWarning(lua_tostring(&luaState, -1));
-		return res;
+		result.errorMessage = lua_tostring(&mLuaState, -1);
 	}
 
-	return 0;
+	return result;
 }
 
-int LuaInstance::execScriptFromFile(const char* ScriptFileName)
+LuaExecResult LuaInstance::execScriptFromFile(const char* scriptFileName) noexcept
 {
-	int res = luaL_dofile(&luaState, ScriptFileName);
+	LuaExecResult result;
 
-	if (res != 0)
+	result.statusCode = luaL_dofile(&mLuaState, scriptFileName);
+
+	if (result.statusCode != 0)
 	{
-		Log::Instance().writeWarning(lua_tostring(&luaState, -1));
-		return res;
+		result.errorMessage = lua_tostring(&mLuaState, -1);
 	}
 
-	return 0;
-}
-
-void LuaInstance::beginInitializeTable()
-{
-	lua_newtable(&luaState);
-}
-
-void LuaInstance::endInitializeTable(const char* tableName)
-{
-	lua_setglobal(&luaState, tableName);
-}
-
-void LuaInstance::endInitializeSubtable(const char* tableName)
-{
-	lua_pushstring(&luaState, tableName);
-	lua_insert(&luaState, -2);
-	lua_settable(&luaState, -3);
-}
-
-void LuaInstance::registerFunction(const char* functionName, const lua_CFunction function)
-{
-	registerConstant<lua_CFunction>(functionName, function);
-}
-
-void LuaInstance::registerTableFunction(const char* functionName, const lua_CFunction function)
-{
-	registerTableConstant<const char*, lua_CFunction>(functionName, function);
-}
-
-void LuaInstance::removeSymbol(const char* symbolName)
-{
-	lua_pushnil(&luaState);
-	lua_setglobal(&luaState, symbolName);
+	return result;
 }

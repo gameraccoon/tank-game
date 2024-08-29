@@ -12,26 +12,26 @@ namespace LuaInternal
 
 		error += "\n" + getStackTrace(*luaState);
 
-		LuaInternal::pushValue<const char*>(*luaState, error.c_str());
+		pushCString(*luaState, error.c_str());
 
 		return 1;
 	}
 } // namespace LuaInternal
 
-LuaFunctionCall::LuaFunctionCall(lua_State& luaState)
+LuaFunctionCall::LuaFunctionCall(lua_State& luaState) noexcept
 	: mLuaState(luaState)
 	, mStackState(lua_gettop(&luaState))
 {
 }
 
-LuaFunctionCall::~LuaFunctionCall()
+LuaFunctionCall::~LuaFunctionCall() noexcept
 {
 	// instead of popping all return values, we just reset the stack
 	// to the state it was before the function call
 	lua_settop(&mLuaState, mStackState);
 }
 
-void LuaFunctionCall::setUpAsGlobalFunction(const char* functionName, int argumentsCount, int returnValuesCount)
+void LuaFunctionCall::setUpAsGlobalFunction(const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
 {
 	lua_getglobal(&mLuaState, functionName);
 	AssertFatal(argumentsCount >= 0, "Invalid arguments count: %d", argumentsCount);
@@ -40,13 +40,34 @@ void LuaFunctionCall::setUpAsGlobalFunction(const char* functionName, int argume
 	mReturnValuesCount = returnValuesCount;
 }
 
-void LuaFunctionCall::setUpAsTableFunction(const std::span<const char*> tablePath, const char* functionName, int argumentsCount, int returnValuesCount)
+LuaFunctionCall::SetUpResult LuaFunctionCall::setUpAsTableFunction(const std::span<const char*> tablePath, const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
 {
 	lua_getglobal(&mLuaState, tablePath[0]);
+
+	if (!lua_istable(&mLuaState, -1)) [[unlikely]]
+	{
+		lua_pop(&mLuaState, 1);
+		return { false, std::string("Table not found: ") + tablePath[0] };
+	}
 
 	for (size_t i = 1; i < tablePath.size(); ++i)
 	{
 		lua_getfield(&mLuaState, -1, tablePath[i]);
+
+		if (!lua_istable(&mLuaState, -1)) [[unlikely]]
+		{
+			lua_pop(&mLuaState, 1);
+			std::string errorMessage = "Table not found: ";
+			for (size_t j = 0; j <= i; ++j)
+			{
+				errorMessage += tablePath[j];
+				if (j < i)
+				{
+					errorMessage += ".";
+				}
+			}
+			return { false, errorMessage };
+		}
 	}
 
 	lua_getfield(&mLuaState, -1, functionName);
@@ -55,9 +76,11 @@ void LuaFunctionCall::setUpAsTableFunction(const std::span<const char*> tablePat
 	mArgumentsCount = argumentsCount;
 	AssertFatal(returnValuesCount >= 0, "Invalid return values count: %d", returnValuesCount);
 	mReturnValuesCount = returnValuesCount;
+	mIsTableFunction = true;
+	return { true, "" };
 }
 
-int LuaFunctionCall::executeFunction()
+int LuaFunctionCall::executeFunction() noexcept
 {
 	AssertFatal(mArgumentsCount >= 0, "Arguments count not set");
 	AssertFatal(mReturnValuesCount >= 0, "Return values count not set");
@@ -74,6 +97,12 @@ int LuaFunctionCall::executeFunction()
 	const int res = lua_pcall(&mLuaState, mArgumentsCount, mReturnValuesCount, errorHandlerStackPos);
 	// remove custom error handler from the stack
 	lua_remove(&mLuaState, errorHandlerStackPos);
+
+	if (mIsTableFunction)
+	{
+		// remove the table from the stack
+		lua_remove(&mLuaState, -2);
+	}
 
 	if (res != 0)
 	{

@@ -1,3 +1,5 @@
+#include "EngineCommon/precomp.h"
+
 #include "LuaType.h"
 
 #include <EngineData/Geometry/Vector2D.h>
@@ -5,9 +7,10 @@
 namespace LuaType
 {
 	template<>
-	void registerValue<Vector2D>(LuaInstance& instance, Vector2D& value)
+	void pushValue<Vector2D>(lua_State& state, const Vector2D& value) noexcept
 	{
-		instance.registerTableConstant<const char*, double>("x", value.x);
-		instance.registerTableConstant<const char*, double>("y", value.y);
+		LuaInternal::startTableInitialization(state);
+		LuaType::registerField<double>(state, "x", value.x);
+		LuaType::registerField<double>(state, "y", value.y);
 	}
 }

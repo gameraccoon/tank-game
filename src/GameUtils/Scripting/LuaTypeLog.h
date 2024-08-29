@@ -1,10 +1,10 @@
 #pragma once
 
-#include "LuaType.h"
+#include "GameUtils/Scripting/LuaType.h"
 
 class LuaInstance;
 
 namespace LuaType
 {
-	void registerLog(LuaInstance& instance, const char* name);
+	void registerLog(lua_State& state, const char* name);
 }

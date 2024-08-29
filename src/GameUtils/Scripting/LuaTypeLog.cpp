@@ -1,14 +1,15 @@
-#include "LuaTypeLog.h"
+#include "EngineCommon/precomp.h"
 
-#include "GameUtils/Scripting/LuaInternalUtils.h"
+#include "GameUtils/Scripting/LuaTypeLog.h"
 
 namespace LuaInternal
 {
 	static int cmdLogLog(lua_State* state)
 	{
-		for (int i = 0; i < getArgumentsCount(*state); i++)
+		const int argumentsCount = getArgumentsCount(*state);
+		for (int i = 0; i < argumentsCount;)
 		{
-			Log::Instance().writeLog(readValue<const char*>(*state, i));
+			Log::Instance().writeLog(LuaType::readValue<const char*>(*state, i));
 		}
 
 		return 0;
@@ -16,9 +17,10 @@ namespace LuaInternal
 
 	static int cmdLogWarning(lua_State* state)
 	{
-		for (int i = 0; i < getArgumentsCount(*state); i++)
+		const int argumentsCount = getArgumentsCount(*state);
+		for (int i = 0; i < argumentsCount;)
 		{
-			Log::Instance().writeWarning(readValue<const char*>(*state, i));
+			Log::Instance().writeWarning(LuaType::readValue<const char*>(*state, i));
 		}
 
 		return 0;
@@ -26,9 +28,10 @@ namespace LuaInternal
 
 	static int cmdLogError(lua_State* state)
 	{
-		for (int i = 0; i < getArgumentsCount(*state); i++)
+		const int argumentsCount = getArgumentsCount(*state);
+		for (int i = 0; i < argumentsCount;)
 		{
-			Log::Instance().writeError(readValue<const char*>(*state, i));
+			Log::Instance().writeError(LuaType::readValue<const char*>(*state, i));
 		}
 
 		return 0;
@@ -37,12 +40,12 @@ namespace LuaInternal
 
 namespace LuaType
 {
-	void registerLog(LuaInstance* instance, const char* name)
+	void registerLog(lua_State& state, const char* name)
 	{
-		instance->beginInitializeTable();
-		instance->registerTableFunction("log", LuaInternal::cmdLogLog);
-		instance->registerTableFunction("warn", LuaInternal::cmdLogWarning);
-		instance->registerTableFunction("error", LuaInternal::cmdLogError);
-		instance->endInitializeTable(name);
+		LuaInternal::startTableInitialization(state);
+		LuaInternal::registerTableFunction(state, "log", LuaInternal::cmdLogLog);
+		LuaInternal::registerTableFunction(state, "warn", LuaInternal::cmdLogWarning);
+		LuaInternal::registerTableFunction(state, "error", LuaInternal::cmdLogError);
+		LuaInternal::setAsGlobal(state, name);
 	}
 }
