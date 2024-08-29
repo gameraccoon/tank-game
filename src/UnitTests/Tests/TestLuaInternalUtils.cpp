@@ -6,6 +6,8 @@
 #include "GameUtils/Scripting/LuaInternalUtils.h"
 #include "GameUtils/Scripting/LuaType.h"
 
+#include "UnitTests/TestAssertHelper.h"
+
 TEST(LuaInsternalUtils, EmptyStack_PushInt_IntIsOnTop)
 {
 	LuaInstance luaInstance;
@@ -18,7 +20,7 @@ TEST(LuaInsternalUtils, EmptyStack_PushInt_IntIsOnTop)
 	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), 42);
 	// check type
 	EXPECT_TRUE(LuaInternal::IsInt(luaState, 0));
-	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Double);
+	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Number);
 
 	LuaInternal::Pop(luaState);
 }
@@ -34,7 +36,7 @@ TEST(LuaInsternalUtils, EmptyStack_PushTwoValues_BothValuesLocatedCorrectly)
 	EXPECT_EQ(LuaInternal::GetStackTop(luaState), 1);
 
 	EXPECT_TRUE(LuaInternal::IsInt(luaState, 0));
-	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Double);
+	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Number);
 	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), 42);
 	EXPECT_TRUE(LuaInternal::IsCString(luaState, 1));
 	EXPECT_EQ(LuaInternal::GetType(luaState, 1), LuaBasicType::CString);
@@ -57,7 +59,7 @@ TEST(LuaInsternalUtils, EmptyStack_SetDoubleAsGlobal_DoubleCanBeRetrievedByName)
 	LuaInternal::GetGlobal(luaState, "pi");
 	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 3.14);
 	EXPECT_TRUE(LuaInternal::IsNumber(luaState, 0));
-	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Double);
+	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::Number);
 
 	LuaInternal::Pop(luaState);
 }
@@ -253,86 +255,471 @@ TEST(LuaInsternalUtils, TableFields_RemoveBySettingToNil_RemovedFieldsAreNil)
 	LuaInternal::Pop(luaState);
 }
 
-TEST(LuaInsternalUtils, BasicLuaType_TryReadAsString_ConvertedToStringOrReturnsNullptr)
+TEST(LuaInsternalUtils, IntOnStack_TryReadAsDifferentTypes_OnlyIntDoubleAndStringSucceed)
 {
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
 
-	LuaInternal::PushCString(luaState, "Hello");
-	EXPECT_STREQ(LuaInternal::TryReadAsCString(luaState, 0), "Hello");
-	LuaInternal::Pop(luaState);
-
 	LuaInternal::PushInt(luaState, 42);
-	EXPECT_STREQ(LuaInternal::TryReadAsCString(luaState, 0), "42");
-	LuaInternal::Pop(luaState);
 
-	LuaInternal::PushDouble(luaState, 3.14);
-	EXPECT_STREQ(LuaInternal::TryReadAsCString(luaState, 0), "3.14");
-	LuaInternal::Pop(luaState);
+	ASSERT_TRUE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
 
-	LuaInternal::PushBool(luaState, true);
-	EXPECT_EQ(LuaInternal::TryReadAsCString(luaState, 0), nullptr);
-	LuaInternal::Pop(luaState);
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), 42);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 42.0f);
+	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "42");
 
-	LuaInternal::PushNil(luaState);
-	EXPECT_EQ(LuaInternal::TryReadAsCString(luaState, 0), nullptr);
-	LuaInternal::Pop(luaState);
+	{
+		DisableAssertGuard guard;
 
-	LuaInternal::PushFunction(luaState, [](lua_State*) -> int {
-		return 0;
-	});
-	EXPECT_EQ(LuaInternal::TryReadAsCString(luaState, 0), nullptr);
-	LuaInternal::Pop(luaState);
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 
-	LuaInternal::PushLightUserData(luaState, reinterpret_cast<void*>(0x1234));
-	EXPECT_EQ(LuaInternal::TryReadAsCString(luaState, 0), nullptr);
-	LuaInternal::Pop(luaState);
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
 
-	LuaInternal::StartTableInitialization(luaState);
-	EXPECT_EQ(LuaInternal::TryReadAsCString(luaState, 0), nullptr);
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+	}
+
 	LuaInternal::Pop(luaState);
 }
 
-TEST(LuaInsternalUtils, BasicLuaType_TryReadAsNumber_ConvertedToNumberOrReturnsZero)
+TEST(LuaInsternalUtils, DoubleOnStack_TryReadAsDifferentTypes_OnlyDoubleAndStringSucceed)
 {
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::PushDouble(luaState, 3.14);
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 3.14);
-	LuaInternal::Pop(luaState);
 
-	LuaInternal::PushInt(luaState, 42);
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 42);
-	LuaInternal::Pop(luaState);
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
 
-	LuaInternal::PushCString(luaState, "0.25");
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0.25);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 3.14);
+	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "3.14");
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, StringOnStack_TryReadAsDifferentTypes_OnlyStringSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::PushCString(luaState, "Hello");
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "Hello");
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, StringRepresentingNumberOnStack_TryReadAsDifferentTypes_OnlyDoubleAndStringSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	LuaInternal::PushCString(luaState, "42");
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 42.0f);
+	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "42");
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+	}
+
+	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, BoolOnStack_TryReadAsDifferentTypes_OnlyBoolSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::PushBool(luaState, true);
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
-	LuaInternal::Pop(luaState);
 
-	LuaInternal::PushNil(luaState);
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), true);
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, FunctionOnStack_TryReadAsDifferentTypes_OnlyFunctionSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::PushFunction(luaState, [](lua_State*) -> int {
 		return 0;
 	});
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	EXPECT_NE(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, LightUserDataOnStack_TryReadAsDifferentTypes_OnlyLightUserDataSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::PushLightUserData(luaState, reinterpret_cast<void*>(0x1234));
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), reinterpret_cast<void*>(0x1234));
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, TableOnStack_TryReadAsDifferentTypes_OnlyTableSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaInternal::StartTableInitialization(luaState);
-	EXPECT_EQ(LuaInternal::TryReadAsNumber(luaState, 0), 0);
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 6);
+	}
+
 	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, NilOnStack_TryReadAsDifferentTypes_OnlyNilSucceed)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	LuaInternal::PushNil(luaState);
+
+	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsCString(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsBool(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsFunction(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsUserData(luaState, 0));
+	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
+	ASSERT_TRUE(LuaInternal::IsNil(luaState, 0));
+
+	{
+		DisableAssertGuard guard;
+
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+
+		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
+
+		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
+
+		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 6);
+	}
+
+	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, LuaBasicTypes_PassToGetTypeName_ReturnsExpectedNames)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::NoValue), "no value");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Nil), "nil");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Bool), "boolean");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::LightUserData), "userdata");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Number), "number");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::CString), "string");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Table), "table");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Function), "function");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::UserData), "userdata");
+	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Thread), "thread");
+}
+
+TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	// first break the debug.traceback function
+	const LuaExecResult execRes = luaInstance.execScript("debug.traceback = function() nonExistingFunction() end");
+	ASSERT_EQ(execRes.statusCode, 0);
+	{
+		DisableAssertGuard guard;
+		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
+		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+
+	// then remove the debug.traceback function
+	const LuaExecResult execRes2 = luaInstance.execScript("debug.traceback = nil");
+	ASSERT_EQ(execRes2.statusCode, 0);
+	{
+		DisableAssertGuard guard;
+		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
+		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+
+	// and finally remove the debug table
+	const LuaExecResult execRes3 = luaInstance.execScript("debug = nil");
+	ASSERT_EQ(execRes3.statusCode, 0);
+	{
+		DisableAssertGuard guard;
+		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
+		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+}
+
+TEST(LuaInsternalUtils, EmptyStack_PopValue_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		LuaInternal::Pop(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+}
+
+TEST(LuaInsternalUtils, EmptyStack_ReadValue_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+}
+
+TEST(LuaInsternalUtils, EmptyStack_CheckForNoValue_ReturnsTrue)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	EXPECT_TRUE(LuaInternal::IsNoValue(luaState, 0));
+	EXPECT_EQ(LuaInternal::GetType(luaState, 0), LuaBasicType::NoValue);
+}
+
+TEST(LuaInsternalUtils, EmptyStack_SetAsGlobal_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		LuaInternal::SetAsGlobal(luaState, "g1");
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+}
+
+TEST(LuaInsternalUtils, EmptyStack_SetAsField_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		LuaInternal::SetAsField(luaState, "v1");
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		LuaInternal::SetAsField(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+	}
 }

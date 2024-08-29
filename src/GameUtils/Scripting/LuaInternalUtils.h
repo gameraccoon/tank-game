@@ -7,14 +7,14 @@ using lua_CFunction = int (*)(lua_State*);
 
 enum class LuaBasicType : int
 {
-	Unknown = -1, // aka none
+	NoValue = -1, // aka none
 	Nil = 0,
-	Bool = 1,
-	LightUserData = 2,
-	Double = 3, // aka number
-	CString = 4,
+	Bool = 1, // aka boolean
+	LightUserData = 2, // aka userdata or void*
+	Number = 3, // aka double
+	CString = 4, // aka string
 	Table = 5,
-	LuaFunction = 6,
+	Function = 6,
 	UserData = 7,
 	Thread = 8
 };
@@ -41,14 +41,6 @@ namespace LuaInternal
 	std::optional<lua_CFunction> ReadFunction(lua_State& state, int index) noexcept;
 	[[nodiscard]]
 	std::optional<void*> ReadLightUserData(lua_State& state, int index) noexcept;
-
-	// reads the value at the given index as a C string, returns nullptr if the value can't be converted to a string
-	[[nodiscard]]
-	const char* TryReadAsCString(lua_State& state, int index) noexcept;
-
-	// reads the value at the given index as a number, returns 0 if the value can't be converted to a number
-	[[nodiscard]]
-	double TryReadAsNumber(lua_State& state, int index) noexcept;
 
 	// Registers the previusly pushed value as a global constant
 	void SetAsGlobal(lua_State& state, const char* constantName) noexcept;
@@ -113,6 +105,8 @@ namespace LuaInternal
 	bool IsNil(lua_State& state, int index) noexcept;
 	[[nodiscard]]
 	bool IsUserData(lua_State& state, int index) noexcept;
+	[[nodiscard]]
+	bool IsNoValue(lua_State& state, int index) noexcept;
 
 	// returns the type of the value from the stack
 	[[nodiscard]]

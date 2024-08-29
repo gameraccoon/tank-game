@@ -43,7 +43,7 @@ namespace LuaInternal
 
 	std::optional<int> ReadInt(lua_State& state, const int index) noexcept
 	{
-		if (!lua_isinteger(&state, index + 1))
+		if (!lua_isinteger(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not an integer");
 			return std::nullopt;
@@ -53,7 +53,7 @@ namespace LuaInternal
 
 	std::optional<double> ReadDouble(lua_State& state, const int index) noexcept
 	{
-		if (!lua_isnumber(&state, index + 1))
+		if (!lua_isnumber(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not a floating point number");
 			return std::nullopt;
@@ -63,7 +63,7 @@ namespace LuaInternal
 
 	std::optional<const char*> ReadCString(lua_State& state, const int index) noexcept
 	{
-		if (!lua_isstring(&state, index + 1))
+		if (!lua_isstring(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not a string");
 			return std::nullopt;
@@ -73,7 +73,7 @@ namespace LuaInternal
 
 	std::optional<bool> ReadBool(lua_State& state, const int index) noexcept
 	{
-		if (!lua_isboolean(&state, index + 1))
+		if (!lua_isboolean(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not a boolean");
 			return std::nullopt;
@@ -83,7 +83,7 @@ namespace LuaInternal
 
 	std::optional<lua_CFunction> ReadFunction(lua_State& state, const int index) noexcept
 	{
-		if (!lua_isfunction(&state, index + 1))
+		if (!lua_isfunction(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not a function");
 			return std::nullopt;
@@ -93,7 +93,7 @@ namespace LuaInternal
 
 	std::optional<void*> ReadLightUserData(lua_State& state, const int index) noexcept
 	{
-		if (!lua_islightuserdata(&state, index + 1))
+		if (!lua_islightuserdata(&state, index + 1)) [[unlikely]]
 		{
 			ReportScriptError(state, "The value is not a light user data");
 			return std::nullopt;
@@ -101,18 +101,13 @@ namespace LuaInternal
 		return lua_touserdata(&state, index + 1);
 	}
 
-	const char* TryReadAsCString(lua_State& state, const int index) noexcept
-	{
-		return lua_tostring(&state, index + 1);
-	}
-
-	double TryReadAsNumber(lua_State& state, const int index) noexcept
-	{
-		return lua_tonumber(&state, index + 1);
-	}
-
 	void SetAsGlobal(lua_State& state, const char* constantName) noexcept
 	{
+		if (lua_gettop(&state) < 1) [[unlikely]]
+		{
+			ReportScriptError(state, "There must be at least one value on the stack to set it as a global constant");
+			return;
+		}
 		lua_setglobal(&state, constantName);
 	}
 
@@ -123,11 +118,21 @@ namespace LuaInternal
 
 	void SetAsField(lua_State& state) noexcept
 	{
+		if (lua_gettop(&state) < 2) [[unlikely]]
+		{
+			ReportScriptError(state, "There must be at least two values on the stack to set them as a key-value pair in a table");
+			return;
+		}
 		lua_settable(&state, -3);
 	}
 
 	void SetAsField(lua_State& state, const char* fieldName) noexcept
 	{
+		if (lua_gettop(&state) < 2) [[unlikely]]
+		{
+			ReportScriptError(state, "There must be at least two values on the stack to set them as a field in a table");
+			return;
+		}
 		lua_setfield(&state, -2, fieldName);
 	}
 
@@ -144,7 +149,11 @@ namespace LuaInternal
 	void Pop(lua_State& state, const int valuesCount) noexcept
 	{
 		Assert(valuesCount >= 0, "valuesCount must be non-negative");
-		AssertRelease(lua_gettop(&state) >= valuesCount, "valuesCount must be less than or equal to the stack size");
+		if (lua_gettop(&state) < valuesCount) [[unlikely]]
+		{
+			ReportScriptError(state, "Trying to pop more values than there are on the stack");
+			return;
+		}
 		lua_pop(&state, valuesCount);
 	}
 
@@ -165,7 +174,7 @@ namespace LuaInternal
 		lua_getglobal(&state, "debug");
 
 		// check if debug is a table
-		if (!lua_istable(&state, -1))
+		if (!lua_istable(&state, -1)) [[unlikely]]
 		{
 			ReportError("debug is not a table, can't print stack trace");
 			lua_settop(&state, stackState);
@@ -175,7 +184,7 @@ namespace LuaInternal
 		lua_getfield(&state, -1, "traceback");
 
 		// check if debug.traceback is a function
-		if (!lua_isfunction(&state, -1))
+		if (!lua_isfunction(&state, -1)) [[unlikely]]
 		{
 			ReportError("debug.traceback is not a function, can't print stack trace");
 			lua_settop(&state, stackState);
@@ -184,7 +193,7 @@ namespace LuaInternal
 
 		const int res = lua_pcall(&state, 0, 1, 0);
 
-		if (res != 0)
+		if (res != 0) [[unlikely]]
 		{
 			ReportError("Error in debug.traceback() call: %s", lua_tostring(&state, -1));
 			lua_settop(&state, stackState);
@@ -265,6 +274,11 @@ namespace LuaInternal
 	bool IsUserData(lua_State& state, const int index) noexcept
 	{
 		return lua_isuserdata(&state, index + 1);
+	}
+
+	bool IsNoValue(lua_State& state, const int index) noexcept
+	{
+		return lua_isnone(&state, index + 1);
 	}
 
 	LuaBasicType GetType(lua_State& state, const int index) noexcept
