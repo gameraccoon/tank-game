@@ -9,7 +9,7 @@ enum class LuaBasicType : int
 	Nil = 0,
 	Bool = 1,
 	LightUserData = 2, // ???
-	Double = 3,        // aka number
+	Double = 3, // aka number
 	CString = 4,
 	Table = 5,
 	LuaFunction = 6,
