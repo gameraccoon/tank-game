@@ -9,8 +9,8 @@ TEST(LuaFunctionRegistration, FunctionWithReturnValue_Called_ValueIsAsExpected)
 {
 	LuaInstance luaInstance;
 
-	LuaInternal::registerFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
-		LuaType::pushValue<int>(*state, 42);
+	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
+		LuaType::PushValue<int>(*state, 42);
 		return 1;
 	});
 
@@ -22,20 +22,20 @@ TEST(LuaFunctionRegistration, FunctionWithReturnValue_Called_ValueIsAsExpected)
 	const int retCode = functionCall.executeFunction();
 	EXPECT_EQ(retCode, 0);
 	int index = 0;
-	const int result = functionCall.getReturnValue<int>(index);
-	EXPECT_EQ(result, 42);
+	const std::optional<int> result = functionCall.getReturnValue<int>(index);
+	EXPECT_EQ(result, std::optional(42));
 }
 
 TEST(LuaFunctionRegistration, FunctionWithArguments_Called_ArgumentsArePassedAsExpected)
 {
 	LuaInstance luaInstance;
 
-	LuaInternal::registerFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
+	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
 		int index = 0;
-		const int arg1 = LuaType::readValue<int>(*state, index);
-		const int arg2 = LuaType::readValue<int>(*state, index);
-		EXPECT_EQ(arg1, 10);
-		EXPECT_EQ(arg2, 20);
+		const std::optional<int> arg1 = LuaType::ReadValue<int>(*state, index);
+		const std::optional<int> arg2 = LuaType::ReadValue<int>(*state, index);
+		EXPECT_EQ(arg1, std::optional(10));
+		EXPECT_EQ(arg2, std::optional(20));
 		return 0;
 	});
 
@@ -51,9 +51,9 @@ TEST(LuaFunctionRegistration, FunctionWithMultipleReturnValues_Called_ValuesAreA
 {
 	LuaInstance luaInstance;
 
-	LuaInternal::registerFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
-		LuaType::pushValue<int>(*state, 42);
-		LuaType::pushValue<int>(*state, 43);
+	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
+		LuaType::PushValue<int>(*state, 42);
+		LuaType::PushValue<int>(*state, 43);
 		return 2;
 	});
 
@@ -62,8 +62,8 @@ TEST(LuaFunctionRegistration, FunctionWithMultipleReturnValues_Called_ValuesAreA
 	const int retCode = functionCall.executeFunction();
 	EXPECT_EQ(retCode, 0);
 	int index = 0;
-	const int result1 = functionCall.getReturnValue<int>(index);
-	EXPECT_EQ(result1, 42);
-	const int result2 = functionCall.getReturnValue<int>(index);
-	EXPECT_EQ(result2, 43);
+	const std::optional<int> result1 = functionCall.getReturnValue<int>(index);
+	EXPECT_EQ(result1, std::optional(42));
+	const std::optional<int> result2 = functionCall.getReturnValue<int>(index);
+	EXPECT_EQ(result2, std::optional(43));
 }

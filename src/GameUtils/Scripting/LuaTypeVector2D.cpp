@@ -7,10 +7,10 @@
 namespace LuaType
 {
 	template<>
-	void pushValue<Vector2D>(lua_State& state, const Vector2D& value) noexcept
+	void PushValue<Vector2D>(lua_State& state, const Vector2D& value) noexcept
 	{
-		LuaInternal::startTableInitialization(state);
-		LuaType::registerField<double>(state, "x", value.x);
-		LuaType::registerField<double>(state, "y", value.y);
+		LuaInternal::StartTableInitialization(state);
+		LuaType::RegisterField<double>(state, "x", value.x);
+		LuaType::RegisterField<double>(state, "y", value.y);
 	}
 }

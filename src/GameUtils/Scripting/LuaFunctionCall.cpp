@@ -10,9 +10,9 @@ namespace LuaInternal
 	{
 		std::string error = lua_tostring(luaState, -1);
 
-		error += "\n" + getStackTrace(*luaState);
+		error += "\n" + GetStackTrace(*luaState);
 
-		pushCString(*luaState, error.c_str());
+		PushCString(*luaState, error.c_str());
 
 		return 1;
 	}

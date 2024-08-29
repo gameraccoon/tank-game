@@ -11,18 +11,18 @@ class TestLuaStackValidator
 {
 public:
 	explicit TestLuaStackValidator(lua_State& luaState)
-		: luaState(luaState)
+		: mLuaState(luaState)
 	{
-		stackState = LuaInternal::getStackSize(luaState);
+		mStackState = LuaInternal::GetStackTop(luaState);
 	}
 
 	~TestLuaStackValidator()
 	{
-		EXPECT_EQ(stackState, LuaInternal::getStackSize(luaState));
+		EXPECT_EQ(mStackState, LuaInternal::GetStackTop(mLuaState));
 	}
 
-	int stackState;
-	lua_State& luaState;
+	int mStackState;
+	lua_State& mLuaState;
 };
 
 TEST(LuaFunctionCall, FunctionWithReturnValue_Called_ValueIsAsExpected)
@@ -39,8 +39,8 @@ TEST(LuaFunctionCall, FunctionWithReturnValue_Called_ValueIsAsExpected)
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
 		int index = 0;
-		const bool result = functionCall.getReturnValue<bool>(index);
-		EXPECT_TRUE(result);
+		const std::optional<bool> result = functionCall.getReturnValue<bool>(index);
+		EXPECT_EQ(result, std::optional(true));
 	}
 }
 
@@ -60,8 +60,8 @@ TEST(LuaFunctionCall, FunctionWithArguments_Called_ArgumentsAreAsExpected)
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
 		int index = 0;
-		const int result = functionCall.getReturnValue<int>(index);
-		EXPECT_EQ(result, 3);
+		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		EXPECT_EQ(result, std::optional(3));
 	}
 }
 
@@ -79,12 +79,12 @@ TEST(LuaFunctionCall, FunctionWithMultipleReturnValues_Called_AllValuesReturned)
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
 		int index = 0;
-		const int result1 = functionCall.getReturnValue<int>(index);
-		const int result2 = functionCall.getReturnValue<int>(index);
-		const int result3 = functionCall.getReturnValue<int>(index);
-		EXPECT_EQ(result1, 10);
-		EXPECT_EQ(result2, 20);
-		EXPECT_EQ(result3, 30);
+		const std::optional<int> result1 = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result2 = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result3 = functionCall.getReturnValue<int>(index);
+		EXPECT_EQ(result1, std::optional(10));
+		EXPECT_EQ(result2, std::optional(20));
+		EXPECT_EQ(result3, std::optional(30));
 	}
 }
 
@@ -104,8 +104,8 @@ TEST(LuaFunctionCall, TableFunctionWithReturnValue_Called_ResultIsAsExpected)
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
 		int index = 0;
-		const int result = functionCall.getReturnValue<int>(index);
-		EXPECT_EQ(result, 11);
+		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		EXPECT_EQ(result, std::optional(11));
 	}
 }
 
@@ -138,8 +138,8 @@ testTable = {
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
 		int index = 0;
-		const int result = functionCall.getReturnValue<int>(index);
-		EXPECT_EQ(result, 22);
+		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		EXPECT_EQ(result, std::optional(22));
 	}
 }
 
@@ -157,7 +157,7 @@ TEST(LuaFunctionCall, NonExistingFunction_Called_ErrorIsReturned)
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
 		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index);
+		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
 		EXPECT_STREQ(errorMessage, "attempt to call a nil value\nstack traceback:\n\t[C]: in ?");
 	}
 }
@@ -178,7 +178,7 @@ TEST(LuaFunctionCall, NonExistingTableFunction_Called_ErrorIsReturned)
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
 		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index);
+		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
 		EXPECT_STREQ(errorMessage, "attempt to call a nil value\nstack traceback:\n\t[C]: in ?");
 	}
 }
@@ -231,7 +231,7 @@ TEST(LuaFunctionCall, FunctionWithArgumentsAndError_Called_ErrorWithStackTraceIs
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
 		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index);
+		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
 
 		// raw string literal
 		const char* expectedErrorMessage = R"([string "function functionWithError() return err + 1 e..."]:1: attempt to perform arithmetic on a nil value (global 'err')

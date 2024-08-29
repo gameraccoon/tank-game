@@ -1,7 +1,6 @@
 #pragma once
 
-#include "GameUtils/Scripting/LuaInternalUtils.h"
-
+struct lua_State;
 using lua_CFunction = int (*)(lua_State*);
 
 struct LuaExecResult

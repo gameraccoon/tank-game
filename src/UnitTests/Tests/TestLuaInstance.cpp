@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "GameUtils/Scripting/LuaInstance.h"
+#include "GameUtils/Scripting/LuaInternalUtils.h"
 
 TEST(LuaInstance, Instance_ExeuteValidScript_StatusCodeIsZero)
 {
@@ -24,4 +25,6 @@ TEST(LuaInstance, Instance_ExecuteInvalidScript_StatusCodeIsNotZero)
 
 	EXPECT_NE(statusCode, 0);
 	EXPECT_EQ(errorMessage, "[string \"function alwaysTrueFunction() return true\"]:1: 'end' expected near <eof>");
+
+	LuaInternal::Pop(luaInstance.getLuaState());
 }

@@ -23,14 +23,14 @@ namespace LuaType
 	};
 
 	template<>
-	void pushValue<TestCustomType>(lua_State& state, const TestCustomType& value) noexcept
+	void PushValue<TestCustomType>(lua_State& state, const TestCustomType& value) noexcept
 	{
-		LuaInternal::startTableInitialization(state);
-		LuaType::registerField<int>(state, "v1", value.v1);
-		LuaInternal::startTableInitialization(state);
-		LuaType::registerField<int>(state, "v3", value.v2.v3);
-		LuaType::registerField<float>(state, "v4", value.v2.v4);
-		LuaInternal::setAsField(state, "v2");
+		LuaInternal::StartTableInitialization(state);
+		LuaType::RegisterField<int>(state, "v1", value.v1);
+		LuaInternal::StartTableInitialization(state);
+		LuaType::RegisterField<int>(state, "v3", value.v2.v3);
+		LuaType::RegisterField<float>(state, "v4", value.v2.v4);
+		LuaInternal::SetAsField(state, "v2");
 	}
 } // namespace LuaType
 
@@ -48,8 +48,8 @@ TEST(LuaCustomType, FunctionAcceptingCustomType_CallWithPassingCustomValue_SameV
 		const int retCode = functionCall.executeFunction();
 		EXPECT_EQ(retCode, 0);
 		int index = 0;
-		const bool result = functionCall.getReturnValue<bool>(index);
-		EXPECT_TRUE(result);
+		const std::optional<bool> result = functionCall.getReturnValue<bool>(index);
+		EXPECT_EQ(result, std::optional(true));
 	}
 }
 
@@ -57,7 +57,7 @@ TEST(LuaCustomType, GlobalOfCustomType_AccessedFromLua_SameValueIsRead)
 {
 	LuaInstance luaInstance;
 
-	LuaType::registerGlobal<LuaType::TestCustomType>(
+	LuaType::RegisterGlobal<LuaType::TestCustomType>(
 		luaInstance.getLuaState(),
 		"testValue",
 		{ .v1 = 43, .v2 = { .v3 = 44, .v4 = 45.0f } }
@@ -72,7 +72,7 @@ TEST(LuaCustomType, GlobalOfCustomType_AccessedFromLua_SameValueIsRead)
 		const int retCode = functionCall.executeFunction();
 		EXPECT_EQ(retCode, 0);
 		int index = 0;
-		const double result = functionCall.getReturnValue<double>(index);
-		EXPECT_EQ(result, 43 + 44 + 45.0);
+		const std::optional<double> result = functionCall.getReturnValue<double>(index);
+		EXPECT_EQ(result, std::optional(43 + 44 + 45.0));
 	}
 }
