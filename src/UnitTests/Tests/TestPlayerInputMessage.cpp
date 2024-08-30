@@ -22,7 +22,7 @@ namespace PlayerInputMessageInternal
 		GameData gameData{ componentFactory };
 		GameStateRewinder stateRewinder;
 
-		explicit TestGame(GameStateRewinder::HistoryType historyType)
+		explicit TestGame(const GameStateRewinder::HistoryType historyType)
 			: stateRewinder(historyType, componentFactory)
 		{}
 	};
