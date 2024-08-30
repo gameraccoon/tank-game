@@ -7,7 +7,7 @@ namespace LuaInternal
 	static int CmdLogLog(lua_State* state)
 	{
 		const int argumentsCount = GetArgumentsCount(*state);
-		for (int i = 0; i < argumentsCount;)
+		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
 			Log::Instance().writeLog(message);
@@ -19,7 +19,7 @@ namespace LuaInternal
 	static int CmdLogWarning(lua_State* state)
 	{
 		const int argumentsCount = GetArgumentsCount(*state);
-		for (int i = 0; i < argumentsCount;)
+		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
 			Log::Instance().writeWarning(message);
@@ -31,7 +31,7 @@ namespace LuaInternal
 	static int CmdLogError(lua_State* state)
 	{
 		const int argumentsCount = GetArgumentsCount(*state);
-		for (int i = 0; i < argumentsCount;)
+		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
 			Log::Instance().writeError(message);

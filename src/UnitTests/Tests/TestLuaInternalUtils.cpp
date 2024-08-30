@@ -54,7 +54,7 @@ TEST(LuaInsternalUtils, EmptyStack_SetDoubleAsGlobal_DoubleCanBeRetrievedByName)
 	LuaInternal::PushDouble(luaState, 3.14);
 	LuaInternal::SetAsGlobal(luaState, "pi");
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "pi");
 	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 3.14);
@@ -84,7 +84,7 @@ TEST(LuaInsternalUtils, EmptyStack_ManuallyConstructGlobalTable_TableCanBeRetrie
 		LuaInternal::SetAsGlobal(luaState, "globalTable");
 	}
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1); // stack is empty
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "globalTable");
 	EXPECT_EQ(LuaInternal::GetStackTop(luaState), 0); // we have only the table on the stack
@@ -229,7 +229,7 @@ TEST(LuaInsternalUtils, TableFields_RemoveBySettingToNil_RemovedFieldsAreNil)
 
 		LuaInternal::SetAsGlobal(luaState, "table1");
 	}
-	ASSERT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	ASSERT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "table1");
 

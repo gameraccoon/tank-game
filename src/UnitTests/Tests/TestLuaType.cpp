@@ -29,27 +29,24 @@ TEST(LuaType, EmptyStack_PushAndReadValues_TheValuesAreOnStack)
 
 	ASSERT_EQ(LuaInternal::GetStackTop(luaState), 8);
 
-	int index = 0;
-	EXPECT_TRUE(LuaInternal::IsInt(luaState, index));
-	EXPECT_EQ(LuaType::ReadValue<int>(luaState, index), 42);
-	EXPECT_TRUE(LuaInternal::IsNumber(luaState, index));
-	EXPECT_EQ(LuaType::ReadValue<double>(luaState, index), 43.0);
-	EXPECT_TRUE(LuaInternal::IsNumber(luaState, index));
-	EXPECT_EQ(LuaType::ReadValue<float>(luaState, index), 44.0f);
-	EXPECT_TRUE(LuaInternal::IsCString(luaState, index));
-	EXPECT_STREQ(LuaType::ReadValue<const char*>(luaState, index).value_or(""), "45");
-	EXPECT_TRUE(LuaInternal::IsCString(luaState, index));
-	EXPECT_STREQ(LuaType::ReadValue<std::string>(luaState, index).value_or("").c_str(), "46");
-	EXPECT_TRUE(LuaInternal::IsCString(luaState, index));
-	EXPECT_STREQ(LuaType::ReadValue<std::string_view>(luaState, index).value_or("").data(), "47");
-	EXPECT_TRUE(LuaInternal::IsBool(luaState, index));
-	EXPECT_EQ(LuaType::ReadValue<bool>(luaState, index), true);
-	EXPECT_TRUE(LuaInternal::IsFunction(luaState, index));
-	EXPECT_NE(LuaType::ReadValue<lua_CFunction>(luaState, index), std::optional<lua_CFunction>(nullptr));
-	EXPECT_TRUE(LuaInternal::IsUserData(luaState, index));
-	EXPECT_EQ(LuaType::ReadValue<void*>(luaState, index), reinterpret_cast<void*>(0x42));
-
-	EXPECT_EQ(index, 9);
+	EXPECT_TRUE(LuaInternal::IsInt(luaState, 0));
+	EXPECT_EQ(LuaType::ReadValue<int>(luaState, 0), 42);
+	EXPECT_TRUE(LuaInternal::IsNumber(luaState, 1));
+	EXPECT_EQ(LuaType::ReadValue<double>(luaState, 1), 43.0);
+	EXPECT_TRUE(LuaInternal::IsNumber(luaState, 2));
+	EXPECT_EQ(LuaType::ReadValue<float>(luaState, 2), 44.0f);
+	EXPECT_TRUE(LuaInternal::IsCString(luaState, 3));
+	EXPECT_STREQ(LuaType::ReadValue<const char*>(luaState, 3).value_or(""), "45");
+	EXPECT_TRUE(LuaInternal::IsCString(luaState, 4));
+	EXPECT_STREQ(LuaType::ReadValue<std::string>(luaState, 4).value_or("").c_str(), "46");
+	EXPECT_TRUE(LuaInternal::IsCString(luaState, 5));
+	EXPECT_STREQ(LuaType::ReadValue<std::string_view>(luaState, 5).value_or("").data(), "47");
+	EXPECT_TRUE(LuaInternal::IsBool(luaState, 6));
+	EXPECT_EQ(LuaType::ReadValue<bool>(luaState, 6), true);
+	EXPECT_TRUE(LuaInternal::IsFunction(luaState, 7));
+	EXPECT_NE(LuaType::ReadValue<lua_CFunction>(luaState, 7), std::optional<lua_CFunction>(nullptr));
+	EXPECT_TRUE(LuaInternal::IsUserData(luaState, 8));
+	EXPECT_EQ(LuaType::ReadValue<void*>(luaState, 8), reinterpret_cast<void*>(0x42));
 
 	LuaInternal::Pop(luaState, 9);
 }
@@ -60,9 +57,9 @@ TEST(LuaType, EmptyStack_RegisterGlobal_GlobalCanBeRead)
 	lua_State& luaState = luaInstance.getLuaState();
 
 	LuaType::RegisterGlobal<int>(luaState, "myIntVal", 42);
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 	EXPECT_EQ(LuaType::ReadGlobal<int>(luaState, "myIntVal"), 42);
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 }
 
 TEST(LuaType, EmptyStack_TryReadNonExistentGlobal_AssertsAndReturnsEmptyOptional)
@@ -73,7 +70,7 @@ TEST(LuaType, EmptyStack_TryReadNonExistentGlobal_AssertsAndReturnsEmptyOptional
 	{
 		DisableAssertGuard guard;
 		EXPECT_EQ(LuaType::ReadGlobal<int>(luaState, "nonExistentGlobal"), std::nullopt);
-		EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+		EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 }
@@ -88,7 +85,7 @@ TEST(LuaType, Table_RegisterField_FieldCanBeRead)
 	LuaType::RegisterField<double>(luaState, "myDoubleVal", 43.3);
 	LuaInternal::SetAsGlobal(luaState, "myTable");
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "myTable");
 	EXPECT_EQ(LuaType::ReadField<int>(luaState, "myIntVal"), 42);
@@ -106,7 +103,7 @@ TEST(LuaType, Table_TryReadNonExistentField_AssertsAndReturnsEmptyOptional)
 	LuaType::RegisterField<int>(luaState, "myIntVal", 42);
 	LuaInternal::SetAsGlobal(luaState, "myTable");
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "myTable");
 	{
@@ -127,7 +124,7 @@ TEST(LuaType, Table_RegisterKeyValueField_FieldCanBeRead)
 	LuaType::RegisterKeyValueField<int, double>(luaState, 2, 43.4);
 	LuaInternal::SetAsGlobal(luaState, "myTable");
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "myTable");
 	const std::optional<int> v1 = LuaType::ReadKeyValueField<int, int>(luaState, 1);
@@ -146,7 +143,7 @@ TEST(LuaType, Table_TryReadNonExistentKeyValueField_AssertsAndReturnsEmptyOption
 	LuaType::RegisterKeyValueField<int, int>(luaState, 1, 42);
 	LuaInternal::SetAsGlobal(luaState, "myTable");
 
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), -1);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 
 	LuaInternal::GetGlobal(luaState, "myTable");
 	{

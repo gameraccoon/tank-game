@@ -21,6 +21,15 @@ enum class LuaBasicType : int
 
 namespace LuaInternal
 {
+	// this value is due to our compensation for 1-based indexing
+	// note that the same values on the stack can be indexed from top (-2 and below) or from bottom (0 or above)
+	constexpr int STACK_TOP = -2;
+
+	// this index is below the first and above the last element of the stack
+	// when the stack is empty, GetStackTop will return this value
+	// accessing the stack with this index will result in an error
+	constexpr int EMPTY_STACK_TOP = -1;
+
 	void PushInt(lua_State& state, int value) noexcept;
 	void PushDouble(lua_State& state, double value) noexcept;
 	void PushCString(lua_State& state, const char* value) noexcept;
@@ -68,7 +77,7 @@ namespace LuaInternal
 	[[nodiscard]]
 	int GetArgumentsCount(lua_State& state) noexcept;
 
-	// returns the index of the top of the stack (you can also just use -2 due to compensation for 1-based indexing)
+	// returns the index of the top of the stack (you can also just use LuaInternal::STACK_TOP)
 	[[nodiscard]]
 	int GetStackTop(lua_State& state) noexcept;
 

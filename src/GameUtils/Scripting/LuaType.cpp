@@ -72,56 +72,56 @@ namespace LuaType
 	}
 
 	template<>
-	std::optional<int> ReadValue<int>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<int> ReadValue<int>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadInt(state, inOutIndex++);
+		return LuaInternal::ReadInt(state, index);
 	}
 
 	template<>
-	std::optional<double> ReadValue<double>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<double> ReadValue<double>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadDouble(state, inOutIndex++);
+		return LuaInternal::ReadDouble(state, index);
 	}
 
 	template<>
-	std::optional<float> ReadValue<float>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<float> ReadValue<float>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadDouble(state, inOutIndex++);
+		return LuaInternal::ReadDouble(state, index);
 	}
 
 	template<>
-	std::optional<const char*> ReadValue<const char*>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<const char*> ReadValue<const char*>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadCString(state, inOutIndex++);
+		return LuaInternal::ReadCString(state, index);
 	}
 
 	template<>
-	std::optional<std::string> ReadValue<std::string>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<std::string> ReadValue<std::string>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadCString(state, inOutIndex++);
+		return LuaInternal::ReadCString(state, index);
 	}
 
 	template<>
-	std::optional<std::string_view> ReadValue<std::string_view>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<std::string_view> ReadValue<std::string_view>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadCString(state, inOutIndex++);
+		return LuaInternal::ReadCString(state, index);
 	}
 
 	template<>
-	std::optional<bool> ReadValue<bool>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<bool> ReadValue<bool>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadBool(state, inOutIndex++);
+		return LuaInternal::ReadBool(state, index);
 	}
 
 	template<>
-	std::optional<lua_CFunction> ReadValue<lua_CFunction>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<lua_CFunction> ReadValue<lua_CFunction>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadFunction(state, inOutIndex++);
+		return LuaInternal::ReadFunction(state, index);
 	}
 
 	template<>
-	std::optional<void*> ReadValue<void*>(lua_State& state, int& inOutIndex) noexcept
+	std::optional<void*> ReadValue<void*>(lua_State& state, const int index) noexcept
 	{
-		return LuaInternal::ReadLightUserData(state, inOutIndex++);
+		return LuaInternal::ReadLightUserData(state, index);
 	}
 } // namespace LuaType

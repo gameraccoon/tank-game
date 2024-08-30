@@ -35,11 +35,10 @@ TEST(LuaFunctionCall, FunctionWithReturnValue_Called_ValueIsAsExpected)
 	{
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
-		functionCall.setUpAsGlobalFunction("alwaysTrueFunction", 0, 1);
+		functionCall.setUpAsGlobalFunctionCall("alwaysTrueFunction", 0, 1);
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
-		int index = 0;
-		const std::optional<bool> result = functionCall.getReturnValue<bool>(index);
+		const std::optional<bool> result = functionCall.getReturnValue<bool>(0);
 		EXPECT_EQ(result, std::optional(true));
 	}
 }
@@ -54,13 +53,12 @@ TEST(LuaFunctionCall, FunctionWithArguments_Called_ArgumentsAreAsExpected)
 	{
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
-		functionCall.setUpAsGlobalFunction("sum", 2, 1);
+		functionCall.setUpAsGlobalFunctionCall("sum", 2, 1);
 		functionCall.pushArgument(1);
 		functionCall.pushArgument(2);
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
-		int index = 0;
-		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result = functionCall.getReturnValue<int>(0);
 		EXPECT_EQ(result, std::optional(3));
 	}
 }
@@ -75,13 +73,12 @@ TEST(LuaFunctionCall, FunctionWithMultipleReturnValues_Called_AllValuesReturned)
 	{
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
-		functionCall.setUpAsGlobalFunction("returnMultipleValues", 0, 3);
+		functionCall.setUpAsGlobalFunctionCall("returnMultipleValues", 0, 3);
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
-		int index = 0;
-		const std::optional<int> result1 = functionCall.getReturnValue<int>(index);
-		const std::optional<int> result2 = functionCall.getReturnValue<int>(index);
-		const std::optional<int> result3 = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result1 = functionCall.getReturnValue<int>(0);
+		const std::optional<int> result2 = functionCall.getReturnValue<int>(1);
+		const std::optional<int> result3 = functionCall.getReturnValue<int>(2);
 		EXPECT_EQ(result1, std::optional(10));
 		EXPECT_EQ(result2, std::optional(20));
 		EXPECT_EQ(result3, std::optional(30));
@@ -99,12 +96,11 @@ TEST(LuaFunctionCall, TableFunctionWithReturnValue_Called_ResultIsAsExpected)
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
 		std::array<const char*, 1> tablePath{ { "testTable" } };
-		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunction(tablePath, "testFunction", 0, 1);
+		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunctionCall(tablePath, "testFunction", 0, 1);
 		ASSERT_TRUE(setUpResult.isSuccessful);
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
-		int index = 0;
-		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result = functionCall.getReturnValue<int>(0);
 		EXPECT_EQ(result, std::optional(11));
 	}
 }
@@ -133,12 +129,11 @@ testTable = {
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
 		std::array<const char*, 1> tablePath{ { "testTable" } };
-		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunction(tablePath, "callFunction", 0, 1);
+		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunctionCall(tablePath, "callFunction", 0, 1);
 		ASSERT_TRUE(setUpResult.isSuccessful);
 		const int retCode = functionCall.executeFunction();
 		ASSERT_EQ(retCode, 0);
-		int index = 0;
-		const std::optional<int> result = functionCall.getReturnValue<int>(index);
+		const std::optional<int> result = functionCall.getReturnValue<int>(0);
 		EXPECT_EQ(result, std::optional(22));
 	}
 }
@@ -153,11 +148,10 @@ TEST(LuaFunctionCall, NonExistingFunction_Called_ErrorIsReturned)
 	{
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
-		functionCall.setUpAsGlobalFunction("nonExistingFunction", 0, 0);
+		functionCall.setUpAsGlobalFunctionCall("nonExistingFunction", 0, 0);
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
-		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
+		const char* errorMessage = functionCall.getReturnValue<const char*>(0).value_or("");
 		EXPECT_STREQ(errorMessage, "attempt to call a nil value\nstack traceback:\n\t[C]: in ?");
 	}
 }
@@ -173,12 +167,11 @@ TEST(LuaFunctionCall, NonExistingTableFunction_Called_ErrorIsReturned)
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
 		std::array<const char*, 1> tablePath{ { "testTable" } };
-		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunction(tablePath, "nonExistingFunction", 0, 0);
+		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunctionCall(tablePath, "nonExistingFunction", 0, 0);
 		ASSERT_TRUE(setUpResult.isSuccessful);
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
-		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
+		const char* errorMessage = functionCall.getReturnValue<const char*>(0).value_or("");
 		EXPECT_STREQ(errorMessage, "attempt to call a nil value\nstack traceback:\n\t[C]: in ?");
 	}
 }
@@ -194,7 +187,7 @@ TEST(LuaFunctionCall, NonExistingTableFunctionInNonExistingTable_Called_ErrorIsR
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
 		std::array<const char*, 1> tablePath{ { "testTable" } };
-		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunction(tablePath, "nonExistingFunction", 0, 0);
+		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunctionCall(tablePath, "nonExistingFunction", 0, 0);
 		EXPECT_FALSE(setUpResult.isSuccessful);
 		EXPECT_EQ(setUpResult.errorMessage, "Table not found: testTable");
 	}
@@ -211,7 +204,7 @@ TEST(LuaFunctionCall, NonExistingTableFunctionInNonExistingInnerTable_Called_Err
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
 		std::array<const char*, 2> tablePath{ { "testTable", "innerTable" } };
-		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunction(tablePath, "nonExistingFunction", 0, 0);
+		const LuaFunctionCall::SetUpResult setUpResult = functionCall.setUpAsTableFunctionCall(tablePath, "nonExistingFunction", 0, 0);
 		EXPECT_FALSE(setUpResult.isSuccessful);
 		EXPECT_EQ(setUpResult.errorMessage, "Table not found: testTable.innerTable");
 	}
@@ -227,11 +220,10 @@ TEST(LuaFunctionCall, FunctionWithArgumentsAndError_Called_ErrorWithStackTraceIs
 	{
 		TestLuaStackValidator stackValidator(luaInstance.getLuaState());
 		LuaFunctionCall functionCall(luaInstance.getLuaState());
-		functionCall.setUpAsGlobalFunction("functionWithError", 0, 1);
+		functionCall.setUpAsGlobalFunctionCall("functionWithError", 0, 1);
 		const int retCode = functionCall.executeFunction();
 		EXPECT_NE(retCode, 0);
-		int index = 0;
-		const char* errorMessage = functionCall.getReturnValue<const char*>(index).value_or("");
+		const char* errorMessage = functionCall.getReturnValue<const char*>(0).value_or("");
 
 		// raw string literal
 		const char* expectedErrorMessage = R"([string "function functionWithError() return err + 1 e..."]:1: attempt to perform arithmetic on a nil value (global 'err')

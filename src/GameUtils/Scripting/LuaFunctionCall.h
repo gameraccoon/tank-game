@@ -17,9 +17,9 @@ public:
 	explicit LuaFunctionCall(lua_State& luaState) noexcept;
 	~LuaFunctionCall() noexcept;
 
-	void setUpAsGlobalFunction(const char* functionName, int argumentsCount, int returnValuesCount) noexcept;
+	void setUpAsGlobalFunctionCall(const char* functionName, int argumentsCount, int returnValuesCount) noexcept;
 	[[nodiscard]]
-	SetUpResult setUpAsTableFunction(std::span<const char*> tablePath, const char* functionName, int argumentsCount, int returnValuesCount) noexcept;
+	SetUpResult setUpAsTableFunctionCall(std::span<const char*> tablePath, const char* functionName, int argumentsCount, int returnValuesCount) noexcept;
 
 	template<typename T>
 	void pushArgument(T&& value) noexcept
@@ -34,14 +34,9 @@ public:
 	int executeFunction() noexcept;
 
 	template<typename T>
-	std::optional<T> getReturnValue(int& inOutIndex) noexcept
+	std::optional<T> getReturnValue(const int index) noexcept
 	{
-		// we go from the top of the stack down, so the first argument is
-		// at position -1, the second at position -2, and so on
-		// so we correct them in order to use 0 as the first argument
-		// and 1 as the second argument for this function call
-		//return LuaInternal::readValue<T>(mLuaState, index - mReturnValuesCount - 1);
-		return LuaType::ReadValue<T>(mLuaState, inOutIndex);
+		return LuaType::ReadValue<T>(mLuaState, index);
 	}
 
 private:

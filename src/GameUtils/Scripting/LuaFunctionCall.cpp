@@ -31,7 +31,7 @@ LuaFunctionCall::~LuaFunctionCall() noexcept
 	lua_settop(&mLuaState, mStackState);
 }
 
-void LuaFunctionCall::setUpAsGlobalFunction(const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
+void LuaFunctionCall::setUpAsGlobalFunctionCall(const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
 {
 	lua_getglobal(&mLuaState, functionName);
 	AssertFatal(argumentsCount >= 0, "Invalid arguments count: %d", argumentsCount);
@@ -40,7 +40,7 @@ void LuaFunctionCall::setUpAsGlobalFunction(const char* functionName, const int 
 	mReturnValuesCount = returnValuesCount;
 }
 
-LuaFunctionCall::SetUpResult LuaFunctionCall::setUpAsTableFunction(const std::span<const char*> tablePath, const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
+LuaFunctionCall::SetUpResult LuaFunctionCall::setUpAsTableFunctionCall(const std::span<const char*> tablePath, const char* functionName, const int argumentsCount, const int returnValuesCount) noexcept
 {
 	lua_getglobal(&mLuaState, tablePath[0]);
 

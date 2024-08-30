@@ -14,7 +14,7 @@ namespace LuaType
 	// (for custom types to be implemented somewhere else)
 	template<typename T>
 	[[nodiscard]]
-	std::optional<T> ReadValue(lua_State& state, int& inOutIndex) noexcept;
+	std::optional<T> ReadValue(lua_State& state, int index) noexcept;
 
 	// register the value as a global constant
 	template<typename T>
@@ -31,11 +31,9 @@ namespace LuaType
 	[[nodiscard]]
 	std::optional<T> ReadGlobal(lua_State& state, const char* name) noexcept
 	{
-		const int valueBegin = LuaInternal::GetStackTop(state) + 1;
-		int index = valueBegin;
 		LuaInternal::GetGlobal(state, name);
-		std::optional<T> result = ReadValue<T>(state, index);
-		LuaInternal::Pop(state, index - valueBegin);
+		std::optional<T> result = ReadValue<T>(state, LuaInternal::STACK_TOP);
+		LuaInternal::Pop(state);
 		return result;
 	}
 
@@ -64,11 +62,9 @@ namespace LuaType
 	[[nodiscard]]
 	std::optional<T> ReadField(lua_State& state, const char* key) noexcept
 	{
-		const int valueBegin = LuaInternal::GetStackTop(state) + 1;
-		int index = valueBegin;
 		LuaInternal::GetField(state, key);
-		std::optional<T> result = ReadValue<T>(state, index);
-		LuaInternal::Pop(state, index - valueBegin);
+		std::optional<T> result = ReadValue<T>(state, LuaInternal::STACK_TOP);
+		LuaInternal::Pop(state);
 		return result;
 	}
 
@@ -78,12 +74,10 @@ namespace LuaType
 	[[nodiscard]]
 	std::optional<T> ReadKeyValueField(lua_State& state, const Key& key) noexcept
 	{
-		const int valueBegin = LuaInternal::GetStackTop(state) + 1;
-		int index = valueBegin;
 		PushValue<Key>(state, key);
 		LuaInternal::GetFieldRaw(state);
-		std::optional<T> result = ReadValue<T>(state, index);
-		LuaInternal::Pop(state, index - valueBegin);
+		std::optional<T> result = ReadValue<T>(state, LuaInternal::STACK_TOP);
+		LuaInternal::Pop(state);
 		return result;
 	}
 } // namespace LuaType
