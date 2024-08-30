@@ -80,6 +80,12 @@ namespace LuaType
 	}
 
 	template<>
+	std::optional<lua_CFunction> ReadValue<lua_CFunction>(lua_State& state, int& inOutIndex) noexcept
+	{
+		return LuaInternal::ReadFunction(state, inOutIndex++);
+	}
+
+	template<>
 	std::optional<void*> ReadValue<void*>(lua_State& state, int& inOutIndex) noexcept
 	{
 		return LuaInternal::ReadLightUserData(state, inOutIndex++);
