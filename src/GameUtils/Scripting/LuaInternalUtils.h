@@ -77,7 +77,7 @@ namespace LuaInternal
 	std::string GetStackTrace(lua_State& state) noexcept;
 
 	// starts the initialization of a new table
-	void StartTableInitialization(lua_State& state) noexcept;
+	void NewTable(lua_State& state) noexcept;
 
 	// registers a global function with the given name
 	void RegisterGlobalFunction(lua_State& state, const char* functionName, lua_CFunction function) noexcept;

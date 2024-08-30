@@ -45,7 +45,7 @@ namespace LuaType
 {
 	void RegisterLog(lua_State& state, const char* name)
 	{
-		LuaInternal::StartTableInitialization(state);
+		LuaInternal::NewTable(state);
 		LuaInternal::RegisterTableFunction(state, "log", LuaInternal::CmdLogLog);
 		LuaInternal::RegisterTableFunction(state, "warn", LuaInternal::CmdLogWarning);
 		LuaInternal::RegisterTableFunction(state, "error", LuaInternal::CmdLogError);

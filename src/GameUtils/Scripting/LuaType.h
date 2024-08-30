@@ -43,7 +43,7 @@ namespace LuaType
 	template<typename T>
 	void RegisterField(lua_State& state, const char* key, const T& value) noexcept
 	{
-		PushValue(state, value);
+		PushValue<T>(state, value);
 		LuaInternal::SetAsField(state, key);
 	}
 
@@ -53,7 +53,37 @@ namespace LuaType
 	void RegisterKeyValueField(lua_State& state, const Key& key, const T& value) noexcept
 	{
 		PushValue<Key>(state, key);
-		PushValue(state, value);
+		PushValue<T>(state, value);
 		LuaInternal::SetAsField(state);
+	}
+
+	// read a field from a table
+	// for standard types it may be better to do it manually
+	// but for custom types this function can work better
+	template<typename T, std::enable_if_t<!std::is_pointer_v<T>, int> = 0>
+	[[nodiscard]]
+	std::optional<T> ReadField(lua_State& state, const char* key) noexcept
+	{
+		const int valueBegin = LuaInternal::GetStackTop(state) + 1;
+		int index = valueBegin;
+		LuaInternal::GetField(state, key);
+		std::optional<T> result = ReadValue<T>(state, index);
+		LuaInternal::Pop(state, index - valueBegin);
+		return result;
+	}
+
+	// same as above, but with a key of any type
+	// useful for reading from arrays and maps
+	template<typename Key, typename T, std::enable_if_t<!std::is_pointer_v<T>, int> = 0>
+	[[nodiscard]]
+	std::optional<T> ReadKeyValueField(lua_State& state, const Key& key) noexcept
+	{
+		const int valueBegin = LuaInternal::GetStackTop(state) + 1;
+		int index = valueBegin;
+		PushValue<Key>(state, key);
+		LuaInternal::GetFieldRaw(state);
+		std::optional<T> result = ReadValue<T>(state, index);
+		LuaInternal::Pop(state, index - valueBegin);
+		return result;
 	}
 } // namespace LuaType

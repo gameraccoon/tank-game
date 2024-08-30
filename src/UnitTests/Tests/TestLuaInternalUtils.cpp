@@ -70,7 +70,7 @@ TEST(LuaInsternalUtils, EmptyStack_ManuallyConstructGlobalTable_TableCanBeRetrie
 	lua_State& luaState = luaInstance.getLuaState();
 
 	{
-		LuaInternal::StartTableInitialization(luaState);
+		LuaInternal::NewTable(luaState);
 
 		// note that LuaType::RegisterField can be used instead
 		LuaInternal::PushBool(luaState, true);
@@ -141,7 +141,7 @@ TEST(LuaInsternalUtils, EmptyStack_AddTableWithFunction_CanBeCalledFromLua)
 	lua_State& luaState = luaInstance.getLuaState();
 
 	{
-		LuaInternal::StartTableInitialization(luaState);
+		LuaInternal::NewTable(luaState);
 
 		LuaInternal::RegisterTableFunction(luaState, "function1", [](lua_State* state) {
 			LuaInternal::PushCString(*state, "Hi!");
@@ -221,7 +221,7 @@ TEST(LuaInsternalUtils, TableFields_RemoveBySettingToNil_RemovedFieldsAreNil)
 	lua_State& luaState = luaInstance.getLuaState();
 
 	{
-		LuaInternal::StartTableInitialization(luaState);
+		LuaInternal::NewTable(luaState);
 
 		LuaType::RegisterField<int>(luaState, "v1", 42);
 		LuaType::RegisterField<int>(luaState, "v2", 43);
@@ -534,7 +534,7 @@ TEST(LuaInsternalUtils, TableOnStack_TryReadAsDifferentTypes_OnlyTableSucceed)
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
 
-	LuaInternal::StartTableInitialization(luaState);
+	LuaInternal::NewTable(luaState);
 
 	ASSERT_FALSE(LuaInternal::IsInt(luaState, 0));
 	ASSERT_FALSE(LuaInternal::IsNumber(luaState, 0));

@@ -25,9 +25,9 @@ namespace LuaType
 	template<>
 	void PushValue<TestCustomType>(lua_State& state, const TestCustomType& value) noexcept
 	{
-		LuaInternal::StartTableInitialization(state);
+		LuaInternal::NewTable(state);
 		LuaType::RegisterField<int>(state, "v1", value.v1);
-		LuaInternal::StartTableInitialization(state);
+		LuaInternal::NewTable(state);
 		LuaType::RegisterField<int>(state, "v3", value.v2.v3);
 		LuaType::RegisterField<float>(state, "v4", value.v2.v4);
 		LuaInternal::SetAsField(state, "v2");

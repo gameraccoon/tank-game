@@ -207,7 +207,7 @@ namespace LuaInternal
 		return stackTrace;
 	}
 
-	void StartTableInitialization(lua_State& state) noexcept
+	void NewTable(lua_State& state) noexcept
 	{
 		lua_newtable(&state);
 	}

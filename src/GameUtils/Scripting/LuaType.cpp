@@ -2,6 +2,9 @@
 
 #include "GameUtils/Scripting/LuaType.h"
 
+#include <string>
+#include <string_view>
+
 #include <lua.hpp>
 
 namespace LuaType
@@ -28,6 +31,26 @@ namespace LuaType
 	void PushValue<const char*>(lua_State& state, const char* const& value) noexcept
 	{
 		LuaInternal::PushCString(state, value);
+	}
+
+	template<>
+	void PushValue<std::string>(lua_State& state, const std::string& value) noexcept
+	{
+		LuaInternal::PushCString(state, value.c_str());
+	}
+
+	template<>
+	void PushValue<std::string_view>(lua_State& state, const std::string_view& value) noexcept
+	{
+		// make sure the resulting string is null-terminated
+		if (value.empty() || value.back() != '\0')
+		{
+			LuaInternal::PushCString(state, std::string(value).c_str());
+		}
+		else
+		{
+			LuaInternal::PushCString(state, value.data());
+		}
 	}
 
 	template<>
@@ -63,12 +86,23 @@ namespace LuaType
 	template<>
 	std::optional<float> ReadValue<float>(lua_State& state, int& inOutIndex) noexcept
 	{
-		const auto result = LuaInternal::ReadDouble(state, inOutIndex++);
-		return result.has_value() ? std::optional(static_cast<float>(result.value())) : std::nullopt;
+		return LuaInternal::ReadDouble(state, inOutIndex++);
 	}
 
 	template<>
 	std::optional<const char*> ReadValue<const char*>(lua_State& state, int& inOutIndex) noexcept
+	{
+		return LuaInternal::ReadCString(state, inOutIndex++);
+	}
+
+	template<>
+	std::optional<std::string> ReadValue<std::string>(lua_State& state, int& inOutIndex) noexcept
+	{
+		return LuaInternal::ReadCString(state, inOutIndex++);
+	}
+
+	template<>
+	std::optional<std::string_view> ReadValue<std::string_view>(lua_State& state, int& inOutIndex) noexcept
 	{
 		return LuaInternal::ReadCString(state, inOutIndex++);
 	}
