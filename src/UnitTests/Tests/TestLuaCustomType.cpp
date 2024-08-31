@@ -4,8 +4,12 @@
 
 #include <gtest/gtest.h>
 
+#include "EngineCommon/Types/ComplexTypes/ScopeFinalizer.h"
+
 #include "GameUtils/Scripting/LuaFunctionCall.h"
 #include "GameUtils/Scripting/LuaInstance.h"
+#include "GameUtils/Scripting/LuaInternalUtils.h"
+#include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
 #include "GameUtils/Scripting/LuaType.h"
 
 namespace LuaCustomTypeInternal
@@ -43,41 +47,23 @@ namespace LuaType
 	template<>
 	std::optional<TestCustomType> ReadValue<TestCustomType>(lua_State& state, const int index) noexcept
 	{
-		if (!LuaInternal::IsTable(state, index))
+		LUA_VALIDATE_IS_TABLE(state, index);
+
+		TestCustomType result{};
+
+		LUA_READ_FIELD_INTO_RESULT(state, int, v1);
+
 		{
-			return std::nullopt;
+			LuaInternal::GetField(state, "v2");
+			// we use finalizer because any of the operations below can return early
+			ScopeFinalizer popV2FromStack([&state]() { LuaInternal::Pop(state); });
+			LUA_VALIDATE_IS_TABLE(state, LuaInternal::STACK_TOP);
+
+			LUA_READ_FIELD_INTO_VARIABLE(state, int, v3, result.v2.v3);
+			LUA_READ_FIELD_INTO_VARIABLE(state, float, v4, result.v2.v4);
 		}
 
-		const std::optional<int> v1 = ReadField<int>(state, "v1");
-		if (!v1)
-		{
-			return std::nullopt;
-		}
-
-		LuaInternal::GetField(state, "v2");
-		if (!LuaInternal::IsTable(state, LuaInternal::STACK_TOP))
-		{
-			LuaInternal::Pop(state);
-			return std::nullopt;
-		}
-
-		const std::optional<int> v3 = ReadField<int>(state, "v3");
-		if (!v3)
-		{
-			LuaInternal::Pop(state);
-			return std::nullopt;
-		}
-
-		const std::optional<float> v4 = ReadField<float>(state, "v4");
-		if (!v4)
-		{
-			LuaInternal::Pop(state);
-			return std::nullopt;
-		}
-
-		LuaInternal::Pop(state); // pop v2 table
-
-		return TestCustomType{ *v1, { *v3, *v4 } };
+		return result;
 	}
 } // namespace LuaType
 

@@ -148,7 +148,7 @@ namespace LuaInternal
 
 	void Pop(lua_State& state, const int valuesCount) noexcept
 	{
-		Assert(valuesCount >= 0, "valuesCount must be non-negative");
+		AssertFatal(valuesCount >= 0, "Can't pop a negative amount of values from the stack");
 		if (lua_gettop(&state) < valuesCount) [[unlikely]]
 		{
 			ReportScriptError(state, "Trying to pop more values than there are on the stack");

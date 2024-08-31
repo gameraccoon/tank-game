@@ -1,6 +1,6 @@
 #include "EngineCommon/precomp.h"
 
-#include "GameUtils/Scripting/LuaTypeLog.h"
+#include "GameUtils/Scripting/LuaType.h"
 
 namespace LuaInternal
 {
@@ -43,12 +43,12 @@ namespace LuaInternal
 
 namespace LuaType
 {
-	void RegisterLog(lua_State& state, const char* name)
+	template<>
+	void PushValue<Log>(lua_State& state, const Log& /*log*/) noexcept
 	{
 		LuaInternal::NewTable(state);
 		LuaInternal::RegisterTableFunction(state, "log", LuaInternal::CmdLogLog);
 		LuaInternal::RegisterTableFunction(state, "warn", LuaInternal::CmdLogWarning);
 		LuaInternal::RegisterTableFunction(state, "error", LuaInternal::CmdLogError);
-		LuaInternal::SetAsGlobal(state, name);
 	}
 }
