@@ -19,10 +19,10 @@ StringId enum_to_string(const {enum_name} value)
 }}
 
 template<>
-{enum_name} string_to_enum(const StringId value)
+std::optional<{enum_name}> string_to_enum(const StringId value)
 {{
 	{string_to_enum_case}
-	return static_cast<{enum_name}>(0);
+	return std::nullopt;
 }}
 
 template<>
