@@ -8,7 +8,7 @@
 
 #include "GameLogic/Game/TankServerGame.h"
 
-ApplicationData::ApplicationData(int workerThreadsCount, int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, Render render)
+ApplicationData::ApplicationData(const int workerThreadsCount, const int extraThreadsCount, const std::filesystem::path& workingDirectoryPath, const Render render)
 	: WorkerThreadsCount(workerThreadsCount)
 	, ExtraThreadsCount(extraThreadsCount)
 	, RenderThreadId(ResourceLoadingThreadId + 1 + workerThreadsCount + extraThreadsCount)
@@ -100,7 +100,7 @@ void ApplicationData::shutdownThreads()
 	resourceManager.stopLoadingThread();
 }
 
-int ApplicationData::getAdditionalThreadIdByIndex(int additionalThreadIndex) const
+int ApplicationData::getAdditionalThreadIdByIndex(const int additionalThreadIndex) const
 {
 	return ResourceLoadingThreadId + 1 + WorkerThreadsCount + additionalThreadIndex;
 }

@@ -4,10 +4,13 @@
 
 #include <lua.hpp>
 
-LuaInstance::LuaInstance() noexcept
+LuaInstance::LuaInstance(const OpenStandardLibs shouldRegisterStdLibs) noexcept
 	: mLuaState(*luaL_newstate())
 {
-	luaL_openlibs(&mLuaState);
+	if (shouldRegisterStdLibs == OpenStandardLibs::Yes)
+	{
+		luaL_openlibs(&mLuaState);
+	}
 }
 
 LuaInstance::~LuaInstance() noexcept
@@ -34,11 +37,11 @@ LuaExecResult LuaInstance::execScript(const char* script) noexcept
 	return result;
 }
 
-LuaExecResult LuaInstance::execScriptFromFile(const char* scriptFileName) noexcept
+LuaExecResult LuaInstance::execScriptFromFile(const AbsoluteResourcePath& scriptFilePath) noexcept
 {
 	LuaExecResult result;
 
-	result.statusCode = luaL_dofile(&mLuaState, scriptFileName);
+	result.statusCode = luaL_dofile(&mLuaState, scriptFilePath.getAbsolutePath().c_str());
 
 	if (result.statusCode != 0)
 	{
