@@ -42,15 +42,11 @@ namespace LuaType
 	template<>
 	void PushValue<std::string_view>(lua_State& state, const std::string_view& value) noexcept
 	{
-		// make sure the resulting string is null-terminated
-		if (value.empty() || value.back() != '\0')
-		{
-			LuaInternal::PushCString(state, std::string(value).c_str());
-		}
-		else
-		{
-			LuaInternal::PushCString(state, value.data());
-		}
+		// std::string_view is not guaranteed to be null-terminated
+		// and Lua expects null-terminated strings
+		// unfortunately, we can't safely check if the std::string_view is null-terminated
+		// without knowing its origin, so we have to copy it every time
+		LuaInternal::PushCString(state, std::string(value).c_str());
 	}
 
 	template<>
