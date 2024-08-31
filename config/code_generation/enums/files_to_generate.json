@@ -8,5 +8,10 @@
 		"name_template": "{enum_name}.generated.cpp",
 		"template": "enum_source",
 		"output_dir": "src/GameData/Enums/"
+	},
+	{
+		"name_template": "{enum_name}LuaSerialization.generated.cpp",
+		"template": "serialization/lua/enum_lua_serialization_source",
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/"
 	}
 ]

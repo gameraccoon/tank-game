@@ -8,7 +8,7 @@
 	}
 
 #define LUA_READ_FIELD_INTO_RESULT(state, type, field) \
-	if (const std::optional<type> field = ReadField<type>(state, #field)) \
+	if (const std::optional<type> field = ReadField<type>((state), #field)) \
 	{ \
 		result.field = *field; \
 	} \
@@ -18,9 +18,20 @@
 	}
 
 #define LUA_READ_FIELD_INTO_VARIABLE(state, type, field, variable) \
-	if (const std::optional<type> field = ReadField<type>(state, #field)) \
+	if (const std::optional<type> field = ReadField<type>((state), #field)) \
 	{ \
 		variable = *field; \
+	} \
+	else \
+	{ \
+		return std::nullopt; \
+	}
+
+#define LUA_READ_VALUE_INTO_VARIABLE(state, index, type, variable) \
+	type variable; \
+	if (const std::optional<type> tempVar = ReadValue<type>((state), (index))) \
+	{ \
+		variable = *tempVar; \
 	} \
 	else \
 	{ \

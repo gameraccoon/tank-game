@@ -1,0 +1,24 @@
+#include "EngineCommon/precomp.h"
+
+#include "EngineData/TypeUtils/EnumUtils.h"
+
+#include "GameData/Enums/{enum_name}.generated.h"
+
+#include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
+#include "GameUtils/Scripting/LuaType.h"
+
+namespace LuaType
+{{
+	template<>
+	void PushValue<{enum_name}>(lua_State& state, const {enum_name}& value) noexcept
+	{{
+		LuaInternal::PushCString(state, ID_TO_STR(enum_to_string(value)).c_str());
+	}}
+
+	template<>
+	std::optional<{enum_name}> ReadValue<{enum_name}>(lua_State& state, const int index) noexcept
+	{{
+		LUA_READ_VALUE_INTO_VARIABLE(state, index, const char*, rawStringValue);
+		return string_to_enum<{enum_name}>(STR_TO_ID(std::string_view(rawStringValue)));
+	}}
+}} // namespace LuaType
