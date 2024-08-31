@@ -40,16 +40,6 @@ namespace LuaType
 	}
 
 	template<>
-	void PushValue<std::string_view>(lua_State& state, const std::string_view& value) noexcept
-	{
-		// std::string_view is not guaranteed to be null-terminated
-		// and Lua expects null-terminated strings
-		// unfortunately, we can't safely check if the std::string_view is null-terminated
-		// without knowing its origin, so we have to copy it every time
-		LuaInternal::PushCString(state, std::string(value).c_str());
-	}
-
-	template<>
 	void PushValue<bool>(lua_State& state, const bool& value) noexcept
 	{
 		LuaInternal::PushBool(state, value);
@@ -93,12 +83,6 @@ namespace LuaType
 
 	template<>
 	std::optional<std::string> ReadValue<std::string>(lua_State& state, const int index) noexcept
-	{
-		return LuaInternal::ReadCString(state, index);
-	}
-
-	template<>
-	std::optional<std::string_view> ReadValue<std::string_view>(lua_State& state, const int index) noexcept
 	{
 		return LuaInternal::ReadCString(state, index);
 	}

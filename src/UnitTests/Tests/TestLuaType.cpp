@@ -22,13 +22,11 @@ TEST(LuaType, EmptyStack_PushAndReadValues_TheValuesAreOnStack)
 	LuaType::PushValue<float>(luaState, 44.0f);
 	LuaType::PushValue<const char*>(luaState, "45");
 	LuaType::PushValue<std::string>(luaState, "46");
-	// note that pushing string_view is expensive since we need to copy the string under the hood to guarantee it is null-terminated
-	LuaType::PushValue<std::string_view>(luaState, "47");
 	LuaType::PushValue<bool>(luaState, true);
 	LuaType::PushValue<lua_CFunction>(luaState, [](lua_State*) -> int { return 0; });
 	LuaType::PushValue<void*>(luaState, reinterpret_cast<void*>(0x42));
 
-	ASSERT_EQ(LuaInternal::GetStackTop(luaState), 8);
+	ASSERT_EQ(LuaInternal::GetStackTop(luaState), 7);
 
 	EXPECT_TRUE(LuaInternal::IsInt(luaState, 0));
 	EXPECT_EQ(LuaType::ReadValue<int>(luaState, 0), 42);
@@ -40,16 +38,14 @@ TEST(LuaType, EmptyStack_PushAndReadValues_TheValuesAreOnStack)
 	EXPECT_STREQ(LuaType::ReadValue<const char*>(luaState, 3).value_or(""), "45");
 	EXPECT_TRUE(LuaInternal::IsCString(luaState, 4));
 	EXPECT_STREQ(LuaType::ReadValue<std::string>(luaState, 4).value_or("").c_str(), "46");
-	EXPECT_TRUE(LuaInternal::IsCString(luaState, 5));
-	EXPECT_STREQ(LuaType::ReadValue<std::string_view>(luaState, 5).value_or("").data(), "47");
-	EXPECT_TRUE(LuaInternal::IsBool(luaState, 6));
-	EXPECT_EQ(LuaType::ReadValue<bool>(luaState, 6), true);
-	EXPECT_TRUE(LuaInternal::IsFunction(luaState, 7));
-	EXPECT_NE(LuaType::ReadValue<lua_CFunction>(luaState, 7), std::optional<lua_CFunction>(nullptr));
-	EXPECT_TRUE(LuaInternal::IsUserData(luaState, 8));
-	EXPECT_EQ(LuaType::ReadValue<void*>(luaState, 8), reinterpret_cast<void*>(0x42));
+	EXPECT_TRUE(LuaInternal::IsBool(luaState, 5));
+	EXPECT_EQ(LuaType::ReadValue<bool>(luaState, 5), true);
+	EXPECT_TRUE(LuaInternal::IsFunction(luaState, 6));
+	EXPECT_NE(LuaType::ReadValue<lua_CFunction>(luaState, 6), std::optional<lua_CFunction>(nullptr));
+	EXPECT_TRUE(LuaInternal::IsUserData(luaState, 7));
+	EXPECT_EQ(LuaType::ReadValue<void*>(luaState, 7), reinterpret_cast<void*>(0x42));
 
-	LuaInternal::Pop(luaState, 9);
+	LuaInternal::Pop(luaState, 8);
 }
 
 TEST(LuaType, EmptyStack_RegisterGlobal_GlobalCanBeRead)
@@ -152,24 +148,6 @@ TEST(LuaType, Table_TryReadNonExistentKeyValueField_AssertsAndReturnsEmptyOption
 		const std::optional<int> v = LuaType::ReadKeyValueField<int, int>(luaState, 2);
 		EXPECT_EQ(v, std::nullopt);
 	}
-
-	LuaInternal::Pop(luaState);
-}
-
-TEST(LuaType, EmptyStack_PushNonZeroTerminatedStringView_TheStringIsOnStack)
-{
-	LuaInstance luaInstance;
-	lua_State& luaState = luaInstance.getLuaState();
-
-	const std::string string("testString");
-	// push substring of the string that is not zero-terminated
-	// note that this is expensive since we need to copy the string uder the hood to null-terminate it
-	LuaType::PushValue<std::string_view>(luaState, std::string_view(string.data(), string.size() - 3));
-
-	EXPECT_EQ(LuaInternal::GetStackTop(luaState), 0);
-	EXPECT_TRUE(LuaInternal::IsCString(luaState, 0));
-	// the returned string_view is always zero-terminated
-	EXPECT_STREQ(LuaType::ReadValue<std::string_view>(luaState, 0).value_or("").data(), "testStr");
 
 	LuaInternal::Pop(luaState);
 }
