@@ -80,4 +80,14 @@ namespace LuaType
 		LuaInternal::Pop(state);
 		return result;
 	}
+
+	void IterateOverTable(lua_State& state, const int index, auto&& loopBody) noexcept
+	{
+		LuaInternal::StartIteratingTable(state);
+		while (LuaInternal::NextTableValue(state, index))
+		{
+			loopBody(state);
+			LuaInternal::Pop(state); // pop value leaving the key to continue iterating
+		}
+	}
 } // namespace LuaType

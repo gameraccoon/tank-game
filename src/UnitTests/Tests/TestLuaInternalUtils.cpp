@@ -723,3 +723,29 @@ TEST(LuaInsternalUtils, EmptyStack_SetAsField_ReportsError)
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
 	}
 }
+
+TEST(LuaInsternalUtils, TableWithValues_IterateOverTable_AllValuesRead)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const LuaExecResult execRes = luaInstance.execScript("myTable = {6, 8, 0, 3}");
+	ASSERT_EQ(execRes.statusCode, 0);
+
+	LuaInternal::GetGlobal(luaState, "myTable");
+	LuaInternal::StartIteratingTable(luaState);
+	int sum = 0;
+	while (LuaInternal::NextTableValue(luaState, 0))
+	{
+		const std::optional<int> key = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP - 1);
+		ASSERT_GE(key, 1);
+		ASSERT_LE(key, 4);
+
+		const std::optional<int> value = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP);
+		ASSERT_TRUE(value);
+		sum += *value;
+		LuaInternal::Pop(luaState);
+	}
+	LuaInternal::Pop(luaState);
+	EXPECT_EQ(sum, 17);
+}

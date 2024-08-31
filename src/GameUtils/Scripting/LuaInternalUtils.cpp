@@ -212,6 +212,18 @@ namespace LuaInternal
 		lua_newtable(&state);
 	}
 
+	void StartIteratingTable(lua_State& state) noexcept
+	{
+		// to show that the next iteration should start from the beginning
+		// we push a nil value on the stack
+		lua_pushnil(&state);
+	}
+
+	bool NextTableValue(lua_State& state, const int tableIndex) noexcept
+	{
+		return lua_next(&state, tableIndex + 1) != 0;
+	}
+
 	void RegisterGlobalFunction(lua_State& state, const char* functionName, const lua_CFunction function) noexcept
 	{
 		lua_pushcfunction(&state, function);

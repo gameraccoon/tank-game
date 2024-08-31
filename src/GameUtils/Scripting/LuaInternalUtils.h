@@ -88,6 +88,11 @@ namespace LuaInternal
 	// starts the initialization of a new table
 	void NewTable(lua_State& state) noexcept;
 
+	void StartIteratingTable(lua_State& state) noexcept;
+	// returns true if there is a next key-value pair in the table
+	[[nodiscard]]
+	bool NextTableValue(lua_State& state, int tableIndex) noexcept;
+
 	// registers a global function with the given name
 	void RegisterGlobalFunction(lua_State& state, const char* functionName, lua_CFunction function) noexcept;
 	// registers a table function with the given name for the table at the top of the stack

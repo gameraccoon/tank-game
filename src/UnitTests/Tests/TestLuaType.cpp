@@ -151,3 +151,26 @@ TEST(LuaType, Table_TryReadNonExistentKeyValueField_AssertsAndReturnsEmptyOption
 
 	LuaInternal::Pop(luaState);
 }
+
+TEST(LuaType, TableWithValues_IterateOverTable_AllValuesRead)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const LuaExecResult execRes = luaInstance.execScript("myTable = {6, 8, 0, 3}");
+	ASSERT_EQ(execRes.statusCode, 0);
+
+	int sum = 0;
+	LuaInternal::GetGlobal(luaState, "myTable");
+	LuaType::IterateOverTable(luaState, 0, [&sum](lua_State& state) {
+		const std::optional<int> key = LuaInternal::ReadInt(state, LuaInternal::STACK_TOP - 1);
+		ASSERT_GE(key, 1);
+		ASSERT_LE(key, 4);
+
+		const std::optional<int> val = LuaType::ReadValue<int>(state, LuaInternal::STACK_TOP);
+		ASSERT_TRUE(val);
+		sum += *val;
+	});
+	LuaInternal::Pop(luaState);
+	EXPECT_EQ(sum, 17);
+}
