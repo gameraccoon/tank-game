@@ -37,7 +37,7 @@ namespace LuaType
 		return result;
 	}
 
-	// register the value a field in a table
+	// register the value a field in a table on the top of the stack
 	template<typename T>
 	void RegisterField(lua_State& state, const char* key, const T& value) noexcept
 	{
@@ -52,10 +52,10 @@ namespace LuaType
 	{
 		PushValue<Key>(state, key);
 		PushValue<T>(state, value);
-		LuaInternal::SetAsField(state);
+		LuaInternal::SetAsKeyValueField(state);
 	}
 
-	// read a field from a table
+	// read a field from a table on the top of the stack
 	// for standard types it may be better to do it manually
 	// but for custom types this function can work better
 	template<typename T, std::enable_if_t<!std::is_pointer_v<T>, int> = 0>
@@ -75,16 +75,17 @@ namespace LuaType
 	std::optional<T> ReadKeyValueField(lua_State& state, const Key& key) noexcept
 	{
 		PushValue<Key>(state, key);
-		LuaInternal::GetFieldRaw(state);
+		LuaInternal::GetKeyValueField(state);
 		std::optional<T> result = ReadValue<T>(state, LuaInternal::STACK_TOP);
 		LuaInternal::Pop(state);
 		return result;
 	}
 
-	void IterateOverTable(lua_State& state, const int index, auto&& loopBody) noexcept
+	// loops over all key-value pairs in a table on the top of the stack
+	void IterateOverTable(lua_State& state, auto&& loopBody) noexcept
 	{
 		LuaInternal::StartIteratingTable(state);
-		while (LuaInternal::NextTableValue(state, index))
+		while (LuaInternal::NextTableValue(state))
 		{
 			loopBody(state);
 			LuaInternal::Pop(state); // pop value leaving the key to continue iterating

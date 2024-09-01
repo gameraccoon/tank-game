@@ -158,7 +158,7 @@ TEST(LuaType, TableWithValues_IterateOverTable_AllValuesRead)
 
 	int sum = 0;
 	LuaInternal::GetGlobal(luaState, "myTable");
-	LuaType::IterateOverTable(luaState, 0, [&sum](lua_State& state) {
+	LuaType::IterateOverTable(luaState, [&sum](lua_State& state) {
 		const std::optional<int> key = LuaInternal::ReadInt(state, LuaInternal::STACK_TOP - 1);
 		ASSERT_GE(key, 1);
 		ASSERT_LE(key, 4);

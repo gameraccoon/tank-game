@@ -58,17 +58,17 @@ namespace LuaInternal
 	// returns the int representation of the type of the value
 	LuaBasicType GetGlobal(lua_State& state, const char* constantName) noexcept;
 
-	// Group two last pushed values as a key-value pair in a table (key can be any type)
-	void SetAsField(lua_State& state) noexcept;
-
 	// Registers the previusly pushed value as a table field using provided name
 	void SetAsField(lua_State& state, const char* fieldName) noexcept;
+
+	// Group two last pushed values as a key-value pair in a table (key can be any type)
+	void SetAsKeyValueField(lua_State& state) noexcept;
 
 	// puts the value of the field with the given name on the stack
 	void GetField(lua_State& state, const char* fieldName) noexcept;
 
 	// gets the value of the field where the key is on the top of the stack
-	void GetFieldRaw(lua_State& state) noexcept;
+	void GetKeyValueField(lua_State& state) noexcept;
 
 	// pops the given amount of values from the stack
 	void Pop(lua_State& state, int valuesCount = 1) noexcept;
@@ -86,8 +86,9 @@ namespace LuaInternal
 
 	void StartIteratingTable(lua_State& state) noexcept;
 	// returns true if there is a next key-value pair in the table
+	// the previous key should still be on top of the stack (but previous value should be popped)
 	[[nodiscard]]
-	bool NextTableValue(lua_State& state, int tableIndex) noexcept;
+	bool NextTableValue(lua_State& state) noexcept;
 
 	// registers a global function with the given name
 	void RegisterGlobalFunction(lua_State& state, const char* functionName, lua_CFunction function) noexcept;

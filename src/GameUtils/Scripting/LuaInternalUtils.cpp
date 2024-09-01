@@ -118,16 +118,6 @@ namespace LuaInternal
 		return static_cast<LuaBasicType>(lua_getglobal(&state, constantName));
 	}
 
-	void SetAsField(lua_State& state) noexcept
-	{
-		if (lua_gettop(&state) < 2) [[unlikely]]
-		{
-			ReportScriptError(state, "There must be at least two values on the stack to set them as a key-value pair in a table");
-			return;
-		}
-		lua_settable(&state, -3);
-	}
-
 	void SetAsField(lua_State& state, const char* fieldName) noexcept
 	{
 		if (lua_gettop(&state) < 2) [[unlikely]]
@@ -138,13 +128,51 @@ namespace LuaInternal
 		lua_setfield(&state, -2, fieldName);
 	}
 
+	void SetAsKeyValueField(lua_State& state) noexcept
+	{
+		if (lua_gettop(&state) < 2) [[unlikely]]
+		{
+			ReportScriptError(state, "There must be at least two values on the stack to set them as a key-value pair in a table");
+			return;
+		}
+		lua_settable(&state, -3);
+	}
+
 	void GetField(lua_State& state, const char* fieldName) noexcept
 	{
+		const int stackTop = lua_gettop(&state);
+		if (stackTop < 1) [[unlikely]]
+		{
+			ReportScriptError(state, "Trying to get a field from a table that is not on the stack");
+			return;
+		}
+		if (!lua_istable(&state, -1)) [[unlikely]]
+		{
+			ReportScriptError(state, "Trying to get a field from a non-table value");
+			return;
+		}
 		lua_getfield(&state, -1, fieldName);
 	}
 
-	void GetFieldRaw(lua_State& state) noexcept
+	void GetKeyValueField(lua_State& state) noexcept
 	{
+		const int stackTop = lua_gettop(&state);
+
+		if (stackTop < 2) [[unlikely]]
+		{
+			if (stackTop < 1) [[unlikely]]
+			{
+				ReportScriptError(state, "Trying to get a field from a table that is not on the stack");
+				return;
+			}
+			ReportScriptError(state, "Trying to get a field from a table without a key on the stack");
+			return;
+		}
+		if (!lua_istable(&state, -2)) [[unlikely]]
+		{
+			ReportScriptError(state, "Trying to get a field from a non-table value");
+			return;
+		}
 		lua_gettable(&state, -2);
 	}
 
@@ -181,9 +209,26 @@ namespace LuaInternal
 		lua_pushnil(&state);
 	}
 
-	bool NextTableValue(lua_State& state, const int tableIndex) noexcept
+	bool NextTableValue(lua_State& state) noexcept
 	{
-		return lua_next(&state, tableIndex + 1) != 0;
+		const int stackTop = lua_gettop(&state);
+
+		if (stackTop < 2) [[unlikely]]
+		{
+			if (stackTop < 1) [[unlikely]]
+			{
+				ReportScriptError(state, "Trying to iterate over a table that is not on the stack");
+				return false;
+			}
+			ReportScriptError(state, "Trying to iterate over a table without a key on the stack. Did you forget to call StartIteratingTable?");
+			return false;
+		}
+		if (!lua_istable(&state, -2)) [[unlikely]]
+		{
+			ReportScriptError(state, FormatString("Trying to iterate over a non-table value of type %s", lua_typename(&state, lua_type(&state, -2))).c_str());
+			return false;
+		}
+		return lua_next(&state, -2) != 0;
 	}
 
 	void RegisterGlobalFunction(lua_State& state, const char* functionName, const lua_CFunction function) noexcept
@@ -312,16 +357,11 @@ namespace LuaInternal
 		for (int i = stackState - 1; i >= 0; --i)
 		{
 			// check type of the value
-			switch (GetType(state, i))
+			const LuaBasicType type = GetType(state, i);
+			switch (type)
 			{
-			case LuaBasicType::NoValue:
-				result += FormatString("\n[%d]: none", i);
-				break;
-			case LuaBasicType::Nil:
-				result += FormatString("\n[%d]: nil", i);
-				break;
 			case LuaBasicType::Bool:
-				result += FormatString("\n[%d]: bool (%s)", i, ReadBool(state, i).value() ? "true" : "false");
+				result += FormatString("\n[%d]: boolean (%s)", i, ReadBool(state, i).value() ? "true" : "false");
 				break;
 			case LuaBasicType::LightUserData:
 				result += FormatString("\n[%d]: light userdata (%p)", i, ReadLightUserData(state, i).value());
@@ -332,21 +372,13 @@ namespace LuaInternal
 			case LuaBasicType::CString:
 				result += FormatString("\n[%d]: string (\"%s\")", i, ReadCString(state, i).value());
 				break;
-			case LuaBasicType::Table:
-				result += FormatString("\n[%d]: table", i);
-				break;
-			case LuaBasicType::Function:
-				result += FormatString("\n[%d]: function", i);
-				break;
-			case LuaBasicType::UserData:
-				result += FormatString("\n[%d]: userdata", i);
-				break;
-			case LuaBasicType::Thread:
-				result += FormatString("\n[%d]: thread", i);
-				break;
 			default:
-				result += FormatString("\n[%d]: unknown type", i);
+				result += FormatString("\n[%d]: %s", i, GetTypeName(state, type));
 			}
+		}
+		if (stackState == 0)
+		{
+			result += "\n[empty]";
 		}
 
 		return result;

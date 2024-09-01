@@ -79,7 +79,7 @@ TEST(LuaInsternalUtils, EmptyStack_ManuallyConstructGlobalTable_TableCanBeRetrie
 		// note that LuaType::RegisterKeyValueField can be used instead
 		LuaInternal::PushInt(luaState, 10);
 		LuaInternal::PushLightUserData(luaState, reinterpret_cast<void*>(0x1234));
-		LuaInternal::SetAsField(luaState);
+		LuaInternal::SetAsKeyValueField(luaState);
 
 		LuaInternal::SetAsGlobal(luaState, "globalTable");
 	}
@@ -100,7 +100,7 @@ TEST(LuaInsternalUtils, EmptyStack_ManuallyConstructGlobalTable_TableCanBeRetrie
 	LuaInternal::Pop(luaState); // pop the bool from the stack to keep the table at the top
 
 	LuaInternal::PushInt(luaState, 10);
-	LuaInternal::GetFieldRaw(luaState);
+	LuaInternal::GetKeyValueField(luaState);
 	EXPECT_EQ(LuaInternal::GetStackTop(luaState), 1); // now we have the table and one value on the stack
 	EXPECT_TRUE(LuaInternal::IsUserData(luaState, 1));
 	EXPECT_EQ(LuaInternal::GetType(luaState, 1), LuaBasicType::LightUserData);
@@ -515,6 +515,60 @@ TEST(LuaInsternalUtils, LuaBasicTypes_PassToGetTypeName_ReturnsExpectedNames)
 	EXPECT_STREQ(LuaInternal::GetTypeName(luaState, LuaBasicType::Thread), "thread");
 }
 
+TEST(LuaInsternalUtils, TableWithValues_IterateOverTable_AllValuesRead)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const LuaExecResult execRes = luaInstance.execScript("myTable = {6, 8, 0, 3}");
+	ASSERT_EQ(execRes.statusCode, 0);
+
+	LuaInternal::GetGlobal(luaState, "myTable");
+	LuaInternal::StartIteratingTable(luaState);
+	int sum = 0;
+	while (LuaInternal::NextTableValue(luaState))
+	{
+		const std::optional<int> key = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP - 1);
+		ASSERT_GE(key, 1);
+		ASSERT_LE(key, 4);
+
+		const std::optional<int> value = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP);
+		ASSERT_TRUE(value);
+		sum += *value;
+		LuaInternal::Pop(luaState);
+	}
+	LuaInternal::Pop(luaState);
+	EXPECT_EQ(sum, 17);
+}
+
+TEST(LuaInsternalUtils, EmptyStack_GetStackValues_ReturnsIndicationOfEmtpyStack)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const std::string stackValues = LuaInternal::GetStackValues(luaState);
+	EXPECT_EQ(stackValues, "lua virtual machine stack:\n[empty]");
+}
+
+TEST(LuaInsternalUtils, StackWithValues_GetStackValues_ReturnsValues)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	LuaInternal::PushInt(luaState, 42);
+	LuaInternal::PushBool(luaState, true);
+	LuaInternal::PushBool(luaState, false);
+	LuaInternal::PushDouble(luaState, 3.14);
+	LuaInternal::PushCString(luaState, "Hello");
+	LuaInternal::PushNil(luaState);
+	LuaInternal::PushFunction(luaState, [](lua_State*) -> int { return 0; });
+	LuaInternal::PushLightUserData(luaState, reinterpret_cast<void*>(0x1234));
+
+	const std::string stackValues = LuaInternal::GetStackValues(luaState);
+	EXPECT_EQ(stackValues, "lua virtual machine stack:\n[7]: light userdata (0x1234)\n[6]: function\n[5]: nil\n[4]: string (\"Hello\")\n[3]: number (3.140000)\n[2]: boolean (false)\n[1]: boolean (true)\n[0]: number (42.000000)");
+	LuaInternal::Pop(luaState, 8);
+}
+
 TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 {
 	LuaInstance luaInstance;
@@ -602,12 +656,68 @@ TEST(LuaInsternalUtils, EmptyStack_SetAsField_ReportsError)
 		LuaInternal::SetAsField(luaState, "v1");
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 
-		LuaInternal::SetAsField(luaState);
+		LuaInternal::SetAsKeyValueField(luaState);
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
 	}
 }
 
-TEST(LuaInsternalUtils, TableWithValues_IterateOverTable_AllValuesRead)
+TEST(LuaInsternalUtils, EmptyStack_GetField_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		LuaInternal::GetField(luaState, "v1");
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		LuaInternal::GetKeyValueField(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+
+		LuaInternal::PushCString(luaState, "key");
+		LuaInternal::GetKeyValueField(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
+		LuaInternal::Pop(luaState);
+	}
+}
+
+TEST(LuaInsternalUtils, Number_TryToGetField_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const LuaExecResult execRes = luaInstance.execScript("myValue = 42");
+	ASSERT_EQ(execRes.statusCode, 0);
+
+	LuaInternal::GetGlobal(luaState, "myValue");
+	{
+		DisableAssertGuard guard;
+
+		LuaInternal::GetField(luaState, "v1");
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+
+		LuaInternal::PushCString(luaState, "v2");
+		LuaInternal::GetKeyValueField(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
+		LuaInternal::Pop(luaState);
+	}
+	LuaInternal::Pop(luaState);
+}
+
+TEST(LuaInsternalUtils, EmptyStack_TryContinueIterating_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	{
+		DisableAssertGuard guard;
+		const bool shouldContinue = LuaInternal::NextTableValue(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+		EXPECT_FALSE(shouldContinue);
+	}
+}
+
+TEST(LuaInsternalUtils, Table_TryToContinueIteratingWithoutKeyOnStack_ReportError)
 {
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
@@ -616,19 +726,33 @@ TEST(LuaInsternalUtils, TableWithValues_IterateOverTable_AllValuesRead)
 	ASSERT_EQ(execRes.statusCode, 0);
 
 	LuaInternal::GetGlobal(luaState, "myTable");
-	LuaInternal::StartIteratingTable(luaState);
-	int sum = 0;
-	while (LuaInternal::NextTableValue(luaState, 0))
+	// imagine we forgot to call LuaInternal::StartIteratingTable(luaState); here
 	{
-		const std::optional<int> key = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP - 1);
-		ASSERT_GE(key, 1);
-		ASSERT_LE(key, 4);
-
-		const std::optional<int> value = LuaInternal::ReadInt(luaState, LuaInternal::STACK_TOP);
-		ASSERT_TRUE(value);
-		sum += *value;
-		LuaInternal::Pop(luaState);
+		DisableAssertGuard guard;
+		const bool shouldContinue = LuaInternal::NextTableValue(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+		EXPECT_FALSE(shouldContinue);
 	}
+
 	LuaInternal::Pop(luaState);
-	EXPECT_EQ(sum, 17);
+}
+
+TEST(LuaInsternalUtils, Number_TryingToIterateOver_ReportsError)
+{
+	LuaInstance luaInstance;
+	lua_State& luaState = luaInstance.getLuaState();
+
+	const LuaExecResult execRes = luaInstance.execScript("myValue = 42");
+	ASSERT_EQ(execRes.statusCode, 0);
+
+	LuaInternal::GetGlobal(luaState, "myValue");
+	LuaInternal::StartIteratingTable(luaState);
+	{
+		DisableAssertGuard guard;
+		const bool shouldContinue = LuaInternal::NextTableValue(luaState);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+		EXPECT_FALSE(shouldContinue);
+	}
+
+	LuaInternal::Pop(luaState, 2);
 }
