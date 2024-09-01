@@ -319,7 +319,7 @@ namespace LuaInternal
 		// check if debug is a table
 		if (!lua_istable(&state, -1)) [[unlikely]]
 		{
-			ReportError("debug is not a table, can't print stack trace");
+			LogError("debug is not a table, can't print stack trace. Enable debug library");
 			lua_settop(&state, stackState);
 			return "[no stack trace, enable debug library]";
 		}
@@ -329,7 +329,7 @@ namespace LuaInternal
 		// check if debug.traceback is a function
 		if (!lua_isfunction(&state, -1)) [[unlikely]]
 		{
-			ReportError("debug.traceback is not a function, can't print stack trace");
+			LogError("debug.traceback is not a function, can't print stack trace");
 			lua_settop(&state, stackState);
 			return "[no stack trace, enable debug library]";
 		}
@@ -340,7 +340,7 @@ namespace LuaInternal
 		{
 			ReportError("Error in debug.traceback() call: %s", lua_tostring(&state, -1));
 			lua_settop(&state, stackState);
-			return "[no stack trace, enable debug library]";
+			return "[no stack trace, problem with debug library]";
 		}
 
 		std::string stackTrace = lua_tostring(&state, -1);

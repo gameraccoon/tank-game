@@ -580,7 +580,7 @@ TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 	{
 		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
-		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
+		EXPECT_EQ(stackTrace, "[no stack trace, problem with debug library]");
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 
@@ -588,20 +588,16 @@ TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 	const LuaExecResult execRes2 = luaInstance.execScript("debug.traceback = nil");
 	ASSERT_EQ(execRes2.statusCode, 0);
 	{
-		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
 		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 
 	// and finally remove the debug table
 	const LuaExecResult execRes3 = luaInstance.execScript("debug = nil");
 	ASSERT_EQ(execRes3.statusCode, 0);
 	{
-		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
 		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 }
 
