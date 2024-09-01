@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include "EngineCommon/Types/String/StringHelpers.h"
+
 #include "EngineData/TypeUtils/EnumUtils.h"
 
 #include "GameData/Enums/{enum_name}.generated.h"
@@ -20,9 +22,9 @@ namespace LuaType
 	{{
 		LUA_READ_VALUE_INTO_VARIABLE(state, index, const char*, rawStringValue);
 		const std::optional<{enum_name}> result = string_to_enum<{enum_name}>(STR_TO_ID(std::string_view(rawStringValue)));
-		if (!result)
+		if (!result) [[unlikely]]
 		{{
-			LuaInternal::ReportScriptError(state, "Invalid value for enum {enum_name}");
+			LuaInternal::ReportScriptError(state, FormatString("Invalid value for enum {enum_name}: '%s'", rawStringValue).c_str());
 		}}
 		return result;
 	}}
