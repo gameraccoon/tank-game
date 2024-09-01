@@ -11,7 +11,7 @@ namespace StateMachines
 	{
 		using FSMType = FSM::StateMachine<CharacterState, CharacterStateBlackboardKeys>;
 
-		LuaInstance luaInstance(LuaInstance::OpenStandardLibs::Yes);
+		LuaInstance luaInstance(LuaInstance::OpenStandardLibs::No);
 
 		const AbsoluteResourcePath scriptPath(std::filesystem::current_path(), RelativeResourcePath("resources/scripts/config/state_machines.lua"));
 		const LuaExecResult execResult = luaInstance.execScriptFromFile(scriptPath);

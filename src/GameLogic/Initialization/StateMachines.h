@@ -6,6 +6,5 @@
 
 namespace StateMachines
 {
-	// ToDo: need an editor not to hardcode SM data
 	void RegisterStateMachines(StateMachineComponent* stateMachine);
 }
