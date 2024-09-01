@@ -41,7 +41,7 @@ LuaExecResult LuaInstance::execScriptFromFile(const AbsoluteResourcePath& script
 {
 	LuaExecResult result;
 
-	result.statusCode = luaL_dofile(&mLuaState, scriptFilePath.getAbsolutePath().c_str());
+	result.statusCode = luaL_dofile(&mLuaState, scriptFilePath.getAbsolutePathStr().c_str());
 
 	if (result.statusCode != 0)
 	{
