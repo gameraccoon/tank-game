@@ -2,6 +2,8 @@
 
 #include "GameLogic/Initialization/StateMachines.h"
 
+#include "EngineCommon/Types/String/StringHelpers.h"
+
 #include "GameUtils/Scripting/LuaFunctionCall.h"
 #include "GameUtils/Scripting/LuaInstance.h"
 
@@ -25,7 +27,7 @@ namespace StateMachines
 		LuaInternal::GetGlobal(luaState, "characterFsm");
 		if (!LuaInternal::IsTable(luaState, 0))
 		{
-			ReportErrorRelease("Failed to get characterFsm table from state_machines.lua");
+			LuaInternal::ReportScriptError(luaState, "Failed to get characterFsm table from state_machines.lua");
 			return;
 		}
 
@@ -39,22 +41,23 @@ namespace StateMachines
 			}
 			else
 			{
-				ReportErrorRelease("Failed to get state name from a state table in characterFsm table in state_machines.lua");
+				LuaInternal::ReportScriptError(luaState, "Failed to get state name from a state table in characterFsm table in state_machines.lua");
 				return;
 			}
 
 			if (!LuaInternal::IsTable(luaState, LuaInternal::STACK_TOP))
 			{
-				ReportErrorRelease("Failed to get a state table from characterFsm table in state_machines.lua");
+				LuaInternal::ReportScriptError(luaState, "Failed to get a state table from characterFsm table in state_machines.lua");
 				return;
 			}
 
 			// for each link
 			FSMType::StateLinkRules rules;
+			// ReSharper disable once CppDeclarationHidesUncapturedLocal
 			LuaType::IterateOverTable(luaState, [&rules](lua_State& luaState) {
 				if (!LuaInternal::IsTable(luaState, LuaInternal::STACK_TOP))
 				{
-					ReportErrorRelease("Failed to get a link table from a state table in characterFsm table in state_machines.lua");
+					LuaInternal::ReportScriptError(luaState, "Failed to get a link table from a state table in characterFsm table in state_machines.lua");
 					return;
 				}
 
@@ -65,40 +68,47 @@ namespace StateMachines
 				}
 				else
 				{
-					ReportErrorRelease("Failed to get link type from a link table in a state table in characterFsm table in state_machines.lua");
+					LuaInternal::ReportScriptError(luaState, "Failed to get link type from a link table in a state table in characterFsm table in state_machines.lua");
 					return;
-					;
 				}
 
-				if (linkType == "VariableEqualLink")
+				if (linkType.starts_with("VariableEqualLink:"))
 				{
 					const std::optional<CharacterState> targetState = LuaType::ReadField<CharacterState>(luaState, "targetState");
 					if (!targetState)
 					{
-						ReportErrorRelease("Failed to get targetState from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
+						LuaInternal::ReportScriptError(luaState, "Failed to get targetState from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
 						return;
-						;
 					}
 
 					const std::optional<CharacterStateBlackboardKeys> variableName = LuaType::ReadField<CharacterStateBlackboardKeys>(luaState, "variableName");
 					if (!variableName)
 					{
-						ReportErrorRelease("Failed to get variableName from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
+						LuaInternal::ReportScriptError(luaState, "Failed to get variableName from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
 						return;
 					}
 
-					const std::optional<bool> value = LuaType::ReadField<bool>(luaState, "value");
-					if (!value)
+					const std::string typeStr = linkType.substr(linkType.find(':') + 1);
+
+					if (typeStr == "bool")
 					{
-						ReportErrorRelease("Failed to get value from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
-						return;
-					}
+						const std::optional<bool> value = LuaType::ReadField<bool>(luaState, "value");
+						if (!value)
+						{
+							LuaInternal::ReportScriptError(luaState, "Failed to get value from a VariableEqualLink table in a state table in characterFsm table in state_machines.lua");
+							return;
+						}
 
-					rules.emplaceLink<FSM::LinkRules::VariableEqualLink, bool>(*targetState, *variableName, *value);
+						rules.emplaceLink<FSM::LinkRules::VariableEqualLink, bool>(*targetState, *variableName, *value);
+					}
+					else
+					{
+						LuaInternal::ReportScriptError(luaState, FormatString("Unknown type of VariableEqualLink in a link table in a state table in characterFsm table in state_machines.lua: '%s'. Not implemented yet", typeStr.c_str()).c_str());
+					}
 				}
 				else
 				{
-					ReportErrorRelease("Unknown link type in a link table in a state table in characterFsm table in state_machines.lua");
+					LuaInternal::ReportScriptError(luaState, FormatString("Unknown link type in a link table in a state table in characterFsm table in state_machines.lua: '%s'", linkType.c_str()).c_str());
 				}
 			});
 
