@@ -81,10 +81,6 @@ namespace LuaInternal
 	[[nodiscard]]
 	int GetStackTop(lua_State& state) noexcept;
 
-	// returns the results of debug.traceback() as a string
-	[[nodiscard]]
-	std::string GetStackTrace(lua_State& state) noexcept;
-
 	// starts the initialization of a new table
 	void NewTable(lua_State& state) noexcept;
 
@@ -125,10 +121,20 @@ namespace LuaInternal
 	// returns the type of the value from the stack
 	[[nodiscard]]
 	LuaBasicType GetType(lua_State& state, int index) noexcept;
-	// converts the type to a string
+	// converts the type to a readahle string
 	[[nodiscard]]
 	const char* GetTypeName(lua_State& state, LuaBasicType type) noexcept;
 
+	// returns the results of debug.traceback() as a string
+	[[nodiscard]]
+	std::string GetStackTrace(lua_State& state) noexcept;
+
+	// returns values of every element in the stack as a string
+	[[nodiscard]]
+	std::string GetStackValues(lua_State& state) noexcept;
+
 	// writes the error message to the log and the console with the stack trace dump
+	void LogScriptError(lua_State& state, const char* message) noexcept;
+	// same as above, but also rises an assertion failure
 	void ReportScriptError(lua_State& state, const char* message) noexcept;
 } // namespace LuaInternal

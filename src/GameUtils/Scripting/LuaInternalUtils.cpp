@@ -4,6 +4,8 @@
 
 #include <lua.hpp>
 
+#include "EngineCommon/Types/String/StringHelpers.h"
+
 namespace LuaInternal
 {
 	void PushInt(lua_State& state, const int value) noexcept
@@ -45,7 +47,7 @@ namespace LuaInternal
 	{
 		if (!lua_isinteger(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not an integer");
+			LogScriptError(state, "The value is not an integer");
 			return std::nullopt;
 		}
 		return lua_tointeger(&state, index + 1);
@@ -55,7 +57,7 @@ namespace LuaInternal
 	{
 		if (!lua_isnumber(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not a floating point number");
+			LogScriptError(state, "The value is not a floating point number");
 			return std::nullopt;
 		}
 		return lua_tonumber(&state, index + 1);
@@ -65,7 +67,7 @@ namespace LuaInternal
 	{
 		if (!lua_isstring(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not a string");
+			LogScriptError(state, "The value is not a string");
 			return std::nullopt;
 		}
 		return lua_tostring(&state, index + 1);
@@ -75,7 +77,7 @@ namespace LuaInternal
 	{
 		if (!lua_isboolean(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not a boolean");
+			LogScriptError(state, "The value is not a boolean");
 			return std::nullopt;
 		}
 		return lua_toboolean(&state, index + 1) != 0;
@@ -85,7 +87,7 @@ namespace LuaInternal
 	{
 		if (!lua_isfunction(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not a function");
+			LogScriptError(state, "The value is not a function");
 			return std::nullopt;
 		}
 		return lua_tocfunction(&state, index + 1);
@@ -95,7 +97,7 @@ namespace LuaInternal
 	{
 		if (!lua_islightuserdata(&state, index + 1)) [[unlikely]]
 		{
-			ReportScriptError(state, "The value is not a light user data");
+			LogScriptError(state, "The value is not a light user data");
 			return std::nullopt;
 		}
 		return lua_touserdata(&state, index + 1);
@@ -165,46 +167,6 @@ namespace LuaInternal
 	int GetStackTop(lua_State& state) noexcept
 	{
 		return lua_gettop(&state) - 1;
-	}
-
-	std::string GetStackTrace(lua_State& state) noexcept
-	{
-		const int stackState = lua_gettop(&state);
-
-		lua_getglobal(&state, "debug");
-
-		// check if debug is a table
-		if (!lua_istable(&state, -1)) [[unlikely]]
-		{
-			ReportError("debug is not a table, can't print stack trace");
-			lua_settop(&state, stackState);
-			return "";
-		}
-
-		lua_getfield(&state, -1, "traceback");
-
-		// check if debug.traceback is a function
-		if (!lua_isfunction(&state, -1)) [[unlikely]]
-		{
-			ReportError("debug.traceback is not a function, can't print stack trace");
-			lua_settop(&state, stackState);
-			return "";
-		}
-
-		const int res = lua_pcall(&state, 0, 1, 0);
-
-		if (res != 0) [[unlikely]]
-		{
-			ReportError("Error in debug.traceback() call: %s", lua_tostring(&state, -1));
-			lua_settop(&state, stackState);
-			return "";
-		}
-
-		std::string stackTrace = lua_tostring(&state, -1);
-
-		lua_settop(&state, stackState);
-
-		return stackTrace;
 	}
 
 	void NewTable(lua_State& state) noexcept
@@ -303,8 +265,100 @@ namespace LuaInternal
 		return lua_typename(&state, static_cast<int>(type));
 	}
 
+	std::string GetStackTrace(lua_State& state) noexcept
+	{
+		const int stackState = lua_gettop(&state);
+
+		lua_getglobal(&state, "debug");
+
+		// check if debug is a table
+		if (!lua_istable(&state, -1)) [[unlikely]]
+		{
+			ReportError("debug is not a table, can't print stack trace");
+			lua_settop(&state, stackState);
+			return "[no stack trace, enable debug library]";
+		}
+
+		lua_getfield(&state, -1, "traceback");
+
+		// check if debug.traceback is a function
+		if (!lua_isfunction(&state, -1)) [[unlikely]]
+		{
+			ReportError("debug.traceback is not a function, can't print stack trace");
+			lua_settop(&state, stackState);
+			return "[no stack trace, enable debug library]";
+		}
+
+		const int res = lua_pcall(&state, 0, 1, 0);
+
+		if (res != 0) [[unlikely]]
+		{
+			ReportError("Error in debug.traceback() call: %s", lua_tostring(&state, -1));
+			lua_settop(&state, stackState);
+			return "[no stack trace, enable debug library]";
+		}
+
+		std::string stackTrace = lua_tostring(&state, -1);
+
+		lua_settop(&state, stackState);
+
+		return stackTrace;
+	}
+
+	std::string GetStackValues(lua_State& state) noexcept
+	{
+		const int stackState = lua_gettop(&state);
+		std::string result("lua virtual machine stack:");
+		for (int i = stackState - 1; i >= 0; --i)
+		{
+			// check type of the value
+			switch (GetType(state, i))
+			{
+			case LuaBasicType::NoValue:
+				result += FormatString("\n[%d]: none", i);
+				break;
+			case LuaBasicType::Nil:
+				result += FormatString("\n[%d]: nil", i);
+				break;
+			case LuaBasicType::Bool:
+				result += FormatString("\n[%d]: bool (%s)", i, ReadBool(state, i).value() ? "true" : "false");
+				break;
+			case LuaBasicType::LightUserData:
+				result += FormatString("\n[%d]: light userdata (%p)", i, ReadLightUserData(state, i).value());
+				break;
+			case LuaBasicType::Number:
+				result += FormatString("\n[%d]: number (%f)", i, ReadDouble(state, i).value());
+				break;
+			case LuaBasicType::CString:
+				result += FormatString("\n[%d]: string (\"%s\")", i, ReadCString(state, i).value());
+				break;
+			case LuaBasicType::Table:
+				result += FormatString("\n[%d]: table", i);
+				break;
+			case LuaBasicType::Function:
+				result += FormatString("\n[%d]: function", i);
+				break;
+			case LuaBasicType::UserData:
+				result += FormatString("\n[%d]: userdata", i);
+				break;
+			case LuaBasicType::Thread:
+				result += FormatString("\n[%d]: thread", i);
+				break;
+			default:
+				result += FormatString("\n[%d]: unknown type", i);
+			}
+		}
+
+		return result;
+	}
+
+	void LogScriptError(lua_State& state, const char* message) noexcept
+	{
+		LogError("Lua error: %s\n%s\n%s", message, GetStackTrace(state).c_str(), GetStackValues(state).c_str());
+	}
+
 	void ReportScriptError(lua_State& state, const char* message) noexcept
 	{
-		ReportError("Lua error: %s\n%s", message, GetStackTrace(state).c_str());
+		ReportErrorRelease("Lua error: %s\n%s\n%s", message, GetStackTrace(state).c_str(), GetStackValues(state).c_str());
 	}
 } // namespace LuaInternal

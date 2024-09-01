@@ -59,17 +59,13 @@ TEST(LuaType, EmptyStack_RegisterGlobal_GlobalCanBeRead)
 	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 }
 
-TEST(LuaType, EmptyStack_TryReadNonExistentGlobal_AssertsAndReturnsEmptyOptional)
+TEST(LuaType, EmptyStack_TryReadNonExistentGlobal_ReturnsEmptyOptional)
 {
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
 
-	{
-		DisableAssertGuard guard;
-		EXPECT_EQ(LuaType::ReadGlobal<int>(luaState, "nonExistentGlobal"), std::nullopt);
-		EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-	}
+	EXPECT_EQ(LuaType::ReadGlobal<int>(luaState, "nonExistentGlobal"), std::nullopt);
+	EXPECT_EQ(LuaInternal::GetStackTop(luaState), LuaInternal::EMPTY_STACK_TOP);
 }
 
 TEST(LuaType, Table_RegisterField_FieldCanBeRead)

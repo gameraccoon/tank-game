@@ -275,18 +275,9 @@ TEST(LuaInsternalUtils, IntOnStack_TryReadAsDifferentTypes_OnlyIntDoubleAndStrin
 	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 42.0f);
 	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "42");
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-	}
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -310,21 +301,10 @@ TEST(LuaInsternalUtils, DoubleOnStack_TryReadAsDifferentTypes_OnlyDoubleAndStrin
 	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 3.14);
 	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "3.14");
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -347,24 +327,11 @@ TEST(LuaInsternalUtils, StringOnStack_TryReadAsDifferentTypes_OnlyStringSucceed)
 
 	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "Hello");
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -388,21 +355,10 @@ TEST(LuaInsternalUtils, StringRepresentingNumberOnStack_TryReadAsDifferentTypes_
 	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), 42.0f);
 	EXPECT_STREQ(LuaInternal::ReadCString(luaState, 0).value_or(""), "42");
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -425,24 +381,11 @@ TEST(LuaInsternalUtils, BoolOnStack_TryReadAsDifferentTypes_OnlyBoolSucceed)
 
 	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), true);
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -467,24 +410,11 @@ TEST(LuaInsternalUtils, FunctionOnStack_TryReadAsDifferentTypes_OnlyFunctionSucc
 
 	EXPECT_NE(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -507,24 +437,11 @@ TEST(LuaInsternalUtils, LightUserDataOnStack_TryReadAsDifferentTypes_OnlyLightUs
 
 	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), reinterpret_cast<void*>(0x1234));
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -545,27 +462,12 @@ TEST(LuaInsternalUtils, TableOnStack_TryReadAsDifferentTypes_OnlyTableSucceed)
 	ASSERT_TRUE(LuaInternal::IsTable(luaState, 0));
 	ASSERT_FALSE(LuaInternal::IsNil(luaState, 0));
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 6);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -586,27 +488,12 @@ TEST(LuaInsternalUtils, NilOnStack_TryReadAsDifferentTypes_OnlyNilSucceed)
 	ASSERT_FALSE(LuaInternal::IsTable(luaState, 0));
 	ASSERT_TRUE(LuaInternal::IsNil(luaState, 0));
 
-	{
-		DisableAssertGuard guard;
-
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-
-		EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 2);
-
-		EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 3);
-
-		EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 4);
-
-		EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 5);
-
-		EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 6);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadDouble(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadCString(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadBool(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadFunction(luaState, 0), std::nullopt);
+	EXPECT_EQ(LuaInternal::ReadLightUserData(luaState, 0), std::nullopt);
 
 	LuaInternal::Pop(luaState);
 }
@@ -639,7 +526,7 @@ TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 	{
 		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
-		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 
@@ -649,7 +536,7 @@ TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 	{
 		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
-		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 
@@ -659,7 +546,7 @@ TEST(LuaInsternalUtils, StateWithErasedDebug_TryGetStackTrace_FailsWithErrors)
 	{
 		DisableAssertGuard guard;
 		const std::string stackTrace = LuaInternal::GetStackTrace(luaState);
-		EXPECT_TRUE(stackTrace.empty());
+		EXPECT_EQ(stackTrace, "[no stack trace, enable debug library]");
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 }
@@ -676,16 +563,12 @@ TEST(LuaInsternalUtils, EmptyStack_PopValue_ReportsError)
 	}
 }
 
-TEST(LuaInsternalUtils, EmptyStack_ReadValue_ReportsError)
+TEST(LuaInsternalUtils, EmptyStack_ReadValue_ReturnsNullopt)
 {
 	LuaInstance luaInstance;
 	lua_State& luaState = luaInstance.getLuaState();
 
-	{
-		DisableAssertGuard guard;
-		EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
-		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
-	}
+	EXPECT_EQ(LuaInternal::ReadInt(luaState, 0), std::nullopt);
 }
 
 TEST(LuaInsternalUtils, EmptyStack_CheckForNoValue_ReturnsTrue)
