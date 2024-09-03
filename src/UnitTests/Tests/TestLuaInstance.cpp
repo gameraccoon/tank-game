@@ -82,3 +82,23 @@ TEST(LuaInstance, InstanceWithNotCleanedStack_Destroyed_Asserts)
 		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
 	}
 }
+
+TEST(LuaInstance, Instance_Moved_MovedToInstanceCanBeUsed)
+{
+	LuaInstance luaInstance;
+
+	const auto [statusCode, errorMessage] = luaInstance.execScript("function alwaysTrueFunction() return true end");
+
+	EXPECT_EQ(statusCode, 0);
+	EXPECT_TRUE(errorMessage.empty());
+
+	LuaInstance movedInstance = std::move(luaInstance);
+
+	const auto [movedStatusCode, movedErrorMessage] = movedInstance.execScript("return alwaysTrueFunction()");
+
+	EXPECT_EQ(movedStatusCode, 0);
+	EXPECT_TRUE(movedErrorMessage.empty());
+	ASSERT_EQ(LuaInternal::GetStackTop(movedInstance.getLuaState()), 0);
+	EXPECT_TRUE(LuaInternal::ReadBool(movedInstance.getLuaState(), 0));
+	LuaInternal::Pop(movedInstance.getLuaState());
+}

@@ -28,11 +28,11 @@ public:
 	explicit LuaInstance(OpenStandardLibs shouldRegisterStdLibs = OpenStandardLibs::Yes) noexcept;
 	LuaInstance(const LuaInstance& other) = delete;
 	LuaInstance& operator=(const LuaInstance& other) = delete;
-	LuaInstance(LuaInstance&& other) = delete;
-	LuaInstance& operator=(LuaInstance&& other) = delete;
+	LuaInstance(LuaInstance&& other) noexcept;
+	LuaInstance& operator=(LuaInstance&& other) noexcept;
 	~LuaInstance() noexcept;
 
-	lua_State& getLuaState() noexcept { return mLuaState; }
+	lua_State& getLuaState() noexcept;
 
 	// returns the error code of the script execution
 	[[nodiscard]]
@@ -42,5 +42,5 @@ public:
 	LuaExecResult execScriptFromFile(const AbsoluteResourcePath& scriptFilePath) noexcept;
 
 private:
-	lua_State& mLuaState;
+	lua_State* mLuaState;
 };
