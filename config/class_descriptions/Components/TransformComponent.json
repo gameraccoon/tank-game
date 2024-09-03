@@ -5,13 +5,21 @@
 			"name": "location",
 			"type": "Vector2D",
 			"default": " = ZERO_VECTOR",
-			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
+			"includes": [
+				"\"EngineData/Geometry/Vector2D.h\"",
+				"\"GameLogic/Scripting/TypeBindings/Vector2DLuaTypeBindings.h\""
+			],
+			"flags": ["scriptable"]
 		},
 		{
 			"name": "direction",
 			"type": "Vector2D",
 			"default": " = ZERO_VECTOR",
-			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
+			"includes": [
+				"\"EngineData/Geometry/Vector2D.h\"",
+				"\"GameLogic/Scripting/TypeBindings/Vector2DLuaTypeBindings.h\""
+			],
+			"flags": ["scriptable"]
 		}
 	]
 }

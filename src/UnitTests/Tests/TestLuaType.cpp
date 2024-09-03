@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaInstance.h"
 #include "GameUtils/Scripting/LuaInternalUtils.h"
 #include "GameUtils/Scripting/LuaType.h"

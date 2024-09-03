@@ -1,0 +1,23 @@
+#include "EngineCommon/precomp.h"
+
+#include "GameData/Components/{class_name}.generated.h"
+
+#include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
+#include "GameUtils/Scripting/LuaType.h"
+
+#include "GameLogic/Scripting/TypeBindings/Generated/Components/{class_name}LuaTypeBindings.generated.h"
+
+void LuaTypeImplementation<{class_name}>::PushValue(lua_State& state, [[maybe_unused]] const {class_name}& value) noexcept
+{{
+	LuaInternal::NewTable(state);
+	{serialization/lua/attributes_lua_serialization}
+}}
+
+std::optional<{class_name}> LuaTypeImplementation<{class_name}>::ReadValue(lua_State& state, const int index) noexcept
+{{
+	LUA_VALIDATE_IS_TABLE(state, index);
+
+	{class_name} result{{}};
+	{serialization/lua/attributes_lua_deserialization}
+	return result;
+}}

@@ -1,7 +1,11 @@
 [
 	{
 		"name": "attribute_includes",
-		"params": ["not_empty", "sort", "remove_duplicates"],
+		"params": [
+			"not_empty",
+			"sort",
+			"remove_duplicates"
+		],
 		"value_to_empty_test": "attribute_includes"
 	},
 	{
@@ -11,17 +15,23 @@
 	{
 		"name": "attribute_getters",
 		"params": [],
-		"blacklist": ["get_by_ref"]
+		"blacklist": [
+			"get_by_ref"
+		]
 	},
 	{
 		"name": "attribute_getters_ref",
 		"params": [],
-		"whitelist": ["get_by_ref"]
+		"whitelist": [
+			"get_by_ref"
+		]
 	},
 	{
 		"name": "attribute_setters",
 		"params": [],
-		"blacklist": ["nocopyable"]
+		"blacklist": [
+			"nocopyable"
+		]
 	},
 	{
 		"name": "attribute_fields",
@@ -34,45 +44,89 @@
 	{
 		"name": "imgui/filters/attribute_descriptor_includes",
 		"params": [],
-		"blacklist": ["get_by_ref"]
+		"blacklist": [
+			"get_by_ref"
+		]
 	},
 	{
 		"name": "imgui/filters/attribute_descriptor_registration",
 		"params": [],
-		"blacklist": ["get_by_ref"]
+		"blacklist": [
+			"get_by_ref"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_serialization",
 		"params": [],
-		"blacklist": ["transient", "custom_serialization"]
+		"blacklist": [
+			"transient",
+			"custom_serialization"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_deserialization",
 		"params": [],
-		"blacklist": ["transient", "defaulted", "custom_serialization"]
+		"blacklist": [
+			"transient",
+			"defaulted",
+			"custom_serialization"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_deserialization_defaulted",
 		"params": [],
-		"blacklist": ["transient", "custom_serialization"],
-		"whitelist": ["defaulted"]
+		"blacklist": [
+			"transient",
+			"custom_serialization"
+		],
+		"whitelist": [
+			"defaulted"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_includes_custom_serialization",
-		"params": ["remove_duplicates"],
-		"blacklist": ["transient"],
-		"whitelist": ["custom_serialization"]
+		"params": [
+			"remove_duplicates"
+		],
+		"blacklist": [
+			"transient"
+		],
+		"whitelist": [
+			"custom_serialization"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_serialization_custom",
 		"params": [],
-		"blacklist": ["transient"],
-		"whitelist": ["custom_serialization"]
+		"blacklist": [
+			"transient"
+		],
+		"whitelist": [
+			"custom_serialization"
+		]
 	},
 	{
 		"name": "serialization/json/attributes_json_deserialization_custom",
 		"params": [],
-		"blacklist": ["transient"],
-		"whitelist": ["custom_serialization"]
+		"blacklist": [
+			"transient"
+		],
+		"whitelist": [
+			"custom_serialization"
+		]
+	},
+	{
+		"name": "serialization/lua/attributes_lua_serialization",
+		"params": [],
+		"whitelist": [
+			"scriptable"
+		]
+	},
+	{
+		"name": "serialization/lua/attributes_lua_deserialization",
+		"params": [],
+		"whitelist": [
+			"scriptable"
+		]
 	}
 ]

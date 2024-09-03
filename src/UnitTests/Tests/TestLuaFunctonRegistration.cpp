@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaFunctionCall.h"
 #include "GameUtils/Scripting/LuaInstance.h"
 
@@ -10,7 +11,7 @@ TEST(LuaFunctionRegistration, FunctionWithReturnValue_Called_ValueIsAsExpected)
 	LuaInstance luaInstance;
 
 	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
-		LuaType::PushValue<int>(*state, 42);
+		LuaTypeImplementation<int>::PushValue(*state, 42);
 		return 1;
 	});
 
@@ -30,8 +31,8 @@ TEST(LuaFunctionRegistration, FunctionWithArguments_Called_ArgumentsArePassedAsE
 	LuaInstance luaInstance;
 
 	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
-		const std::optional<int> arg1 = LuaType::ReadValue<int>(*state, 0);
-		const std::optional<int> arg2 = LuaType::ReadValue<int>(*state, 1);
+		const std::optional<int> arg1 = LuaTypeImplementation<int>::ReadValue(*state, 0);
+		const std::optional<int> arg2 = LuaTypeImplementation<int>::ReadValue(*state, 1);
 		EXPECT_EQ(arg1, std::optional(10));
 		EXPECT_EQ(arg2, std::optional(20));
 		return 0;
@@ -50,8 +51,8 @@ TEST(LuaFunctionRegistration, FunctionWithMultipleReturnValues_Called_ValuesAreA
 	LuaInstance luaInstance;
 
 	LuaInternal::RegisterGlobalFunction(luaInstance.getLuaState(), "cppFunction", [](lua_State* state) -> int {
-		LuaType::PushValue<int>(*state, 42);
-		LuaType::PushValue<int>(*state, 43);
+		LuaTypeImplementation<int>::PushValue(*state, 42);
+		LuaTypeImplementation<int>::PushValue(*state, 43);
 		return 2;
 	});
 

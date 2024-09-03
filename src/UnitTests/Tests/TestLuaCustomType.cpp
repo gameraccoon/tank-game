@@ -6,6 +6,7 @@
 
 #include "EngineCommon/Types/ComplexTypes/ScopeFinalizer.h"
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaFunctionCall.h"
 #include "GameUtils/Scripting/LuaInstance.h"
 #include "GameUtils/Scripting/LuaInternalUtils.h"
@@ -30,11 +31,10 @@ namespace LuaCustomTypeInternal
 	};
 } // namespace LuaCustomTypeInternal
 
-namespace LuaType
+template<>
+struct LuaTypeImplementation<LuaCustomTypeInternal::TestCustomType>
 {
-	using namespace LuaCustomTypeInternal;
-	template<>
-	void PushValue<TestCustomType>(lua_State& state, const TestCustomType& value) noexcept
+	static void PushValue(lua_State& state, const LuaCustomTypeInternal::TestCustomType& value) noexcept
 	{
 		LuaInternal::NewTable(state);
 		LuaType::RegisterField<int>(state, "v1", value.v1);
@@ -44,9 +44,10 @@ namespace LuaType
 		LuaInternal::SetAsField(state, "v2");
 	}
 
-	template<>
-	std::optional<TestCustomType> ReadValue<TestCustomType>(lua_State& state, const int index) noexcept
+	static std::optional<LuaCustomTypeInternal::TestCustomType> ReadValue(lua_State& state, const int index) noexcept
 	{
+		using namespace LuaCustomTypeInternal;
+
 		LUA_VALIDATE_IS_TABLE(state, index);
 
 		TestCustomType result{};
@@ -65,7 +66,7 @@ namespace LuaType
 
 		return result;
 	}
-} // namespace LuaType
+};
 
 TEST(LuaCustomType, GlobalOfCustomType_AccessedFromLua_SameValueIsRead)
 {
@@ -183,7 +184,7 @@ TEST(LuaCustomType, CppFunctionAcceptingCustomType_CallWithPassingCustomValue_Sa
 		luaState,
 		"checkFunction",
 		[](lua_State* state) {
-			const std::optional<TestCustomType> customValue = LuaType::ReadValue<TestCustomType>(*state, 0);
+			const std::optional<TestCustomType> customValue = LuaTypeImplementation<TestCustomType>::ReadValue(*state, 0);
 			EXPECT_EQ(customValue, std::optional<TestCustomType>({ .v1 = 42, .v2 = { .v3 = 43, .v4 = 0.25f } }));
 
 			return 0;
@@ -225,7 +226,7 @@ TEST(LuaCustomType, CppFunctionReturningCustomType_Called_ReturnsTheSameValue)
 		luaState,
 		"checkFunction",
 		[](lua_State* state) {
-			LuaType::PushValue<TestCustomType>(*state, { .v1 = 42, .v2 = { .v3 = 43, .v4 = 0.25f } });
+			LuaTypeImplementation<TestCustomType>::PushValue(*state, { .v1 = 42, .v2 = { .v3 = 43, .v4 = 0.25f } });
 			return 1;
 		}
 	);
@@ -234,7 +235,7 @@ TEST(LuaCustomType, CppFunctionReturningCustomType_Called_ReturnsTheSameValue)
 	ASSERT_EQ(execRes.statusCode, 0);
 
 	LuaInternal::GetGlobal(luaState, "customValue");
-	const std::optional<TestCustomType> value = LuaType::ReadValue<TestCustomType>(luaState, 0);
+	const std::optional<TestCustomType> value = LuaTypeImplementation<TestCustomType>::ReadValue(luaState, 0);
 	EXPECT_EQ(value, std::optional<TestCustomType>({ .v1 = 42, .v2 = { .v3 = 43, .v4 = 0.25f } }));
 	LuaInternal::Pop(luaState);
 }

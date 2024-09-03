@@ -10,8 +10,13 @@
 		"output_dir": "src/GameData/Enums/"
 	},
 	{
-		"name_template": "{enum_name}LuaSerialization.generated.cpp",
+		"name_template": "{enum_name}LuaTypeBindings.generated.h",
+		"template": "serialization/lua/enum_lua_serialization_header",
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/"
+	},
+	{
+		"name_template": "{enum_name}LuaTypeBindings.generated.cpp",
 		"template": "serialization/lua/enum_lua_serialization_source",
-		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/"
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/"
 	}
 ]

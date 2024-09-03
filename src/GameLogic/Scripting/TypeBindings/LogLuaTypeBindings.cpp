@@ -1,5 +1,8 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameLogic/Scripting/TypeBindings/LogLuaTypeBindings.h"
+
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaType.h"
 
 namespace LuaInternal
@@ -41,14 +44,10 @@ namespace LuaInternal
 	}
 } // namespace LuaInternal
 
-namespace LuaType
+void LuaTypeImplementation<Log>::PushValue(lua_State& state, const Log& /*log*/) noexcept
 {
-	template<>
-	void PushValue<Log>(lua_State& state, const Log& /*log*/) noexcept
-	{
-		LuaInternal::NewTable(state);
-		LuaInternal::RegisterTableFunction(state, "log", LuaInternal::CmdLogLog);
-		LuaInternal::RegisterTableFunction(state, "warn", LuaInternal::CmdLogWarning);
-		LuaInternal::RegisterTableFunction(state, "error", LuaInternal::CmdLogError);
-	}
+	LuaInternal::NewTable(state);
+	LuaInternal::RegisterTableFunction(state, "log", LuaInternal::CmdLogLog);
+	LuaInternal::RegisterTableFunction(state, "warn", LuaInternal::CmdLogWarning);
+	LuaInternal::RegisterTableFunction(state, "error", LuaInternal::CmdLogError);
 }

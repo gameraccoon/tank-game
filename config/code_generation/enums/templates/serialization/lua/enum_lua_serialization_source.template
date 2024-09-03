@@ -6,26 +6,24 @@
 
 #include "GameData/Enums/{enum_name}.generated.h"
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
 #include "GameUtils/Scripting/LuaType.h"
 
-namespace LuaType
-{{
-	template<>
-	void PushValue<{enum_name}>(lua_State& state, const {enum_name}& value) noexcept
-	{{
-		LuaInternal::PushCString(state, ID_TO_STR(enum_to_string(value)).c_str());
-	}}
+#include "GameLogic/Scripting/TypeBindings/Generated/Enums/{enum_name}LuaTypeBindings.generated.h"
 
-	template<>
-	std::optional<{enum_name}> ReadValue<{enum_name}>(lua_State& state, const int index) noexcept
+void LuaTypeImplementation<{enum_name}>::PushValue(lua_State& state, const {enum_name}& value) noexcept
+{{
+	LuaInternal::PushCString(state, ID_TO_STR(enum_to_string(value)).c_str());
+}}
+
+std::optional<{enum_name}> LuaTypeImplementation<{enum_name}>::ReadValue(lua_State& state, const int index) noexcept
+{{
+	LUA_READ_VALUE_INTO_VARIABLE(state, index, const char*, rawStringValue);
+	const std::optional<{enum_name}> result = string_to_enum<{enum_name}>(STR_TO_ID(std::string_view(rawStringValue)));
+	if (!result) [[unlikely]]
 	{{
-		LUA_READ_VALUE_INTO_VARIABLE(state, index, const char*, rawStringValue);
-		const std::optional<{enum_name}> result = string_to_enum<{enum_name}>(STR_TO_ID(std::string_view(rawStringValue)));
-		if (!result) [[unlikely]]
-		{{
-			LuaInternal::ReportScriptError(state, FormatString("Invalid value for enum {enum_name}: '%s'", rawStringValue).c_str());
-		}}
-		return result;
+		LuaInternal::ReportScriptError(state, FormatString("Invalid value for enum {enum_name}: '%s'", rawStringValue).c_str());
 	}}
-}} // namespace LuaType
+	return result;
+}}

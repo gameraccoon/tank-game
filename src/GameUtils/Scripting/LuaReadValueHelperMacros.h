@@ -8,9 +8,9 @@
 	}
 
 #define LUA_READ_FIELD_INTO_RESULT(state, type, field) \
-	if (const std::optional<type> field = ReadField<type>((state), #field)) \
+	if (std::optional<type> field = LuaType::ReadField<type>((state), #field)) \
 	{ \
-		result.field = *field; \
+		result.field = std::move(*field); \
 	} \
 	else \
 	{ \
@@ -18,9 +18,19 @@
 	}
 
 #define LUA_READ_FIELD_INTO_VARIABLE(state, type, field, variable) \
-	if (const std::optional<type> field = ReadField<type>((state), #field)) \
+	if (std::optional<type> field = LuaType::ReadField<type>((state), #field)) \
 	{ \
-		variable = *field; \
+		variable = std::move(*field); \
+	} \
+	else \
+	{ \
+		return std::nullopt; \
+	}
+
+#define LUA_READ_FIELD_INTO_SETTER(state, type, field, setter) \
+	if (std::optional<type> field = LuaType::ReadField<type>((state), #field)) \
+	{ \
+		setter(std::move(*field)); \
 	} \
 	else \
 	{ \
@@ -29,9 +39,9 @@
 
 #define LUA_READ_VALUE_INTO_VARIABLE(state, index, type, variable) \
 	type variable; \
-	if (const std::optional<type> tempVar = ReadValue<type>((state), (index))) \
+	if (std::optional<type> tempVar = LuaType::ReadValue<type>((state), (index))) \
 	{ \
-		variable = *tempVar; \
+		variable = std::move(*tempVar); \
 	} \
 	else \
 	{ \

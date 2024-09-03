@@ -1,0 +1,1 @@
+LuaType::RegisterField<{attribute_type}>(state, "{attribute_name}", value.get{attribute_name_capital}());{delim_endl}{delim_tab}

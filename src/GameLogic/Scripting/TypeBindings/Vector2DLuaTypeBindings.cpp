@@ -2,21 +2,21 @@
 
 #include "EngineData/Geometry/Vector2D.h"
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
 #include "GameUtils/Scripting/LuaType.h"
 
-namespace LuaType
+template<>
+struct LuaTypeImplementation<Vector2D>
 {
-	template<>
-	void PushValue<Vector2D>(lua_State& state, const Vector2D& value) noexcept
+	static void PushValue(lua_State& state, const Vector2D& value) noexcept
 	{
 		LuaInternal::NewTable(state);
-		RegisterField<float>(state, "x", value.x);
-		RegisterField<float>(state, "y", value.y);
+		LuaType::RegisterField<float>(state, "x", value.x);
+		LuaType::RegisterField<float>(state, "y", value.y);
 	}
 
-	template<>
-	std::optional<Vector2D> ReadValue<Vector2D>(lua_State& state, const int index) noexcept
+	static std::optional<Vector2D> ReadValue(lua_State& state, const int index) noexcept
 	{
 		LUA_VALIDATE_IS_TABLE(state, index);
 
@@ -25,4 +25,4 @@ namespace LuaType
 		LUA_READ_FIELD_INTO_RESULT(state, float, y);
 		return result;
 	}
-} // namespace LuaType
+};

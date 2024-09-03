@@ -1,0 +1,1 @@
+LUA_READ_FIELD_INTO_SETTER(state, {attribute_type}, {attribute_name}, result.set{attribute_name_capital});{delim_endl}{delim_tab}

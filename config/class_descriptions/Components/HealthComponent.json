@@ -4,7 +4,11 @@
 		{
 			"name": "healthValue",
 			"type": "float",
-			"default": " = 0.0f"
+			"default": " = 0.0f",
+			"includes": [
+				"\"GameUtils/Scripting/LuaBasicTypeBindings.h\""
+			],
+			"flags": ["scriptable"]
 		}
 	]
 }

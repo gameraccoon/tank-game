@@ -4,8 +4,12 @@
 
 #include "EngineCommon/Types/String/StringHelpers.h"
 
+#include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaFunctionCall.h"
 #include "GameUtils/Scripting/LuaInstance.h"
+
+#include "GameLogic/Scripting/TypeBindings/Generated/Enums/CharacterStateBlackboardKeysLuaTypeBindings.generated.h"
+#include "GameLogic/Scripting/TypeBindings/Generated/Enums/CharacterStateLuaTypeBindings.generated.h"
 
 namespace StateMachines
 {

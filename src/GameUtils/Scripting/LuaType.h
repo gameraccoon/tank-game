@@ -1,20 +1,24 @@
 #pragma once
 
 #include "GameUtils/Scripting/LuaInternalUtils.h"
+#include "GameUtils/Scripting/LuaTypeImplementation.h"
 
 namespace LuaType
 {
 	// push a value on the stack
-	// (for custom types to be implemented somewhere else)
 	template<typename T>
-	void PushValue(lua_State& state, const T& value) noexcept;
+	void PushValue(lua_State& state, const T& value) noexcept
+	{
+		LuaTypeImplementation<T>::PushValue(state, value);
+	}
 
-	// read a value from the stack and update the index to point
-	// to the element after the read values, if any
-	// (for custom types to be implemented somewhere else)
+	// read a value from the stack
 	template<typename T>
 	[[nodiscard]]
-	std::optional<T> ReadValue(lua_State& state, int index) noexcept;
+	std::optional<T> ReadValue(lua_State& state, int index) noexcept
+	{
+		return LuaTypeImplementation<T>::ReadValue(state, index);
+	}
 
 	// register the value as a global constant
 	template<typename T>

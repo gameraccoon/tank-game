@@ -1,0 +1,13 @@
+#include "EngineCommon/precomp.h"
+
+#include "GameData/Enums/{enum_name}.generated.h"
+
+#include "GameUtils/Scripting/LuaTypeImplementation.h"
+
+template<>
+struct LuaTypeImplementation<{enum_name}>
+{{
+	static void PushValue(lua_State& state, const {enum_name}& value) noexcept;
+
+	static std::optional<{enum_name}> ReadValue(lua_State& state, const int index) noexcept;
+}};
