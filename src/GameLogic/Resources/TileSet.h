@@ -8,7 +8,7 @@ class RelativeResourcePath;
 
 namespace Graphics
 {
-	class TileSet : public Resource
+	class TileSet final : public Resource
 	{
 	public:
 		TileSet() = default;

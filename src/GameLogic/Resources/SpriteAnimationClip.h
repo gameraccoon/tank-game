@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include "EngineCommon/Types/String/ResourcePath.h"
+
 #include "EngineData/Resources/Resource.h"
 #include "EngineData/Resources/ResourceHandle.h"
 

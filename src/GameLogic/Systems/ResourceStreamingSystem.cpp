@@ -38,12 +38,12 @@ void ResourceStreamingSystem::update()
 #ifndef DISABLE_SDL
 	// load sprites
 	entityManager.forEachComponentSetWithEntity<SpriteCreatorComponent>(
-		[this](EntityView entity, SpriteCreatorComponent* spriteCreator) {
+		[this](EntityView entity, const SpriteCreatorComponent* spriteCreator) {
 			const auto& descriptions = spriteCreator->getDescriptions();
 			Assert(!descriptions.empty(), "Sprite descriptions should not be empty");
 
 			SpriteRenderComponent* spriteRender = entity.scheduleAddComponent<SpriteRenderComponent>();
-			size_t spritesCount = descriptions.size();
+			const size_t spritesCount = descriptions.size();
 			auto& spriteDatas = spriteRender->getSpriteDatasRef();
 			spriteDatas.resize(spritesCount);
 			for (size_t i = 0; i < spritesCount; ++i)
@@ -66,7 +66,7 @@ void ResourceStreamingSystem::update()
 			Assert(!descriptions.empty(), "Animation descriptions should not be empty");
 
 			AnimationClipsComponent* animationClips = entity.scheduleAddComponent<AnimationClipsComponent>();
-			size_t animationCount = descriptions.size();
+			const size_t animationCount = descriptions.size();
 			auto& animations = animationClips->getDatasRef();
 			animations.resize(animationCount);
 
@@ -102,7 +102,7 @@ void ResourceStreamingSystem::update()
 
 	// load animation groups
 	entityManager.forEachComponentSetWithEntity<AnimationGroupCreatorComponent>(
-		[this](EntityView entity, AnimationGroupCreatorComponent* animationGroupCreator) {
+		[this](EntityView entity, const AnimationGroupCreatorComponent* animationGroupCreator) {
 			AnimationGroupsComponent* animationGroups = entity.scheduleAddComponent<AnimationGroupsComponent>();
 
 			auto [animationClips] = entity.getComponents<AnimationClipsComponent>();
@@ -122,7 +122,7 @@ void ResourceStreamingSystem::update()
 			const size_t animGroupCount = animationGroupCreator->getAnimationGroups().size();
 			for (size_t i = 0; i < animGroupCount; ++i)
 			{
-				ResourceHandle animGroupHandle = mResourceManager.lockResource<Graphics::AnimationGroup>(animationGroupCreator->getAnimationGroups()[i]);
+				const ResourceHandle animGroupHandle = mResourceManager.lockResource<Graphics::AnimationGroup>(animationGroupCreator->getAnimationGroups()[i]);
 
 				const Graphics::AnimationGroup* group = mResourceManager.tryGetResource<Graphics::AnimationGroup>(animGroupHandle);
 				AnimationGroup<StringId> animationGroup;
@@ -155,10 +155,10 @@ void ResourceStreamingSystem::update()
 
 	// load tile grids
 	entityManager.forEachComponentSetWithEntity<TileGridCreatorComponent>(
-		[this](EntityView entity, TileGridCreatorComponent* tileGridCreator) {
+		[this](EntityView entity, const TileGridCreatorComponent* tileGridCreator) {
 			TileGridComponent* tileGrid = entity.scheduleAddComponent<TileGridComponent>();
 
-			ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
+			const ResourceHandle tileGridHandle = mResourceManager.lockResource<Graphics::TileGrid>(mResourceManager.getAbsoluteResourcePath(tileGridCreator->getGridPath()));
 			const Graphics::TileGrid* tileGridResource = mResourceManager.tryGetResource<Graphics::TileGrid>(tileGridHandle);
 			if (tileGridResource == nullptr)
 			{

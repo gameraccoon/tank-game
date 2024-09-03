@@ -14,7 +14,7 @@ class RelativeResourcePath;
 
 namespace Graphics
 {
-	class AnimationGroup : public Resource
+	class AnimationGroup final : public Resource
 	{
 	public:
 		AnimationGroup() = default;

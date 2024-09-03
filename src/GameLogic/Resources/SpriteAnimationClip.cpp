@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameLogic/Resources/SpriteAnimationClip.h"
+
 #ifndef DISABLE_SDL
 
 #include <algorithm>
@@ -12,8 +14,6 @@
 #include "HAL/Graphics/Sprite.h"
 
 #include "EngineUtils/ResourceManagement/ResourceManager.h"
-
-#include "GameLogic/Resources/SpriteAnimationClip.h"
 
 namespace Graphics
 {

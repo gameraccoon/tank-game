@@ -8,7 +8,7 @@ class AbsoluteResourcePath;
 
 namespace Graphics
 {
-	class TileGrid : public Resource
+	class TileGrid final : public Resource
 	{
 	public:
 		TileGrid() = default;
