@@ -8,7 +8,7 @@ on:
       - config/**
       - external/**
       - src/**
-      - scripts/**
+      - tools/**
       - CMakeLists.txt
       - CMakePresets.json
   workflow_dispatch:
@@ -71,7 +71,7 @@ jobs:
 
     - name: Prepare dedicated server
       working-directory: ${{github.workspace}}
-      run: ./scripts/package/build_and_prepare_dedicated_server.sh
+      run: ./tools/package/build_and_prepare_dedicated_server.sh
 
     - uses: actions/upload-artifact@v3
       with:

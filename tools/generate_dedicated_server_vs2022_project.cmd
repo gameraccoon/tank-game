@@ -2,7 +2,7 @@
 set scriptDir=%~dp0
 
 pushd %scriptDir:~0,-1%\..
-	python scripts/build/code_generate.py
+	python tools/build/code_generate.py
 
 	mkdir build\dedicated_server
 
