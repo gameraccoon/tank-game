@@ -99,3 +99,45 @@ TEST(AngelScriptEngine, Instance_ExecuteNonExistentScriptFromFile_StatusCodeIsNo
 	r = builder.AddSectionFromFile("resources/unittests/AngelScript-NonExistentScript.as");
 	ASSERT_LT(r, 0);
 }
+
+TEST(AngelScriptEngine, Instance_ExecuteScriptFromFileThatRaisesException_AssertFired)
+{
+	AngelScriptGlobalEngine engine;
+
+	CScriptBuilder builder;
+	int r = builder.StartNewModule(&AngelScriptGlobalEngine::GetEngine(), "MyModule");
+	if (r < 0)
+	{
+		ReportFatalError("Unrecoverable error while starting a new module. Possibly out of memory.");
+		return;
+	}
+	r = builder.AddSectionFromFile("resources/unittests/AngelScript-ScriptRaisingException.as");
+	if (r < 0)
+	{
+		ReportError("Please correct the errors in the script and try again.");
+		return;
+	}
+	r = builder.BuildModule();
+	if (r < 0)
+	{
+		ReportError("Please correct the errors in the script and try again.");
+		return;
+	}
+
+	// Find the function that is to be called.
+	const asIScriptModule* mod = AngelScriptGlobalEngine::GetEngine().GetModule("MyModule");
+	asIScriptFunction* func = mod->GetFunctionByDecl("void main()");
+	if (func == nullptr)
+	{
+		ReportError("The script must have the function 'void main()'. Please add it and try again.");
+		return;
+	}
+
+	AngelScriptContext ctx;
+
+	{
+		DisableAssertGuard guard;
+		ctx.ExecuteFunction(func);
+		EXPECT_EQ(guard.getTriggeredAssertsCount(), 1);
+	}
+}
