@@ -1,4 +1,4 @@
 void main()
 {
-    print("asdf");
+    testFunction("Test text");
 }
