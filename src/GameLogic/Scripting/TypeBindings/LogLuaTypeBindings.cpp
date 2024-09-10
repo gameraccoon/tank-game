@@ -13,7 +13,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			Log::Instance().writeLog(message);
+			LogInfo(message);
 		}
 
 		return 0;
@@ -25,7 +25,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			Log::Instance().writeWarning(message);
+			LogWarning(message);
 		}
 
 		return 0;
@@ -37,7 +37,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			Log::Instance().writeError(message);
+			LogError(message);
 		}
 
 		return 0;
