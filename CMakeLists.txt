@@ -258,6 +258,16 @@ add_dependencies(${APP_NAME} Lua)
 include_directories(${EXTERNALS_DIR}/sources/lua/src)
 target_compile_options(Lua PRIVATE ${EXTERNALS_C_FLAGS})
 
+# AngelScript
+add_definitions(-DANGELSCRIPT_EXPORT -DAS_MAX_PORTABILITY)
+file(GLOB_RECURSE ANGEL_SCRIPT_SRC RELATIVE "" FOLLOW_SYMLINKS "${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/source/*")
+file(GLOB_RECURSE ANGEL_SCRIPT_ADDON_SRC RELATIVE "" FOLLOW_SYMLINKS "${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/add_on/*")
+add_library(AngelScript ${ANGEL_SCRIPT_SRC} ${ANGEL_SCRIPT_ADDON_SRC} ${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/source/as_callfunc_arm64_gcc.S)
+add_dependencies(${APP_NAME} AngelScript)
+include_directories(SYSTEM ${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/include)
+include_directories(SYSTEM ${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/add_on)
+target_compile_options(AngelScript PRIVATE ${EXTERNALS_CXX_FLAGS})
+
 # ImGui
 if(IMGUI_ENABLED)
 	add_library(Imgui EXCLUDE_FROM_ALL
@@ -310,6 +320,7 @@ set(GENERAL_PROJECT_LIBS
 	EngineCommon
 
 	Lua
+	AngelScript
 )
 
 if (BUILD_AUTO_TESTS)
