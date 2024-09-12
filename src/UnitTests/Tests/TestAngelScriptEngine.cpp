@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <angelscript.h>
+#include <autowrapper/aswrappedcall.h>
 #include <gtest/gtest.h>
 #include <scriptbuilder/scriptbuilder.h>
 
@@ -11,21 +12,25 @@
 
 #include "UnitTests/TestAssertHelper.h"
 
+namespace AngelScriptEngineInternal
+{
+	static int gCallCount = 0;
+	void testFunction(const std::string& message)
+	{
+		EXPECT_STREQ("Test text", message.c_str());
+		++gCallCount;
+	}
+}
+
 TEST(AngelScriptEngine, Instance_ExecuteValidScriptFromFile_StatusCodeIsZero)
 {
-	static int callCount = 0;
-	const int expectedCallCount = callCount + 1;
-	auto testGenericFunction = [](asIScriptGeneric* scriptGeneric) {
-		const std::string& message = *static_cast<const std::string*>(scriptGeneric->GetArgAddress(0));
-		EXPECT_STREQ("Test text", message.c_str());
-		++callCount;
-	};
-	using GenericFunction = void (*)(asIScriptGeneric*);
-	const GenericFunction testGenericFunctionPtr = testGenericFunction;
+	using namespace AngelScriptEngineInternal;
+
+	const int expectedCallCount = gCallCount + 1;
 
 	AngelScriptGlobalEngine engine;
 
-	int r = AngelScriptGlobalEngine::GetEngine().RegisterGlobalFunction("void testFunction(const string& in)", asFUNCTION(testGenericFunctionPtr), asCALL_GENERIC);
+	int r = AngelScriptGlobalEngine::GetEngine().RegisterGlobalFunction("void testFunction(const string& in)", WRAP_FN(testFunction), asCALL_GENERIC);
 	Assert(r >= 0, "Failed to register function");
 
 	CScriptBuilder builder;
@@ -61,7 +66,7 @@ TEST(AngelScriptEngine, Instance_ExecuteValidScriptFromFile_StatusCodeIsZero)
 
 	ctx.ExecuteFunction(func);
 
-	EXPECT_EQ(expectedCallCount, callCount);
+	EXPECT_EQ(expectedCallCount, gCallCount);
 }
 
 TEST(AngelScriptEngine, Instance_ExecuteInvalidScriptFromFile_StatusCodeIsNotZero)
