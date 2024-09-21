@@ -1,0 +1,16 @@
+#include "EngineCommon/precomp.h"
+
+#include "GameData/Enums/{enum_name}.generated.h"
+
+#include "GameUtils/Scripting/AngelScriptEnumRegistration.h"
+
+#include "GameLogic/Scripting/Types/Generated/Enums/{enum_name}AngelScriptRegistration.generated.h"
+
+namespace AngelScript
+{{
+    void Register{enum_name}Enum(asIScriptEngine& scriptEngine) noexcept
+    {{
+        RegisterEnum(scriptEngine, "{enum_name}");
+        {serialization/angelscript/enum_value_angelscript_registration}
+    }}
+}}

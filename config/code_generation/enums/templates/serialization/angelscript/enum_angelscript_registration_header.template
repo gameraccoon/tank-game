@@ -1,0 +1,8 @@
+#pragma once
+
+class asIScriptEngine;
+
+namespace AngelScript
+{{
+    void Register{enum_name}Enum(asIScriptEngine* scriptEngine) noexcept;
+}}

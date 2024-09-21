@@ -4,6 +4,7 @@
 
 #include <angelscript.h>
 #include <scripthandle/scripthandle.h>
+#include <scripthelper/scripthelper.h>
 #include <scriptstdstring/scriptstdstring.h>
 #include <weakref/weakref.h>
 
@@ -34,6 +35,8 @@ public:
 		RegisterScriptHandle(mEngine);
 		// register weakref and const_weakref types
 		RegisterScriptWeakRef(mEngine);
+		// register throw and getExceptionInfo functions
+		RegisterExceptionRoutines(mEngine);
 	}
 
 	~Impl()

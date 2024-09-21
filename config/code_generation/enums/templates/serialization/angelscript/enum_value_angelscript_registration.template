@@ -1,0 +1,1 @@
+RegisterEnumValue(scriptEngine, "{enum_name}", "{enum_value}", static_cast<int>({enum_name}::{enum_value}));{delim_endl}{delim_tab}{delim_tab}

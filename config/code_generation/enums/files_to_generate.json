@@ -18,5 +18,15 @@
 		"name_template": "{enum_name}LuaTypeBindings.generated.cpp",
 		"template": "serialization/lua/enum_lua_serialization_source",
 		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/"
+	},
+	{
+		"name_template": "{enum_name}AngelScriptRegistration.generated.h",
+		"template": "serialization/angelscript/enum_angelscript_registration_header",
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/"
+	},
+	{
+		"name_template": "{enum_name}AngelScriptRegistration.generated.cpp",
+		"template": "serialization/angelscript/enum_angelscript_registration_source",
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/"
 	}
 ]
