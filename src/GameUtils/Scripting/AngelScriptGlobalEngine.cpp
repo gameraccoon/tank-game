@@ -3,7 +3,9 @@
 #include "GameUtils/Scripting/AngelScriptGlobalEngine.h"
 
 #include <angelscript.h>
+#include <scripthandle/scripthandle.h>
 #include <scriptstdstring/scriptstdstring.h>
+#include <weakref/weakref.h>
 
 class AngelScriptGlobalEngine::Impl
 {
@@ -28,6 +30,10 @@ public:
 
 		// register std::string as the string type
 		RegisterStdString(mEngine);
+		// register a custom generic handle type (can be changed to a different type if needed)
+		RegisterScriptHandle(mEngine);
+		// register weakref and const_weakref types
+		RegisterScriptWeakRef(mEngine);
 	}
 
 	~Impl()
