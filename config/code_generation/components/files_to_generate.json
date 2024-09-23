@@ -93,5 +93,15 @@
 		"name_template": "{class_name}LuaTypeBindings.generated.cpp",
 		"template": "serialization/lua/component_lua_serialization_source",
 		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Components/"
+	},
+	{
+		"name_template": "{class_name}AngelScriptRegistration.generated.h",
+		"template": "serialization/angelscript/component_angelscript_registration_header",
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/"
+	},
+	{
+		"name_template": "{class_name}AngelScriptRegistration.generated.cpp",
+		"template": "serialization/angelscript/component_angelscript_registration_source",
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/"
 	}
 ]

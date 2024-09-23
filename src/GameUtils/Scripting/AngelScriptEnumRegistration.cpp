@@ -18,7 +18,7 @@ namespace AngelScript
 				errorReason = "The name is null, not an identifier, or it is a reserved keyword";
 				break;
 			case asALREADY_REGISTERED:
-				errorReason = "	Another type with this name already exists";
+				errorReason = "Another type with this name already exists";
 				break;
 			case asERROR:
 				errorReason = "The name couldn't be parsed";

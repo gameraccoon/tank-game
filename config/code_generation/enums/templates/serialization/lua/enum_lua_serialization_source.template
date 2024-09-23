@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameLogic/Scripting/TypeBindings/Generated/Enums/{enum_name}LuaTypeBindings.generated.h"
+
 #include "EngineCommon/Types/String/StringHelpers.h"
 
 #include "EngineData/TypeUtils/EnumUtils.h"
@@ -9,8 +11,6 @@
 #include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaReadValueHelperMacros.h"
 #include "GameUtils/Scripting/LuaType.h"
-
-#include "GameLogic/Scripting/TypeBindings/Generated/Enums/{enum_name}LuaTypeBindings.generated.h"
 
 void LuaTypeImplementation<{enum_name}>::PushValue(lua_State& state, const {enum_name}& value) noexcept
 {{

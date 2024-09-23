@@ -1,10 +1,10 @@
 #include "EngineCommon/precomp.h"
 
+#include "GameLogic/Scripting/Types/Generated/Enums/{enum_name}AngelScriptRegistration.generated.h"
+
 #include "GameData/Enums/{enum_name}.generated.h"
 
 #include "GameUtils/Scripting/AngelScriptEnumRegistration.h"
-
-#include "GameLogic/Scripting/Types/Generated/Enums/{enum_name}AngelScriptRegistration.generated.h"
 
 namespace AngelScript
 {{

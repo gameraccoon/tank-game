@@ -1,0 +1,19 @@
+#include "EngineCommon/precomp.h"
+
+#include "GameLogic/Scripting/Types/Generated/Components/{class_name}AngelScriptRegistration.generated.h"
+
+#include <angelscript.h>
+#include <autowrapper/aswrappedcall.h>
+
+#include "GameData/Components/{class_name}.generated.h"
+
+#include "GameUtils/Scripting/AngelScriptObjectTypeRegistration.h"
+
+namespace AngelScript
+{{
+    void Register{class_name}(asIScriptEngine& scriptEngine) noexcept
+    {{
+        RegisterObjectType(scriptEngine, "{class_name}", 0, asOBJ_REF | asOBJ_NOCOUNT);
+        {serialization/angelscript/attribute_angelscript_registration}
+    }}
+}}

@@ -1,0 +1,2 @@
+RegisterObjectMethod(scriptEngine, "{class_name}", "{attribute_type} get_{attribute_name}() property", WRAP_MFN({class_name}, get{attribute_name_capital}));
+        RegisterObjectMethod(scriptEngine, "{class_name}", "void set_{attribute_name}({attribute_type}) property", WRAP_MFN({class_name}, set{attribute_name_capital}<const {attribute_type}&>));{delim_endl}{delim_tab}

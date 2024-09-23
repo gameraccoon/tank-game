@@ -128,5 +128,12 @@
 		"whitelist": [
 			"scriptable"
 		]
+	},
+	{
+		"name": "serialization/angelscript/attribute_angelscript_registration",
+		"params": [],
+		"whitelist": [
+			"scriptable"
+		]
 	}
 ]
