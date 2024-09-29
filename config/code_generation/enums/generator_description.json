@@ -1,0 +1,13 @@
+{
+  "format_version": "1.0",
+  "description_schema": {
+    "values": {
+      "type": "list",
+      "list_item_type": "string",
+      "templates_file": "attribute_templates.json"
+    }
+  },
+  "file_name": {
+    "placeholder": "enum_name"
+  }
+}

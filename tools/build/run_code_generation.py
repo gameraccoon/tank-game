@@ -7,6 +7,7 @@ import os
 import generators.components_code_generate
 import generators.enums_code_generate
 import generators.gather_string_ids
+import generators.data_driven_generator
 
 
 def load_generators(generators_json_path):
@@ -48,6 +49,8 @@ def run_generator(generator_id, generator_list, args):
     if not args.quiet:
         print("Running generator: " + generator_id)
     generator = generator_list[generator_id]
+    return generators.data_driven_generator.generate_all(generator)
+
     # this is temporary, ideally we should have one endpoint that runs all types generators based only on parameters
     if generator_id == "components":
         return generators.components_code_generate.generate_all(generator)

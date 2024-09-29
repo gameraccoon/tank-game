@@ -1,0 +1,65 @@
+{
+  "format_version": "1.0",
+  "description_schema": {
+    "description": {
+      "type": "string",
+      "placeholder": "component_description"
+    },
+    "flags": {
+      "type": "list",
+      "list_item_type": "string",
+      "placeholder": "component_flags",
+      "list_placeholder_rule": "meta_attributes",
+      "is_optional": true
+    },
+    "attributes": {
+      "type": "list",
+      "list_item_type": "object",
+      "templates_file": "attribute_templates.json",
+      "list_item_schema": {
+        "name": {
+          "type": "string",
+          "placeholder": "attribute_name",
+          "derived_placeholders": {
+            "attribute_name_capital": ["modifier:to_upper"],
+            "attribute_tolower": ["modifier:to_lower"]
+          }
+        },
+        "type": {
+          "type": "string",
+          "placeholder": "attribute_name"
+        },
+        "default": {
+          "type": "string",
+          "placeholder": "attribute_default",
+          "is_optional": true
+        },
+        "includes": {
+          "type": "list",
+          "list_item_type": "string",
+          "placeholder": "attribute_include_full",
+          "list_placeholder_rule": "merge_with_newline",
+          "is_optional": true
+        },
+        "flags": {
+          "type": "list",
+          "list_item_type": "string",
+          "placeholder": "attribute_flags",
+          "list_placeholder_rule": "meta_attributes",
+          "is_optional": true
+        }
+      }
+    }
+  },
+  "file_name": {
+    "placeholder": "class_name",
+    "derived_placeholders": {
+      "component_name": ["modifier:remove_suffix(Component)", "modifier:lower_first"],
+      "component_name_capital": ["modifier:remove_suffix(Component)"],
+      "component_tolower": ["modifier:to_lower"]
+    }
+  },
+  "root_description_object": {
+    "templates_file": "component_templates.json"
+  }
+}

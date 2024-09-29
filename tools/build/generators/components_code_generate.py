@@ -270,12 +270,11 @@ def generate_all(generator):
 
     attribute_templates = load_json(path.join(configs_dir, "attribute_templates.json"))
 
-    component_templates = load_json(path.join(configs_dir, "component_templates.json"))
-
     files_to_generate = load_json(path.join(configs_dir, "files_to_generate.json"))
 
-    attribute_optional_fields = load_json(path.join(configs_dir, "attribute_optional_fields.json"))
+    component_templates = load_json(path.join(configs_dir, "component_templates.json"))
 
+    attribute_optional_fields = load_json(path.join(configs_dir, "attribute_optional_fields.json"))
 
     generated_files = []
     components = []
