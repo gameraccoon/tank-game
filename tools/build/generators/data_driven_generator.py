@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-from generators.generator_description_json_updater import update_generator_description_json
+from generators.generator_configuration_json_updater import update_generator_configuration_json
 from generators.shared_functions import *
 
 delimiter_dictionary_file = "delimiter_dictionary.json"
 files_to_generate_file = "files_to_generate.json"
-generator_description_file = "generator_description.json"
+generator_configuration_file = "generator_configuration.json"
 
 
 def generate_all(generator):
@@ -17,117 +17,86 @@ def generate_all(generator):
     generator_name = generator["name"]
 
     if not path.exists(configs_dir):
-        print_generator_error(generator_name, "Configs directory '{}' does not exist".format(configs_dir))
-        exit(1)
+        generator_error(generator_name, "Configs directory '{}' does not exist".format(configs_dir))
 
-    if not path.exists(path.join(configs_dir, generator_description_file)):
-        print_generator_error(generator_name, "Generator description file '{}' does not exist".format(generator_description_file))
-        exit(1)
-    generator_description = load_json(path.join(configs_dir, generator_description_file))
-    generator_description, _ = update_generator_description_json(generator_description)
+    if not path.exists(path.join(configs_dir, generator_configuration_file)):
+        generator_error(generator_name, "Generator description file '{}' does not exist".format(generator_configuration_file))
+    generator_configuration = load_json(path.join(configs_dir, generator_configuration_file))
+    generator_configuration, _ = update_generator_configuration_json(generator_configuration)
 
     if not path.exists(output_dir_base):
-        print_generator_error(generator_name, "Output directory '{}' does not exist".format(output_dir_base))
-        exit(1)
+        generator_error(generator_name, "Output directory '{}' does not exist".format(output_dir_base))
 
     if not path.exists(templates_dir):
-        print_generator_error(generator_name, "Templates directory '{}' does not exist".format(templates_dir))
-        exit(1)
+        generator_error(generator_name, "Templates directory '{}' does not exist".format(templates_dir))
 
     if not path.exists(path.join(configs_dir, delimiter_dictionary_file)):
-        print_generator_error(generator_name, "Delimiter dictionary file '{}' does not exist".format(delimiter_dictionary_file))
-        exit(1)
+        generator_error(generator_name, "Delimiter dictionary file '{}' does not exist".format(delimiter_dictionary_file))
     delimiter_dictionary = load_json(path.join(configs_dir, delimiter_dictionary_file))
     empty_delimiter_dictionary = {key: "" for key in delimiter_dictionary.keys()}
 
     if not path.exists(path.join(configs_dir, files_to_generate_file)):
-        print_generator_error(generator_name, "Files to generate file '{}' does not exist".format(files_to_generate_file))
-        exit(1)
+        generator_error(generator_name, "Files to generate file '{}' does not exist".format(files_to_generate_file))
     files_to_generate = load_json(path.join(configs_dir, files_to_generate_file))
 
-    if descriptions_dir or "description_schema" in generator_description:
-        if descriptions_dir and "description_schema" in generator_description:
+    if descriptions_dir or "description_schema" in generator_configuration:
+        if descriptions_dir and "description_schema" in generator_configuration:
             if not path.exists(descriptions_dir):
-                print_generator_error(generator_name, "Descriptions directory '{}' does not exist".format(descriptions_dir))
-                exit(1)
+                generator_error(generator_name, "Descriptions directory '{}' does not exist".format(descriptions_dir))
         elif descriptions_dir:
-            print_generator_error(generator_name, "Descriptions directory is provided, but description schema is not used")
-            exit(1)
+            generator_error(generator_name, "Descriptions directory is provided, but description schema is not used")
         else:
-            print_generator_error(generator_name, "Description schema is used, but descriptions directory is not provided")
-            exit(1)
+            generator_error(generator_name, "Description schema is used, but descriptions directory is not provided")
 
     # precompute some values: e.g. load files by paths
-    preprocess_generator_description(generator_description, configs_dir, generator_name)
+    preprocess_generator_configuration(generator_configuration, configs_dir, generator_name)
 
     generated_files = []
-    # descriptions = []
-    # raw_descriptions = []
-    # for file_name in os.listdir(descriptions_dir):
-    #     description = load_data_description(path.join(descriptions_dir, file_name), attribute_optional_fields)
-    #     description["component_name"] = get_component_name_from_file_name(file_name)
-    #     full_data_dict = get_full_data_dictionary(description, attribute_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
-    #     generated_files += generate_files(files_to_generate, description, full_data_dict, output_dir_base, templates_dir)
-    #     description["data_dict"] = full_data_dict
-    #     raw_descriptions.append(description)
-    #     descriptions.append(full_data_dict)
-    #
-    # # generate component lists
-    # component_filled_templates = generate_component_list_descriptions(descriptions, component_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
-    # for file_info in files_to_generate:
-    #     if "flags" in file_info and "list" in file_info["flags"]:
-    #         out_file_path = generate_cpp_file(file_info["template"],
-    #             path.join(output_dir_base, file_info["output_dir"]),
-    #             file_info["name_template"],
-    #             component_filled_templates, templates_dir)
-    #         generated_files.append(out_file_path)
-    #
-    # # generate attributes lists
-    # attribute_filled_templates = generate_attribute_list_descriptions(raw_descriptions, attribute_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
-    # for file_info in files_to_generate:
-    #     if "flags" in file_info and "attribute_list" in file_info["flags"]:
-    #         out_file_path = generate_cpp_file(file_info["template"],
-    #             path.join(output_dir_base, file_info["output_dir"]),
-    #             file_info["name_template"],
-    #             attribute_filled_templates, templates_dir)
-    #         generated_files.append(out_file_path)
+
+    if descriptions_dir:
+        for file_name in os.listdir(descriptions_dir):
+            description = load_json(path.join(descriptions_dir, file_name))
+            placeholder_dictionary = {}
+            # file_name can have some placeholders that are derived from the name of the description file
+            append_file_name_placeholders(placeholder_dictionary, generator_configuration, file_name.rstrip(".json"))
+            # top level placeholders are likely to be used down the line, so we always keep those
+            description_schema = generator_configuration.get("description_schema")
+            if description_schema:
+                append_one_level_dictionary(placeholder_dictionary, description_schema, description, generator_name)
+
+            # generate files based on top level description
+
+            # recursively generate files based on the description schema
 
     return generated_files
 
 
-def print_generator_error(name, message):
+def generator_error(name, message):
     print("Error in generator '{}': {}".format(name, message))
+    exit(1)
 
 
-def preprocess_generator_description(generator_description, configs_dir, generator_name):
-    description_schema = generator_description.get("description_schema")
+def preprocess_generator_configuration(generator_configuration, configs_dir, generator_name):
+    description_schema = generator_configuration.get("description_schema")
     if description_schema:
-        preprocess_generator_description_recursively(description_schema, configs_dir, generator_name)
+        preprocess_generator_configuration_recursively(description_schema, configs_dir, generator_name)
 
     # special cases for "root_description_object" object in the root
-    root_description_object = generator_description.get("root_object")
+    root_description_object = generator_configuration.get("root_object")
     if root_description_object:
-        templates_file = root_description_object.get("templates_file")
-        if templates_file:
-            # ToDo: validate if the file exists
-            root_description_object["templates"] = load_json(path.join(configs_dir, templates_file))
-            root_description_object["templates_file"] = None
+        try_load_template(root_description_object, configs_dir, generator_name)
 
     # special cases for "file_name" object in the root
-    file_name = generator_description.get("file_name")
+    file_name = generator_configuration.get("file_name")
     if file_name:
         derived_placeholders = file_name.get("derived_placeholders")
         if derived_placeholders:
             generate_modifier_functions_for_list(derived_placeholders, generator_name)
 
 
-def preprocess_generator_description_recursively(json_object, configs_dir, generator_name):
+def preprocess_generator_configuration_recursively(json_object, configs_dir, generator_name):
     for value in json_object.values():
-        templates_file = value.get("templates_file")
-        if templates_file:
-            # ToDo: validate if the file exists
-            value["templates"] = load_json(path.join(configs_dir, templates_file))
-            value["templates_file"] = None
+        try_load_template(value, configs_dir, generator_name)
 
         derived_placeholders = value.get("derived_placeholders")
         if derived_placeholders:
@@ -135,38 +104,121 @@ def preprocess_generator_description_recursively(json_object, configs_dir, gener
 
         list_item_schema = value.get("list_item_schema")
         if list_item_schema:
-            # ToDo: validate if that was an object
-            preprocess_generator_description_recursively(list_item_schema, configs_dir, generator_name)
+            if not isinstance(list_item_schema, dict):
+                generator_error(generator_name, "List item schema is not an object")
+            preprocess_generator_configuration_recursively(list_item_schema, configs_dir, generator_name)
+
+
+def try_load_template(value, configs_dir, generator_name):
+    templates_file = value.get("templates_file")
+    if templates_file:
+        if not path.exists(path.join(configs_dir, templates_file)):
+            generator_error(generator_name, "Templates file '{}' does not exist".format(templates_file))
+        value["templates"] = load_json(path.join(configs_dir, templates_file))
+        value["templates_file"] = None
 
 
 def generate_modifier_functions_for_list(placeholder, generator_name):
+    available_modifiers = [
+        # one argument
+        {
+            "modifier:to_lower": lambda x: x.lower(),
+            "modifier:to_upper": lambda x: x.upper(),
+            "modifier:lower_first": lambda x: x[:1].lower() + x[1:],
+        },
+        # two arguments
+        {
+            "modifier:remove_suffix": lambda args: lambda x: x[:-len(args[0])] if x.endswith(args[0]) else x,
+        }
+    ]
+
     for key, value in placeholder.items():
         if isinstance(value, list):
             modifier_function = lambda x: x
 
             for modifier in value:
                 if not modifier.startswith("modifier:"):
-                    print_generator_error(generator_name, "Modifier '{}' does not start with 'modifier:'".format(modifier))
-                    exit(1)
+                    generator_error(generator_name, "Modifier '{}' does not start with 'modifier:'".format(modifier))
 
-                if modifier == "modifier:to_lower":
-                    modifier_function = append_modifier_function(modifier_function, lambda x: x.lower())
-                elif modifier == "modifier:to_upper":
-                    modifier_function = append_modifier_function(modifier_function, lambda x: x.upper())
-                elif modifier == "modifier:lower_first":
-                    modifier_function = append_modifier_function(modifier_function, lambda x: x[:1].lower() + x[1:])
-                elif modifier.startswith("modifier:remove_suffix"):
-                    suffix_start = modifier.find("(")
-                    suffix_end = modifier.find(")")
-                    suffix = modifier[suffix_start + 1:suffix_end]
-                    modifier_function = append_modifier_function(modifier_function, lambda x: x[:-len(suffix)] if x.endswith(suffix) else x)
+                if not modifier.endswith(")"):
+                    # singe argument modifier
+                    # find modifier in available_modifiers[0]
+                    new_modifier_function = available_modifiers[0].get(modifier)
+                    if not new_modifier_function:
+                        generator_error(generator_name, "Unknown modifier '{}'".format(modifier))
+                    modifier_function = append_modifier_function(modifier_function, new_modifier_function)
                 else:
-                    print_generator_error(generator_name, "Unknown modifier '{}'".format(modifier))
-                    exit(1)
+                    # count number of arguments
+                    arguments_start = modifier.find("(")
+                    arguments_end = len(modifier) - 1
+                    arguments = modifier[arguments_start + 1:arguments_end]
+                    arguments = arguments.split(",")
+                    arguments = [arg.strip() for arg in arguments]
+
+                    modifier_name = modifier[:arguments_start]
+
+                    len_arguments = len(arguments)
+                    if len_arguments >= len(available_modifiers):
+                        generator_error(generator_name, "Modifier '{}' has too many arguments".format(modifier))
+
+                    new_modifier_function = available_modifiers[len_arguments].get(modifier_name)
+                    if not new_modifier_function:
+                        generator_error(generator_name, "Unknown modifier '{}' taking {} arguments".format(modifier_name, len_arguments))
+
+                    modifier_function = append_modifier_function(modifier_function, new_modifier_function(arguments))
 
             placeholder[key] = modifier_function
 
 
 def append_modifier_function(left_function, right_function):
     return lambda x: right_function(left_function(x))
+
+
+def append_file_name_placeholders(result_dictionary, generator_configuration, file_name):
+    file_name_obj = generator_configuration.get("file_name")
+    if file_name:
+        derived_placeholders = file_name_obj.get("derived_placeholders")
+        if derived_placeholders:
+            for key, value in derived_placeholders.items():
+                result_dictionary[key] = value(file_name)
+
+
+def append_one_level_dictionary(result_dictionary, json_object, description, generator_name):
+    # iterate over fields that have "placeholder" key
+    for key, value in json_object.items():
+        placeholder_name = value.get("placeholder")
+        if placeholder_name:
+            key_description_value = description.get(key)
+            if key_description_value is None:
+                is_optional = value.get("is_optional")
+                if is_optional is False or is_optional is None:
+                    generator_error(generator_name, "Placeholder '{}' is not optional and not found in description".format(key))
+                else:
+                    continue
+
+            placeholder_type = value.get("type")
+            if placeholder_type == "string":
+                if not isinstance(key_description_value, str):
+                    generator_error(generator_name, "Placeholder '{}' is not a string".format(key))
+                result_dictionary[placeholder_name] = key_description_value
+
+            elif placeholder_type == "list":
+                if not isinstance(key_description_value, list):
+                    generator_error(generator_name, "Placeholder '{}' is not a list".format(key))
+
+                list_placeholder_rule = value.get("list_placeholder_rule")
+                if list_placeholder_rule:
+                    if list_placeholder_rule == "merge_with_newline":
+                        result_dictionary[placeholder_name] = "\n".join(key_description_value)
+                    elif list_placeholder_rule == "meta_attributes":
+                        result_dictionary[placeholder_name] = key_description_value
+                    else:
+                        generator_error(generator_name, "Unknown list placeholder rule '{}'".format(list_placeholder_rule))
+                else:
+                    generator_error(generator_name, "List placeholder '{}' does not have list_placeholder_rule".format(key))
+
+            derived_placeholders = value.get("derived_placeholders")
+            if derived_placeholders:
+                for derived_key, derived_value in derived_placeholders.items():
+                    result_dictionary[derived_key] = derived_value(key_description_value)
 

@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-generator_description_format_version = "1.0"
+generator_configuration_format_version = "1.0"
 
 class UpdateStatus(Enum):
     NoUpdateNeeded = 1
@@ -10,5 +10,5 @@ class UpdateStatus(Enum):
     Error = 3
 
 
-def update_generator_description_json(json):
+def update_generator_configuration_json(json):
     return json, UpdateStatus.NoUpdateNeeded
