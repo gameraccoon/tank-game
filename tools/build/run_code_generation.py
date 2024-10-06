@@ -49,7 +49,7 @@ def run_generator(generator_id, generator_list, args):
     if not args.quiet:
         print("Running generator: " + generator_id)
     generator = generator_list[generator_id]
-    return generators.data_driven_generator.generate_all(generator)
+    # return generators.data_driven_generator.generate_all(generator)
 
     # this is temporary, ideally we should have one endpoint that runs all types generators based only on parameters
     if generator_id == "components":

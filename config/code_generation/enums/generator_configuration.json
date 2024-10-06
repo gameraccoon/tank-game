@@ -1,5 +1,8 @@
 {
   "format_version": "1.0",
+  "root_description_object": {
+    "object_id": "enum"
+  },
   "description_schema": {
     "values": {
       "type": "list",

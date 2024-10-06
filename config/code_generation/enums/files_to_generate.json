@@ -2,31 +2,37 @@
 	{
 		"name_template": "{enum_name}.generated.h",
 		"template": "enum_header",
-		"output_dir": "src/GameData/Enums/"
+		"output_dir": "src/GameData/Enums/",
+		"per_object": "enum"
 	},
 	{
 		"name_template": "{enum_name}.generated.cpp",
 		"template": "enum_source",
-		"output_dir": "src/GameData/Enums/"
+		"output_dir": "src/GameData/Enums/",
+		"per_object": "enum"
 	},
 	{
 		"name_template": "{enum_name}LuaTypeBindings.generated.h",
 		"template": "serialization/lua/enum_lua_serialization_header",
-		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/"
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/",
+		"per_object": "enum"
 	},
 	{
 		"name_template": "{enum_name}LuaTypeBindings.generated.cpp",
 		"template": "serialization/lua/enum_lua_serialization_source",
-		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/"
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Enums/",
+		"per_object": "enum"
 	},
 	{
 		"name_template": "{enum_name}AngelScriptRegistration.generated.h",
 		"template": "serialization/angelscript/enum_angelscript_registration_header",
-		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/"
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/",
+		"per_object": "enum"
 	},
 	{
 		"name_template": "{enum_name}AngelScriptRegistration.generated.cpp",
 		"template": "serialization/angelscript/enum_angelscript_registration_source",
-		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/"
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/",
+		"per_object": "enum"
 	}
 ]

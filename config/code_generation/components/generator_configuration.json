@@ -1,5 +1,9 @@
 {
   "format_version": "1.0",
+  "root_description_object": {
+    "templates_file": "component_templates.json",
+    "object_id": "component"
+  },
   "description_schema": {
     "description": {
       "type": "string",
@@ -16,6 +20,7 @@
       "type": "list",
       "list_item_type": "object",
       "templates_file": "attribute_templates.json",
+      "object_id": "attribute",
       "list_item_schema": {
         "name": {
           "type": "string",
@@ -58,8 +63,5 @@
       "component_name_capital": ["modifier:remove_suffix(Component)"],
       "component_tolower": ["modifier:to_lower"]
     }
-  },
-  "root_description_object": {
-    "templates_file": "component_templates.json"
   }
 }
