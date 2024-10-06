@@ -2,106 +2,95 @@
 	{
 		"name_template": "{class_name}.generated.h",
 		"template": "component_header",
-		"output_dir": "src/GameData/Components/"
+		"output_dir": "src/GameData/Components/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}ImguiWidget.generated.h",
 		"template": "imgui/component_inspector_window_header",
-		"output_dir": "src/GameLogic/Imgui/ComponentInspector/ComponentWidgets/"
+		"output_dir": "src/GameLogic/Imgui/ComponentInspector/ComponentWidgets/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}ImguiWidget.generated.cpp",
 		"template": "imgui/component_inspector_window_source",
-		"output_dir": "src/GameLogic/Imgui/ComponentInspector/ComponentWidgets/"
+		"output_dir": "src/GameLogic/Imgui/ComponentInspector/ComponentWidgets/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}{attribute_name_capital}PropertyDescriptor.generated.cpp",
 		"template": "imgui/filters/attribute_descriptor_source",
 		"output_dir": "src/GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptors/",
-		"flags": [
-			"per_attribute"
-		],
-		"blacklist": [
-			"get_by_ref"
-		]
+		"per_object": "attribute",
+		"blacklist": [ "get_by_ref" ]
 	},
 	{
 		"name_template": "{class_name}{attribute_name_capital}PropertyDescriptor.generated.h",
 		"template": "imgui/filters/attribute_descriptor_header",
 		"output_dir": "src/GameLogic/Imgui/ComponentInspector/PropertyFilters/PropertyDescriptors/",
-		"flags": [
-			"per_attribute"
-		],
-		"blacklist": [
-			"get_by_ref"
-		]
+		"per_object": "attribute",
+		"blacklist": [ "get_by_ref" ]
 	},
 	{
 		"name_template": "PropertyDescriptorsRegistration.generated.cpp",
 		"template": "imgui/filters/attributes_descriptors_registration_source",
 		"output_dir": "src/GameLogic/Imgui/ComponentInspector/PropertyFilters/",
-		"flags": [
-			"attribute_list"
-		]
+		"list_objects": "attribute"
 	},
 	{
 		"name_template": "{class_name}JsonSerializer.generated.h",
 		"template": "serialization/json/component_json_serializer_header",
 		"output_dir": "src/GameData/Serialization/Json/Generated",
-		"blacklist": [
-			"transient"
-		]
+		"per_object": "component",
+		"blacklist": [ "transient" ]
 	},
 	{
 		"name_template": "{class_name}JsonSerializer.generated.cpp",
 		"template": "serialization/json/component_json_serializer_source",
 		"output_dir": "src/GameData/Serialization/Json/Generated",
-		"blacklist": [
-			"transient"
-		]
+		"per_object": "component",
+		"blacklist": [ "transient" ]
 	},
 	{
 		"name_template": "ComponentFactoryRegistration.generated.cpp",
 		"template": "components_factory_registration_source",
 		"output_dir": "src/GameData/ComponentRegistration/",
-		"flags": [
-			"list"
-		]
+		"list_objects": "component"
 	},
 	{
 		"name_template": "ComponentWidgetsRegistration.generated.cpp",
 		"template": "imgui/components_inspector_window_registration_source",
 		"output_dir": "src/GameLogic/Imgui/ComponentInspector/",
-		"flags": [
-			"list"
-		]
+		"list_objects": "component"
 	},
 	{
 		"name_template": "ComponentJsonSerializerRegistration.generated.cpp",
 		"template": "serialization/json/components_json_serializer_registration_source",
 		"output_dir": "src/GameData/ComponentRegistration/",
-		"flags": [
-			"list"
-		]
+		"list_objects": "component"
 	},
 	{
 		"name_template": "{class_name}LuaTypeBindings.generated.h",
 		"template": "serialization/lua/component_lua_serialization_header",
-		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Components/"
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Components/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}LuaTypeBindings.generated.cpp",
 		"template": "serialization/lua/component_lua_serialization_source",
-		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Components/"
+		"output_dir": "src/GameLogic/Scripting/TypeBindings/Generated/Components/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}AngelScriptRegistration.generated.h",
 		"template": "serialization/angelscript/component_angelscript_registration_header",
-		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/"
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/",
+		"per_object": "component"
 	},
 	{
 		"name_template": "{class_name}AngelScriptRegistration.generated.cpp",
 		"template": "serialization/angelscript/component_angelscript_registration_source",
-		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/"
+		"output_dir": "src/GameLogic/Scripting/Types/Generated/Components/",
+		"per_object": "component"
 	}
 ]
