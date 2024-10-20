@@ -59,6 +59,7 @@
   "file_name": {
     "placeholder": "class_name",
     "derived_placeholders": {
+      "class_name": [],
       "component_name": ["modifier:remove_suffix(Component)", "modifier:lower_first"],
       "component_name_capital": ["modifier:remove_suffix(Component)"],
       "component_tolower": ["modifier:to_lower"]
