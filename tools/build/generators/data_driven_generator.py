@@ -51,8 +51,12 @@ def generate_all(generator):
     # precompute some values: e.g. load files by paths
     preprocess_generator_configuration(generator_configuration, configs_dir, generator_name)
 
+    # group files to generate into categories
+    files_to_generate_map = group_files_to_generate(files_to_generate)
+
     generated_files = []
 
+    # recursively iterate over generator configuration and fill dictionaries using descriptions
     if descriptions_dir:
         for file_name in os.listdir(descriptions_dir):
             description = load_json(path.join(descriptions_dir, file_name))
@@ -63,10 +67,33 @@ def generate_all(generator):
             description_schema = generator_configuration.get("description_schema")
             if description_schema:
                 append_one_level_dictionary(placeholder_dictionary, description_schema, description, generator_name)
+                print("Append one level dict: {}".format(placeholder_dictionary))
 
-            # generate files based on top level description
 
-            # recursively generate files based on the description schema
+    # if descriptions_dir:
+    #     for file_name in os.listdir(descriptions_dir):
+            # generate per-description files
+            if "per_object" in files_to_generate_map:
+                root_object_id = None
+                if "root_description_object" in generator_configuration:
+                    root_object_id = generator_configuration["root_description_object"].get("object_id")
+
+                per_root_object = files_to_generate_map["per_object"][root_object_id]
+                if per_root_object:
+                    for file_description in per_root_object:
+                        print("Dictionary: {}".format(placeholder_dictionary))
+                        file_name = replace_content(file_description.get("name_template"), placeholder_dictionary)
+                        output_path = os.path.join(file_description.get("output_dir"), file_name)
+                        print("Generating file: {}".format(output_path))
+                        print("Generating file: {}".format(file_description))
+                        generated_files.append(generate_cpp_file(file_description["template"], output_dir_base, file_description["name_template"], placeholder_dictionary, templates_dir))
+
+                # recursively generate files based on the description schema
+
+        # generate list files
+        list_objects = files_to_generate_map.get("list_objects")
+        if list_objects:
+            pass
 
     return generated_files
 
@@ -222,3 +249,40 @@ def append_one_level_dictionary(result_dictionary, json_object, description, gen
                 for derived_key, derived_value in derived_placeholders.items():
                     result_dictionary[derived_key] = derived_value(key_description_value)
 
+
+def group_files_to_generate(files_to_generate):
+    files_to_generate_map = {}
+
+    for file_description in files_to_generate:
+        per_object = file_description.get("per_object")
+        if per_object:
+            if "per_object" not in files_to_generate_map:
+                files_to_generate_map["per_object"] = {}
+            if per_object not in files_to_generate_map["per_object"]:
+                files_to_generate_map["per_object"][per_object] = []
+            files_to_generate_map["per_object"][per_object].append(file_description)
+
+        list_objects = file_description.get("list_objects")
+        if list_objects:
+            if "list_objects" not in files_to_generate_map:
+                files_to_generate_map["list_objects"] = {}
+            for list_object in list_objects:
+                if list_object not in files_to_generate_map["list_objects"]:
+                    files_to_generate_map["list_objects"][list_object] = []
+                files_to_generate_map["list_objects"][list_object].append(file_description)
+
+    return files_to_generate_map
+
+
+def generate_cpp_file(template_name, destination_dir, file_name_template, filled_templates, templates_dir):
+    template = read_template(template_name, templates_dir)
+    generated_content = replace_content(template, filled_templates)
+    file_name = replace_content(file_name_template, filled_templates)
+
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+
+    out_file_path = path.join(destination_dir, file_name)
+    write_file(out_file_path, generated_content)
+    print("Generated file: {}".format(out_file_path))
+    return out_file_path

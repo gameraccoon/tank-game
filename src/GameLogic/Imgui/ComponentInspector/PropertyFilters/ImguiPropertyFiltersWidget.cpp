@@ -24,11 +24,11 @@
 
 namespace ImguiPropertyFiltration
 {
-	void ImguiPropertyFiltersWidget::init(ImguiDebugData& debugData)
+	void ImguiPropertyFiltersWidget::init(const ImguiDebugData& debugData)
 	{
 		auto propertyDescriptions = PropertyDescriptorsRegistration::GetDescriptions();
 		debugData.componentFactory.forEachComponentType([&propertyDescriptions](StringId className) {
-			std::string componentName = ID_TO_STR(className);
+			const std::string componentName = ID_TO_STR(className);
 			std::string lowerComponentName = componentName;
 			std::transform(lowerComponentName.begin(), lowerComponentName.end(), lowerComponentName.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 			propertyDescriptions.emplace_back(std::vector<std::string>{ lowerComponentName }, ComponentAvailabilityPropertyDescriptor::Create(componentName, className));
@@ -159,11 +159,11 @@ namespace ImguiPropertyFiltration
 		return filteredComponents;
 	}
 
-	void ImguiPropertyFiltersWidget::getFilteredEntities(ImguiDebugData& debugData, std::vector<Entity>& inOutEntities)
+	void ImguiPropertyFiltersWidget::getFilteredEntities(const ImguiDebugData& debugData, std::vector<Entity>& inOutEntities)
 	{
 		inOutEntities.clear();
 
-		std::vector<StringId> filteredComponentTypes = getFilteredComponentTypes();
+		const std::vector<StringId> filteredComponentTypes = getFilteredComponentTypes();
 
 		if (!filteredComponentTypes.empty())
 		{
