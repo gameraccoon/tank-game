@@ -207,7 +207,7 @@ if(NOT DISABLE_SDL)
 
 		#SDL_image
 		add_subdirectory(${EXTERNALS_DIR}/sources/SDL_image EXCLUDE_FROM_ALL)
-		include_directories(${EXTERNALS_DIR}/sources/SDL_image)
+		include_directories(${EXTERNALS_DIR}/sources/SDL_image/include)
 
 		#SDL_mixer
 		add_subdirectory(${EXTERNALS_DIR}/sources/SDL_mixer EXCLUDE_FROM_ALL)
