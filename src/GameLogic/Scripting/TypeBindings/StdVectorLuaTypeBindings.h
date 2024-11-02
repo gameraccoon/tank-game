@@ -15,7 +15,7 @@ struct LuaTypeImplementation<std::vector<T>>
 
 		for (size_t i = 0; i < value.size(); ++i)
 		{
-			LuaInternal::PushInt(state, i + 1);
+			LuaInternal::PushInt(state, static_cast<int>(i + 1));
 			LuaType::PushValue(state, value[i]);
 			LuaInternal::SetAsKeyValueField(state);
 		}
