@@ -260,7 +260,7 @@ target_compile_options(Lua PRIVATE ${EXTERNALS_C_FLAGS})
 
 # AngelScript
 add_definitions(-DANGELSCRIPT_EXPORT -DAS_MAX_PORTABILITY)
-file(GLOB_RECURSE ANGEL_SCRIPT_SRC RELATIVE "" FOLLOW_SYMLINKS "${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/source/*")
+file(GLOB_RECURSE ANGEL_SCRIPT_SRC RELATIVE "" FOLLOW_SYMLINKS "${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/source/*.cpp")
 file(GLOB_RECURSE ANGEL_SCRIPT_ADDON_SRC RELATIVE "" FOLLOW_SYMLINKS "${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/add_on/*")
 add_library(AngelScript ${ANGEL_SCRIPT_SRC} ${ANGEL_SCRIPT_ADDON_SRC} ${EXTERNALS_DIR}/sources/angelscript_2.37.0/sdk/angelscript/source/as_callfunc_arm64_gcc.S)
 add_dependencies(${APP_NAME} AngelScript)
