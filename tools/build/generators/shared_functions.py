@@ -31,3 +31,16 @@ def write_file(generated_file_name, content):
 def load_json(file_path):
     with open(file_path) as f:
         return json.load(f)
+
+
+def generate_cpp_file(template_name, destination_dir, file_name_template, filled_templates, templates_dir):
+    template = read_template(template_name, templates_dir)
+    generated_content = replace_content(template, filled_templates)
+    file_name = replace_content(file_name_template, filled_templates)
+
+    if not os.path.exists(destination_dir):
+        os.makedirs(destination_dir)
+
+    out_file_path = path.join(destination_dir, file_name)
+    write_file(out_file_path, generated_content)
+    return out_file_path

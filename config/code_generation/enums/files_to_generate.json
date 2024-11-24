@@ -34,5 +34,11 @@
 		"template": "serialization/angelscript/enum_angelscript_registration_source",
 		"output_dir": "src/GameLogic/Scripting/Types/Generated/Enums/",
 		"per_object": "enum"
+	},
+	{
+		"name_template": "RegisterEnums.generated.cpp",
+		"template": "serialization/angelscript/enums_angelscript_registration_source",
+		"output_dir": "src/GameLogic/Scripting/Types/",
+		"list_objects": "enum"
 	}
 ]

@@ -56,20 +56,41 @@ def generate_enum_cpp_file(template_name, destination_dir, file_name_template, f
     return out_file_name
 
 
-def generate_files(file_infos, data_description, templates_dir, attribute_templates, delimiter_dictionary, empty_delimiter_dictionary, output_dir_base):
+def generate_files(file_infos, data_description, full_data_dict, templates_dir, attribute_templates, delimiter_dictionary, empty_delimiter_dictionary, output_dir_base):
     generated_files = []
 
-    full_data_dict = get_full_data_dictionary(data_description, attribute_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
     for file_info in file_infos:
-        out_file_name = generate_enum_cpp_file(file_info["template"],
-            path.join(output_dir_base, file_info["output_dir"]),
-            file_info["name_template"],
-            full_data_dict,
-            templates_dir)
+        if "per_object" in file_info and "enum" in file_info["per_object"]:
+            out_file_name = generate_enum_cpp_file(file_info["template"],
+                path.join(output_dir_base, file_info["output_dir"]),
+                file_info["name_template"],
+                full_data_dict,
+                templates_dir)
 
-        generated_files.append(out_file_name)
+            generated_files.append(out_file_name)
 
     return generated_files
+
+
+def generate_enum_list_descriptions(enums, enum_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary):
+    enum_filled_templates = {}
+    for enum_template in enum_templates:
+        template = read_template(enum_template["name"], templates_dir)
+        filled_template = ""
+
+        for enum in enums:
+            # skip delimiters for the last item
+            if enum is enums[len(enums) - 1]:
+                delimiter_dict = empty_delimiter_dictionary
+            else:
+                delimiter_dict = delimiter_dictionary
+
+            filled_template = filled_template + replace_content(template, {
+                **enum,
+                **delimiter_dict
+            })
+        enum_filled_templates[enum_template["name"]] = filled_template
+    return enum_filled_templates
 
 
 def get_enum_name_from_file_name(file_name):
@@ -88,13 +109,28 @@ def generate_all(generator):
 
     attribute_templates = load_json(path.join(configs_dir, "attribute_templates.json"))
 
+    enum_templates = load_json(path.join(configs_dir, "enum_templates.json"))
+
     files_to_generate = load_json(path.join(configs_dir, "files_to_generate.json"))
 
     generated_files = []
 
+    enums = []
     for file_name in os.listdir(descriptions_dir):
         enum_data = load_json(path.join(descriptions_dir, file_name))
         enum_data["enum_name"] = get_enum_name_from_file_name(file_name)
-        generated_files += generate_files(files_to_generate, enum_data, templates_dir, attribute_templates, delimiter_dictionary, empty_delimiter_dictionary, output_dir_base)
+        full_data_dict = get_full_data_dictionary(enum_data, attribute_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
+        generated_files += generate_files(files_to_generate, enum_data, full_data_dict, templates_dir, attribute_templates, delimiter_dictionary, empty_delimiter_dictionary, output_dir_base)
+        enums.append(full_data_dict)
+
+    # generate enum lists
+    enum_filled_templates = generate_enum_list_descriptions(enums, enum_templates, templates_dir, delimiter_dictionary, empty_delimiter_dictionary)
+    for file_info in files_to_generate:
+        if "list_objects" in file_info and "enum" in file_info["list_objects"]:
+            out_file_path = generate_cpp_file(file_info["template"],
+                path.join(output_dir_base, file_info["output_dir"]),
+                file_info["name_template"],
+                enum_filled_templates, templates_dir)
+            generated_files.append(out_file_path)
 
     return generated_files
