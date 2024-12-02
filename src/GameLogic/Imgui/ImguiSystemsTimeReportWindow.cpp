@@ -2,6 +2,8 @@
 
 #include "GameLogic/Imgui/ImguiSystemsTimeReportWindow.h"
 
+#ifdef IMGUI_ENABLED
+
 #include <algorithm>
 
 #include "imgui/imgui.h"
@@ -97,3 +99,5 @@ void ImguiSystemsTimeReportWindow::update(ImguiDebugData& /*debugData*/)
 		ImGui::End();*/
 	}
 }
+
+#endif // IMGUI_ENABLED

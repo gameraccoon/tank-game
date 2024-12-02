@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef IMGUI_ENABLED
+
 class WorldHolder;
 
 class ImguiSystemsTimeReportWindow
@@ -14,3 +16,5 @@ private:
 	float mMaxSystemTimeMs = 1.0f;
 	int mCurrentFrame = 200;
 };
+
+#endif // IMGUI_ENABLED

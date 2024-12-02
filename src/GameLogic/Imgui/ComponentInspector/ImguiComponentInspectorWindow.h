@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef IMGUI_ENABLED
+
 #include <map>
 
 #include <raccoon-ecs/entity.h>
@@ -34,3 +36,5 @@ private:
 	std::map<StringId, std::unique_ptr<AbstractComponentImguiWidget>> mComponentInspectWidgets;
 	ImguiPropertyFiltration::ImguiPropertyFiltersWidget mPropertyFiltersWidget;
 };
+
+#endif // IMGUI_ENABLED

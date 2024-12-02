@@ -2,11 +2,12 @@
 
 #include "GameLogic/Imgui/ComponentInspector/ImguiComponentInspectorWindow.h"
 
+#ifdef IMGUI_ENABLED
+
 #include <algorithm>
 #include <cstring>
 #include <ranges>
 #include <sstream>
-#include <string_view>
 
 #include "imgui/imgui.h"
 
@@ -144,3 +145,5 @@ void ImguiComponentInspectorWindow::update(ImguiDebugData& debugData)
 		ImGui::End();
 	}
 }
+
+#endif // IMGUI_ENABLED
