@@ -351,7 +351,6 @@ if(NOT DISABLE_SDL)
 		set(GENERAL_PROJECT_LIBS
 			${GENERAL_PROJECT_LIBS}
 			SDL2
-			SDL2_image_png
 			SDL2_mixer
 		)
 	endif()
