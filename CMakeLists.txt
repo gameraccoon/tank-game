@@ -280,7 +280,7 @@ if(IMGUI_ENABLED)
 		${EXTERNALS_DIR}/sources/imgui/backends/imgui_impl_sdl2.cpp
 	)
 	add_dependencies(${APP_NAME} Imgui)
-	include_directories(${EXTERNALS_DIR}/sources/imgui)
+	include_directories(SYSTEM ${EXTERNALS_DIR}/sources/imgui)
 	target_compile_options(Imgui PRIVATE ${EXTERNALS_CXX_FLAGS})
 endif()
 
