@@ -11,7 +11,7 @@
 
 struct EntityMoveHash
 {
-	EntityMoveHash(NetworkEntityId networkEntityId, Vector2D location, Vector2D direction)
+	EntityMoveHash(const NetworkEntityId networkEntityId, const Vector2D location, const Vector2D direction)
 		: entityHash(networkEntityId)
 		, locationHashX(static_cast<s32>(location.x))
 		, locationHashY(static_cast<s32>(location.y))
