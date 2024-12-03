@@ -9,8 +9,11 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
+#include "GameData/Components/MoveInterpolationComponent.generated.h"
+#include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/Network/MovementHistory.h"
 
 #include "HAL/Base/Engine.h"
 
@@ -210,6 +213,9 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 	const float fixedUpdateDt = lastUpdateTime.lastFixedUpdateDt;
 
+	// save moves from the incorrect history version
+	MovementUpdateData copyOfOldMoves = mGameStateRewinder.getMovesForUpdate(lastUpdateTime.lastFixedUpdateIndex);
+
 	LogInfo("Correct client updates from %u to %u", firstUpdateToResimulateIdx, lastUpdateTime.lastFixedUpdateIndex);
 
 	AssertFatal(firstUpdateToResimulateIdx <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
@@ -224,6 +230,23 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 		// this adds a new frame to the history
 		fixedTimeUpdate(fixedUpdateDt);
 	}
+
+	// set the moves from the old history version for interpolation
+	constexpr int INTERPOLATION_UPDATES = 5;
+	getWorldHolder().getDynamicWorldLayer().getEntityManager().forEachComponentSet<MoveInterpolationComponent, const NetworkIdComponent>([&copyOfOldMoves, lastUpdateTime](MoveInterpolationComponent* moveInterpolation, const NetworkIdComponent* networkId) {
+		const NetworkEntityId id = networkId->getId();
+		// this is quite slow, but we assume we are not doing this often, and there are not many moving entities
+		const auto it = std::ranges::find_if(copyOfOldMoves.moves, [&moveInterpolation, id](const EntityMoveData& moveData) {
+			return moveData.networkEntityId == id;
+		});
+
+		if (it != copyOfOldMoves.moves.end())
+		{
+			moveInterpolation->setOriginalPosition(it->location);
+			moveInterpolation->setOriginalTimestamp(lastUpdateTime.lastFixedUpdateTimestamp);
+			moveInterpolation->setTargetTimestamp(lastUpdateTime.lastFixedUpdateTimestamp.getIncreasedByUpdateCount(INTERPOLATION_UPDATES));
+		}
+	});
 }
 
 void TankClientGame::processCorrections()

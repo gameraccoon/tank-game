@@ -8,7 +8,7 @@ class GameStateRewinder;
 /**
  * System that saves current entity movements to the history
  */
-class SaveMovementToHistorySystem : public RaccoonEcs::System
+class SaveMovementToHistorySystem final : public RaccoonEcs::System
 {
 public:
 	SaveMovementToHistorySystem(
