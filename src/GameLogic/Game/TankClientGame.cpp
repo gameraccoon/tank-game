@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include "EngineCommon/TimeConstants.h"
+
 #ifndef DEDICATED_SERVER
 
 #include "EngineCommon/Types/String/ResourcePath.h"
@@ -232,21 +234,26 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 	}
 
 	// set the moves from the old history version for interpolation
-	constexpr int INTERPOLATION_UPDATES = 5;
-	getWorldHolder().getDynamicWorldLayer().getEntityManager().forEachComponentSet<MoveInterpolationComponent, const NetworkIdComponent>([&copyOfOldMoves, lastUpdateTime](MoveInterpolationComponent* moveInterpolation, const NetworkIdComponent* networkId) {
-		const NetworkEntityId id = networkId->getId();
-		// this is quite slow, but we assume we are not doing this often, and there are not many moving entities
-		const auto it = std::ranges::find_if(copyOfOldMoves.moves, [&moveInterpolation, id](const EntityMoveData& moveData) {
-			return moveData.networkEntityId == id;
-		});
+	{
+		SCOPED_PROFILER("UpdateInterpolationData");
+		constexpr int INTERPOLATION_UPDATES = static_cast<int>(0.2f / TimeConstants::ONE_FIXED_UPDATE_SEC);
+		constexpr float NO_INTERPOLATION_DISTANCE = 1.5f;
+		constexpr float NO_INTERPOLATION_DISTANCE_SQ = NO_INTERPOLATION_DISTANCE * NO_INTERPOLATION_DISTANCE;
+		getWorldHolder().getDynamicWorldLayer().getEntityManager().forEachComponentSet<MoveInterpolationComponent, const NetworkIdComponent>([&copyOfOldMoves, lastUpdateTime](MoveInterpolationComponent* moveInterpolation, const NetworkIdComponent* networkId) {
+			const NetworkEntityId id = networkId->getId();
+			// this is quite expensive, but we assume we are not doing this often, and there are not many moving entities
+			const auto it = std::ranges::find_if(copyOfOldMoves.moves, [id](const EntityMoveData& moveData) {
+				return moveData.networkEntityId == id;
+			});
 
-		if (it != copyOfOldMoves.moves.end())
-		{
-			moveInterpolation->setOriginalPosition(it->location);
-			moveInterpolation->setOriginalTimestamp(lastUpdateTime.lastFixedUpdateTimestamp);
-			moveInterpolation->setTargetTimestamp(lastUpdateTime.lastFixedUpdateTimestamp.getIncreasedByUpdateCount(INTERPOLATION_UPDATES));
-		}
-	});
+			if (it != copyOfOldMoves.moves.end() && (it->location - moveInterpolation->getOriginalPosition()).qSize() > NO_INTERPOLATION_DISTANCE_SQ)
+			{
+				moveInterpolation->setOriginalPosition(it->location);
+				moveInterpolation->setOriginalTimestamp(lastUpdateTime.lastFixedUpdateTimestamp);
+				moveInterpolation->setTargetTimestamp(lastUpdateTime.lastFixedUpdateTimestamp.getIncreasedByUpdateCount(INTERPOLATION_UPDATES));
+			}
+		});
+	}
 }
 
 void TankClientGame::processCorrections()
