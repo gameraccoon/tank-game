@@ -22,14 +22,14 @@
 
 namespace Network
 {
-	GameplayCommand::Ptr CreatePlayerEntityCommand::createServerSide(Vector2D pos, NetworkEntityId networkEntityId, ConnectionId ownerConnectionId)
+	GameplayCommand::Ptr CreatePlayerEntityCommand::createServerSide(const Vector2D pos, const NetworkEntityId networkEntityId, const ConnectionId ownerConnectionId)
 	{
-		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, IsOwner::No, ownerConnectionId, NetworkSide::Server));
+		return Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, IsOwner::No, ownerConnectionId));
 	}
 
-	GameplayCommand::Ptr CreatePlayerEntityCommand::createClientSide(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner)
+	GameplayCommand::Ptr CreatePlayerEntityCommand::createClientSide(const Vector2D pos, const NetworkEntityId networkEntityId, const IsOwner isOwner)
 	{
-		return GameplayCommand::Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId, NetworkSide::Client));
+		return Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId));
 	}
 
 	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
@@ -64,7 +64,7 @@ namespace Network
 			worldEntityManager.addComponent<RollbackOnCollisionComponent>(controlledEntity);
 		}
 
-		if (mNetworkSide == NetworkSide::Server)
+		if (gameStateRewinder.isServer())
 		{
 			ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getClientDataRef()[mOwnerConnectionId].playerEntity = controlledEntity;
@@ -78,7 +78,7 @@ namespace Network
 			}
 		}
 
-		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, mNetworkSide == NetworkSide::Server ? "server" : "client");
+		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, gameStateRewinder.isServer() ? "server" : "client");
 	}
 
 	GameplayCommand::Ptr CreatePlayerEntityCommand::clone() const
@@ -115,9 +115,8 @@ namespace Network
 		return GameplayCommandType::CreatePlayerEntity;
 	}
 
-	CreatePlayerEntityCommand::CreatePlayerEntityCommand(Vector2D pos, NetworkEntityId networkEntityId, IsOwner isOwner, ConnectionId ownerConnectionId, NetworkSide networkSide)
+	CreatePlayerEntityCommand::CreatePlayerEntityCommand(const Vector2D pos, NetworkEntityId networkEntityId, const IsOwner isOwner, const ConnectionId ownerConnectionId)
 		: mIsOwner(isOwner)
-		, mNetworkSide(networkSide)
 		, mPos(pos)
 		, mNetworkEntityId(networkEntityId)
 		, mOwnerConnectionId(ownerConnectionId)

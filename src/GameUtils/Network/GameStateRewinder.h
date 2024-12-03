@@ -34,6 +34,9 @@ public:
 	GameStateRewinder(GameStateRewinder&&) = delete;
 	GameStateRewinder& operator=(GameStateRewinder&&) = delete;
 
+	bool isServer() const { return mHistoryType == HistoryType::Server; }
+	bool isClient() const { return mHistoryType == HistoryType::Client; }
+
 	/// Static and client-side components that don't depend on anything client-server specific
 	/// For example static level geometry, UI-related data, etc.
 	ComponentSetHolder& getNotRewindableComponents() { return mNotRewindableComponents; }
