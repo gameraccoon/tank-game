@@ -7,6 +7,7 @@
 #include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/CollisionComponent.generated.h"
+#include "GameData/Components/MoveInterpolationComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
@@ -76,6 +77,7 @@ namespace Network
 				ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 				clientGameData->setControlledPlayer(controlledEntity);
 			}
+			worldEntityManager.addComponent<MoveInterpolationComponent>(controlledEntity);
 		}
 
 		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, gameStateRewinder.isServer() ? "server" : "client");

@@ -26,8 +26,8 @@ public:
 	void update() override;
 
 private:
-	void drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize);
-	void drawTileGridLayer(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, size_t layerIdx);
+	void drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize) const;
+	static void drawTileGridLayer(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, size_t layerIdx);
 
 private:
 	WorldHolder& mWorldHolder;

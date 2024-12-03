@@ -1,5 +1,7 @@
 #include "EngineCommon/precomp.h"
 
+#include "EngineCommon/TimeConstants.h"
+
 #ifndef DISABLE_SDL
 
 #include <algorithm>
@@ -8,10 +10,12 @@
 #include "EngineCommon/Types/TemplateHelpers.h"
 
 #include "GameData/Components/BackgroundTextureComponent.generated.h"
+#include "GameData/Components/MoveInterpolationComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/RenderModeComponent.generated.h"
 #include "GameData/Components/SpriteRenderComponent.generated.h"
 #include "GameData/Components/TileGridComponent.generated.h"
+#include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 #include "GameData/GameData.h"
@@ -49,16 +53,20 @@ void RenderSystem::update()
 		return;
 	}
 
-	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
+	const RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 
 	const auto [worldCachedData] = dynamicWorldLayer.getWorldComponents().getComponents<WorldCachedDataComponent>();
 	const Vector2D workingRect = worldCachedData->getScreenSize();
 
 	const auto [renderMode] = gameData.getGameComponents().getComponents<RenderModeComponent>();
 
-	const Vector2D drawShift = ZERO_VECTOR;
+	constexpr Vector2D drawShift = ZERO_VECTOR;
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
+
+	auto [timeComponent] = dynamicWorldLayer.getWorldComponents().getComponents<TimeComponent>();
+	const TimeData& time = *timeComponent->getValue();
+	const GameplayTimestamp lastFixedUpdateTime = time.lastFixedUpdateTimestamp;
 
 	if (!renderMode || renderMode->getIsDrawBackgroundEnabled())
 	{
@@ -73,17 +81,24 @@ void RenderSystem::update()
 	if (!renderMode || renderMode->getIsDrawVisibleEntitiesEnabled())
 	{
 		SCOPED_PROFILER("draw visible entities");
-		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent>(
-			[&drawShift, &renderData](const SpriteRenderComponent* spriteRender, const TransformComponent* transform) {
+		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent, const MoveInterpolationComponent>(
+			[&drawShift, &renderData, lastFixedUpdateTime](const SpriteRenderComponent* spriteRender, const TransformComponent* transform, const MoveInterpolationComponent* moveInterpolation) {
 				const Vector2D location = transform->getLocation() + drawShift;
 				const Vector2D direction = transform->getDirection();
 				const float rotation = direction.rotation().getValue() + PI * 0.5f;
+
+				// we need to set that value to the fraction between last and next update in range [0, 1]
+				const float frameAlpha = 1.0f;
+				AssertFatal(moveInterpolation->getTargetTimestamp() != moveInterpolation->getOriginalTimestamp(), "Invalid interpolation timestamps, they should not be equal");
+				float alpha = (static_cast<float>((lastFixedUpdateTime - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount()) + frameAlpha) / static_cast<float>((moveInterpolation->getTargetTimestamp() - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount());
+				alpha = std::clamp(alpha, 0.0f, 1.0f);
+				const Vector2D positionOffset = (moveInterpolation->getOriginalPosition() - transform->getLocation()) * (1.0f - alpha);
 
 				for (const auto& data : spriteRender->getSpriteDatas())
 				{
 					QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 					quadData.spriteHandle = data.spriteHandle;
-					quadData.position = location;
+					quadData.position = location + positionOffset;
 					quadData.size = data.params.size;
 					quadData.anchor = data.params.anchor;
 					quadData.rotation = rotation;
@@ -101,7 +116,7 @@ void RenderSystem::update()
 	renderAccessor.submitData(std::move(renderData));
 }
 
-void RenderSystem::drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize)
+void RenderSystem::drawBackground(RenderData& renderData, WorldLayer& worldLayer, Vector2D drawShift, Vector2D windowSize) const
 {
 	SCOPED_PROFILER("RenderSystem::drawBackground");
 	auto [backgroundTexture] = worldLayer.getWorldComponents().getComponents<BackgroundTextureComponent>();

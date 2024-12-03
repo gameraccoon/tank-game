@@ -1,0 +1,24 @@
+{
+	"description": "Client-side component that is used for movement interpolation between frames or for mispridicted client-side transforms",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "originalPosition",
+			"type": "Vector2D",
+			"default": " = ZERO_VECTOR",
+			"includes": ["\"EngineData/Geometry/Vector2D.h\""]
+		},
+		{
+			"name": "originalTimestamp",
+			"type": "GameplayTimestamp",
+			"default": " = GameplayTimestamp(0)",
+			"includes": ["\"GameData/Time/GameplayTimestamp.h\""]
+		},
+		{
+			"name": "targetTimestamp",
+			"type": "GameplayTimestamp",
+			"default": " = GameplayTimestamp(0)",
+			"includes": ["\"GameData/Time/GameplayTimestamp.h\""]
+		}
+	]
+}
