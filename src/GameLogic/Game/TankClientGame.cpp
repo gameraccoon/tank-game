@@ -149,11 +149,6 @@ void TankClientGame::dynamicTimePostFrameUpdate(const float dt, const int proces
 	}
 }
 
-void TankClientGame::notPausableRenderUpdate(const float frameAlpha)
-{
-	Game::notPausableRenderUpdate(frameAlpha);
-}
-
 std::chrono::duration<int64_t, std::micro> TankClientGame::getFrameLengthCorrection() const
 {
 	return mFrameTimeCorrector.getFrameLengthCorrection();
