@@ -25,7 +25,7 @@ void ControlSystem::update()
 		[&entityManager](const Entity entity, const GameplayInputComponent* gameplayInput, MovementComponent* movement) {
 			const GameplayInput::FrameState& inputState = gameplayInput->getCurrentFrameState();
 
-			const bool isShootPressed = inputState.isKeyActive(GameplayInput::InputKey::Shoot);
+			const bool isTryingToShoot = inputState.isKeyActive(GameplayInput::InputKey::Shoot) || inputState.isKeyJustActivated(GameplayInput::InputKey::Shoot);
 
 			const bool isMoveUpPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveUp);
 			const bool isMoveDownPressed = inputState.isKeyActive(GameplayInput::InputKey::MoveDown);
@@ -46,7 +46,7 @@ void ControlSystem::update()
 			if (auto [characterState] = entityManager.getEntityComponents<CharacterStateComponent>(entity); characterState != nullptr)
 			{
 				characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToMove, movement->getMoveDirection().isZeroLength());
-				characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isShootPressed);
+				characterState->getBlackboardRef().setValue<bool>(CharacterStateBlackboardKeys::TryingToShoot, isTryingToShoot);
 			}
 		}
 	);

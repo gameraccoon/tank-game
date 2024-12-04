@@ -47,7 +47,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Inactive, GameplayTimestamp(0));
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.0f);
 		clientGame->stateRewinder.setInputForUpdate(1u, frameState);
-		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::JustActivated, GameplayTimestamp(1));
+		frameState.updateKey(GameplayInput::InputKey::Shoot, MergeKeyStates(GameplayInput::KeyState::Active, GameplayInput::KeyState::JustActivated), GameplayTimestamp(1));
 		frameState.updateAxis(GameplayInput::InputAxis::MoveHorizontal, 0.5f);
 		clientGame->stateRewinder.setInputForUpdate(2u, frameState);
 		frameState.updateKey(GameplayInput::InputKey::Shoot, GameplayInput::KeyState::Active, GameplayTimestamp(2));
@@ -67,7 +67,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 
 	{
 		auto serverGame = CreateGameInstance(GameStateRewinder::HistoryType::Server);
-		const ConnectionId connectionId = 1;
+		constexpr ConnectionId connectionId = 1;
 		serverGame->stateRewinder.getTimeData().lastFixedUpdateIndex = 0;
 		Network::ClientServer::ApplyPlayerInputMessage(serverGame->world, serverGame->stateRewinder, message, connectionId);
 
@@ -82,7 +82,7 @@ TEST(PlayerInputMessage, SerializeAndDeserializeFirstInput_AllInputAdded)
 		}
 		{
 			const GameplayInput::FrameState& frame2Inputs = serverGame->stateRewinder.getPlayerInput(connectionId, 2);
-			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), GameplayInput::KeyState::JustActivated);
+			EXPECT_EQ(frame2Inputs.getKeyState(GameplayInput::InputKey::Shoot), MergeKeyStates(GameplayInput::KeyState::Active, GameplayInput::KeyState::JustActivated));
 			EXPECT_EQ(frame2Inputs.getLastFlipTime(GameplayInput::InputKey::Shoot), GameplayTimestamp(1));
 			EXPECT_FLOAT_EQ(frame2Inputs.getAxisValue(GameplayInput::InputAxis::MoveHorizontal), 0.5f);
 		}

@@ -4,6 +4,11 @@
 
 namespace GameplayInput
 {
+	bool AreStatesIntersecting(KeyState state1, KeyState state2) noexcept
+	{
+		return (static_cast<int>(state1) & static_cast<int>(state2)) != 0;
+	}
+
 	void FrameState::updateAxis(InputAxis axis, const float newValue)
 	{
 		mAxes[static_cast<size_t>(axis)] = newValue;
@@ -17,11 +22,17 @@ namespace GameplayInput
 	void FrameState::updateKey(InputKey key, const KeyState newState, const GameplayTimestamp currentTimestamp)
 	{
 		KeyInfo& info = mKeys[static_cast<size_t>(key)];
-		if ((info.state == KeyState::Active || info.state == KeyState::JustActivated) != (newState == KeyState::Active || newState == KeyState::JustActivated)
-			|| !info.lastFlipTime.isInitialized())
+
+		if (!info.lastFlipTime.isInitialized()) [[unlikely]]
 		{
 			info.lastFlipTime = currentTimestamp;
 		}
+
+		if (AreStatesIntersecting(info.state, KeyState::Active) != AreStatesIntersecting(newState, KeyState::Active))
+		{
+			info.lastFlipTime = currentTimestamp;
+		}
+
 		info.state = newState;
 	}
 
@@ -32,18 +43,17 @@ namespace GameplayInput
 
 	bool FrameState::isKeyJustActivated(const InputKey key) const
 	{
-		return getKeyState(key) == KeyState::JustActivated;
+		return AreStatesIntersecting(getKeyState(key), KeyState::JustActivated);
 	}
 
 	bool FrameState::isKeyActive(const InputKey key) const
 	{
-		const KeyState state = getKeyState(key);
-		return state == KeyState::Active || state == KeyState::JustActivated;
+		return AreStatesIntersecting(getKeyState(key), KeyState::Active);
 	}
 
 	bool FrameState::isKeyJustDeactivated(const InputKey key) const
 	{
-		return getKeyState(key) == KeyState::JustDeactivated;
+		return AreStatesIntersecting(getKeyState(key), KeyState::JustDeactivated);
 	}
 
 	GameplayTimestamp FrameState::getLastFlipTime(InputKey key) const

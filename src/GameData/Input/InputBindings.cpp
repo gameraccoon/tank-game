@@ -19,14 +19,24 @@ namespace Input
 
 		const auto& state = controllerStates.getState(mControllerType);
 
+		KeyState result = KeyState::Inactive;
+
 		if (state.isButtonPressed(mButton))
 		{
-			return state.isButtonJustPressed(mButton) ? KeyState::JustActivated : KeyState::Active;
+			result = KeyState::Active;
 		}
-		else
+
+		if (state.isButtonJustPressed(mButton))
 		{
-			return state.isButtonJustReleased(mButton) ? KeyState::JustDeactivated : KeyState::Inactive;
+			result = MergeKeyStates(result, KeyState::JustActivated);
 		}
+
+		if (state.isButtonJustReleased(mButton))
+		{
+			result = MergeKeyStates(result, KeyState::JustDeactivated);
+		}
+
+		return result;
 	}
 
 	PressButtonChordKeyBinding::PressButtonChordKeyBinding(const ControllerType controllerType, const std::vector<int>& buttons)
@@ -45,12 +55,12 @@ namespace Input
 
 		const auto& state = controllerStates.getState(mControllerType);
 
-		size_t countPressed = 0;
+		const int countTotal = static_cast<int>(mButtons.size());
+		int countPressed = 0;
 		// note that some keys can be justPressed and justReleased during the same frame
 		int countJustPressed = 0;
 		int countJustReleased = 0;
 		int flipFloppedDownUp = 0;
-		int flipFloppedUpDown = 0;
 
 		for (const int button : mButtons)
 		{
@@ -61,32 +71,30 @@ namespace Input
 
 			// to manage special cases when one button changed state twice in one frame
 			const bool flipFlopDownUp = isJustPressed && isJustReleased && !isPressed;
-			const bool flipFlopUpDown = isJustPressed && isJustReleased && isPressed;
 
 			countPressed += isPressed ? 1 : 0;
 			countJustPressed += isJustPressed ? 1 : 0;
 			countJustReleased += isJustReleased ? 1 : 0;
 			flipFloppedDownUp += flipFlopDownUp ? 1 : 0;
-			flipFloppedUpDown += flipFlopUpDown ? 1 : 0;
 		}
 
-		if (countPressed == mButtons.size()) // all pressed
+		KeyState result = KeyState::Inactive;
+		if (countPressed == countTotal)
 		{
-			if (countJustPressed - countJustReleased + flipFloppedUpDown > 0)
-			{
-				return KeyState::JustActivated;
-			}
-			return KeyState::Active;
+			result = KeyState::Active;
 		}
-		else
+
+		if (countJustPressed > 0 && countPressed + flipFloppedDownUp == countTotal)
 		{
-			// the chord was pressed last frame
-			if (static_cast<size_t>(countPressed - countJustPressed + countJustReleased + flipFloppedDownUp) == mButtons.size())
-			{
-				return KeyState::JustDeactivated;
-			}
-			return KeyState::Inactive;
+			result = MergeKeyStates(result, KeyState::JustActivated);
 		}
+
+		if (countPressed - countJustPressed + countJustReleased + flipFloppedDownUp == countTotal)
+		{
+			result = MergeKeyStates(result, KeyState::JustDeactivated);
+		}
+
+		return result;
 	}
 
 	PositiveButtonAxisBinding::PositiveButtonAxisBinding(const ControllerType controllerType, const int button)
@@ -126,39 +134,22 @@ namespace Input
 	{
 		using namespace GameplayInput;
 
-		// the most common case, also the easiest
-		if (bindings.size() == 1)
-		{
-			return bindings.front()->getState(controllerStates);
-		}
-
-		std::array<int, 4> states{};
+		// merge all key states, if any was activated, deactivated or is active, the result will reflect all of them
+		KeyState result = KeyState::Inactive;
 		for (const std::unique_ptr<KeyBinding>& binding : bindings)
 		{
-			++states[static_cast<size_t>(binding->getState(controllerStates))];
-		}
-
-		// we have at least one active or activated binding at this frame
-		if ((states[static_cast<size_t>(KeyState::Active)] + states[static_cast<size_t>(KeyState::JustActivated)]) > 0)
-		{
-			// we didn't have active bindings last frame
-			if ((states[static_cast<size_t>(KeyState::Active)] + states[static_cast<size_t>(KeyState::JustDeactivated)]) == 0)
+			// active but not activated/deactivated takes precedence over any other state
+			const KeyState state = binding->getState(controllerStates);
+			if (state == KeyState::Active)
 			{
-				return KeyState::JustActivated;
+				result = state;
+				break;
 			}
 
-			// at least one of the bindings was active last frame
-			return KeyState::Active;
+			result = MergeKeyStates(result, state);
 		}
-		else
-		{
-			// at least one of the bindings was active last frame
-			if (states[static_cast<size_t>(KeyState::JustDeactivated)] > 0)
-			{
-				return KeyState::JustDeactivated;
-			}
-			return KeyState::Inactive;
-		}
+
+		return result;
 	}
 
 	float InputBindings::GetBlendedAxisValue(const std::vector<std::unique_ptr<AxisBinding>>& bindings, const PlayerControllerStates& controllerStates)
