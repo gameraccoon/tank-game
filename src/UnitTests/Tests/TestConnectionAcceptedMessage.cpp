@@ -48,17 +48,17 @@ TEST(ConnectionAcceptedMessage, HistoryWithEnoughOldRecords_ConnectionAcceptedMe
 {
 	using namespace TestConnectionAcceptedMessageInternal;
 
-	HAL::Network::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
+	const HAL::Network::Message message = Network::ServerClient::CreateConnectionAcceptedMessage(400u, 50000000u);
 
-	auto clientGame = CreateClientGameInstance();
+	const auto clientGame = CreateClientGameInstance();
 	for (u32 i = 0; i < 19; ++i)
 	{
 		clientGame->stateRewinder.advanceSimulationToNextUpdate(i + 1);
-		clientGame->stateRewinder.getTimeData().fixedUpdate(0.016f, 1);
+		clientGame->stateRewinder.getTimeData().fixedUpdate(0.033f, 1);
 	}
 
 	EXPECT_FALSE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
-	Network::ServerClient::ApplyConnectionAcceptedMessage(clientGame->stateRewinder, 50320000u, message);
+	Network::ServerClient::ApplyConnectionAcceptedMessage(clientGame->stateRewinder, 50640000u, message);
 
 	EXPECT_TRUE(clientGame->stateRewinder.isInitialClientUpdateIndexSet());
 	EXPECT_EQ(clientGame->stateRewinder.getTimeData().lastFixedUpdateIndex, 410u);
