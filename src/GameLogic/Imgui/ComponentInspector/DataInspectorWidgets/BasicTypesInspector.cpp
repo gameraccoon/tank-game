@@ -7,7 +7,6 @@
 #include "EngineCommon/Types/String/StringId.h"
 
 #include "EngineData/Geometry/Vector2D.h"
-
 #include "EngineData/Time/GameplayTimestamp.h"
 
 #include "GameLogic/Imgui/ComponentInspector/DataInspectorWidgets/BasicTypesInspector.h"
