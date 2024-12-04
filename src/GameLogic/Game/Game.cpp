@@ -54,7 +54,7 @@ void Game::notPausablePreFrameUpdate(const float dt)
 	timeData.lastUpdateDt = dt;
 
 #ifndef DISABLE_SDL
-	if (HAL::Engine* engine = getEngine())
+	if (const HAL::Engine* engine = getEngine())
 	{
 		getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>()->setScreenSize(engine->getWindowSize());
 	}
@@ -111,11 +111,13 @@ void Game::notPausableRenderUpdate(const float frameAlpha)
 
 	mNotPausableRenderSystemsManager.update();
 
+#ifndef DISABLE_SDL
 	// clear events used by immediate mode GUI
 	if (HAL::Engine* engine = getEngine())
 	{
 		engine->clearLastFrameEvents();
 	}
+#endif // !DISABLE_SDL
 
 	// test code
 	//mRenderThread.testRunMainThread(*mGameData.getGameComponents().getOrAddComponent<RenderAccessorComponent>()->getAccessor(), getResourceManager(), getEngine());
