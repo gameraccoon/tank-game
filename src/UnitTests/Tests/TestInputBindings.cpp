@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include "EngineData/Input/InputBindingTypes.h"
+#include "EngineData/Input/PlayerControllerStates.h"
+
 #include "GameData/Input/InputBindings.h"
 
 TEST(InputBindings, PressSingleButtonKeyBinding_NotPressed)

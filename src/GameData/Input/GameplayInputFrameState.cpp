@@ -4,11 +4,6 @@
 
 namespace GameplayInput
 {
-	bool AreStatesIntersecting(KeyState state1, KeyState state2) noexcept
-	{
-		return (static_cast<int>(state1) & static_cast<int>(state2)) != 0;
-	}
-
 	void FrameState::updateAxis(InputAxis axis, const float newValue)
 	{
 		mAxes[static_cast<size_t>(axis)] = newValue;
