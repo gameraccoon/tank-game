@@ -82,22 +82,29 @@ void RenderSystem::update()
 	{
 		SCOPED_PROFILER("draw visible entities");
 		const float frameAlpha = time.frameAlpha;
-		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent, const MoveInterpolationComponent>(
-			[&drawShift, &renderData, lastFixedUpdateTime, frameAlpha](const SpriteRenderComponent* spriteRender, const TransformComponent* transform, const MoveInterpolationComponent* moveInterpolation) {
-				const Vector2D location = transform->getLocation() + drawShift;
+		EntityManager& dynamicEntityManager = dynamicWorldLayer.getEntityManager();
+		dynamicWorldLayer.getEntityManager().forEachComponentSetWithEntity<const SpriteRenderComponent, const TransformComponent>(
+			[&dynamicEntityManager, &drawShift, &renderData, lastFixedUpdateTime, frameAlpha](const Entity entity, const SpriteRenderComponent* spriteRender, const TransformComponent* transform) {
+				Vector2D positionOffset = ZERO_VECTOR;
+
+				auto [moveInterpolation] = dynamicEntityManager.getEntityComponents<MoveInterpolationComponent>(entity);
+				if (moveInterpolation)
+				{
+					AssertFatal(moveInterpolation->getTargetTimestamp() != moveInterpolation->getOriginalTimestamp(), "Invalid interpolation timestamps, they should not be equal");
+					float alpha = (static_cast<float>((lastFixedUpdateTime - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount()) + frameAlpha) / static_cast<float>((moveInterpolation->getTargetTimestamp() - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount());
+					alpha = std::clamp(alpha, 0.0f, 1.0f);
+					positionOffset = (moveInterpolation->getOriginalPosition() - transform->getLocation()) * (1.0f - alpha);
+				}
+
+				const Vector2D location = transform->getLocation() + positionOffset + drawShift;
 				const Vector2D direction = transform->getDirection();
 				const float rotation = direction.rotation().getValue() + PI * 0.5f;
-
-				AssertFatal(moveInterpolation->getTargetTimestamp() != moveInterpolation->getOriginalTimestamp(), "Invalid interpolation timestamps, they should not be equal");
-				float alpha = (static_cast<float>((lastFixedUpdateTime - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount()) + frameAlpha) / static_cast<float>((moveInterpolation->getTargetTimestamp() - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount());
-				alpha = std::clamp(alpha, 0.0f, 1.0f);
-				const Vector2D positionOffset = (moveInterpolation->getOriginalPosition() - transform->getLocation()) * (1.0f - alpha);
 
 				for (const auto& data : spriteRender->getSpriteDatas())
 				{
 					QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 					quadData.spriteHandle = data.spriteHandle;
-					quadData.position = location + positionOffset;
+					quadData.position = location;
 					quadData.size = data.params.size;
 					quadData.anchor = data.params.anchor;
 					quadData.rotation = rotation;
