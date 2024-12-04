@@ -52,7 +52,6 @@ static void mainLoopBody(void* data)
 #ifndef DISABLE_SDL
 		loopData.client->engine.parseEvents();
 		loopData.gameLoopRunner.loopBodyFn(*loopData.game, [&engine = loopData.client->engine, &renderFn = loopData.renderFn, &resourceManager = *loopData.resourceManager]() {
-			engine.getLastFrameEvents().clear();
 			resourceManager.runThreadTasks(Resource::Thread::Loading);
 			renderFn();
 		});

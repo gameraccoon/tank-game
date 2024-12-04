@@ -14,16 +14,17 @@
 #include "EngineUtils/Profiling/ProfileDataWriter.h"
 #endif
 
+#include "EngineCommon/TimeConstants.h"
+
 #include "HAL/Base/Engine.h"
 
-#include "EngineUtils/Application/ArgumentsParser.h"
 #include "EngineUtils/ResourceManagement/ResourceManager.h"
 
 #include "EngineLogic/Render/RenderAccessor.h"
 
 #include "GameLogic/Initialization/StateMachines.h"
 
-Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool, int instanceIndex)
+Game::Game(HAL::Engine* engine, ResourceManager& resourceManager, ThreadPool& threadPool, const int instanceIndex)
 	: GameBase(engine, resourceManager)
 	, mThreadPool(threadPool)
 	, mDebugBehavior(instanceIndex)
@@ -42,7 +43,7 @@ void Game::preStart(const ArgumentsParser& arguments)
 	getWorldHolder().getDynamicWorldLayer().getWorldComponents().getOrAddComponent<WorldCachedDataComponent>();
 }
 
-void Game::notPausablePreFrameUpdate(float dt)
+void Game::notPausablePreFrameUpdate(const float dt)
 {
 	SCOPED_PROFILER("Game::notPausablePreFrameUpdate");
 #ifdef ENABLE_SCOPED_PROFILER
@@ -62,7 +63,7 @@ void Game::notPausablePreFrameUpdate(float dt)
 	mNotPausablePreFrameSystemsManager.update();
 }
 
-void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
+void Game::dynamicTimePreFrameUpdate(const float dt, const int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("Game::dynamicTimePreFrameUpdate");
 
@@ -75,7 +76,7 @@ void Game::dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates)
 	mPreFrameSystemsManager.update();
 }
 
-void Game::fixedTimeUpdate(float dt)
+void Game::fixedTimeUpdate(const float dt)
 {
 	SCOPED_PROFILER("Game::fixedTimeUpdate");
 
@@ -84,7 +85,7 @@ void Game::fixedTimeUpdate(float dt)
 	mInputControllersData.resetLastFrameStates();
 }
 
-void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
+void Game::dynamicTimePostFrameUpdate(const float dt, const int processedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("Game::dynamicTimePostFrameUpdate");
 
@@ -95,19 +96,26 @@ void Game::dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates)
 	mPostFrameSystemsManager.update();
 
 	mDebugBehavior.postInnerUpdate(*this);
+
+	// this additional reset is needed in case we are paused
+	mInputControllersData.resetLastFrameStates();
 }
 
-void Game::notPausablePostFrameUpdate(float dt)
+void Game::notPausableRenderUpdate(const float frameAlpha)
 {
-	SCOPED_PROFILER("Game::notPausablePostFrameUpdate");
+	SCOPED_PROFILER("Game::notPausableRenderUpdate");
 
 	TimeData& timeData = getTimeData();
-	timeData.lastUpdateDt = dt;
+	timeData.frameAlpha = frameAlpha;
+	timeData.lastUpdateDt = frameAlpha * TimeConstants::ONE_FIXED_UPDATE_SEC;
 
-	mNotPausablePostFrameSystemsManager.update();
+	mNotPausableRenderSystemsManager.update();
 
-	// this additional reset is needed for debug input in case we are paused
-	mInputControllersData.resetLastFrameStates();
+	// clear events used by immediate mode GUI
+	if (HAL::Engine* engine = getEngine())
+	{
+		engine->clearLastFrameEvents();
+	}
 
 	// test code
 	//mRenderThread.testRunMainThread(*mGameData.getGameComponents().getOrAddComponent<RenderAccessorComponent>()->getAccessor(), getResourceManager(), getEngine());
@@ -136,7 +144,7 @@ void Game::initResources()
 	mPreFrameSystemsManager.initResources();
 	mGameLogicSystemsManager.initResources();
 	mPostFrameSystemsManager.initResources();
-	mNotPausablePostFrameSystemsManager.initResources();
+	mNotPausableRenderSystemsManager.initResources();
 }
 
 void Game::onGameShutdown()
@@ -149,5 +157,5 @@ void Game::onGameShutdown()
 	mPreFrameSystemsManager.shutdown();
 	mGameLogicSystemsManager.shutdown();
 	mPostFrameSystemsManager.shutdown();
-	mNotPausablePostFrameSystemsManager.shutdown();
+	mNotPausableRenderSystemsManager.shutdown();
 }

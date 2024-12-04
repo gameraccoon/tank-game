@@ -142,7 +142,7 @@ void BaseNetworkingTestCase::updateServer()
 	mServerGame->dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 	mServerGame->fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mServerGame->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-	mServerGame->notPausablePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
+	mServerGame->notPausableRenderUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 }
 
 void BaseNetworkingTestCase::updateClient(const int clientIndex)
@@ -152,5 +152,5 @@ void BaseNetworkingTestCase::updateClient(const int clientIndex)
 	mClientGames[clientIndex]->dynamicTimePreFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
 	mClientGames[clientIndex]->fixedTimeUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 	mClientGames[clientIndex]->dynamicTimePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC, 1);
-	mClientGames[clientIndex]->notPausablePostFrameUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
+	mClientGames[clientIndex]->notPausableRenderUpdate(TimeConstants::ONE_FIXED_UPDATE_SEC);
 }

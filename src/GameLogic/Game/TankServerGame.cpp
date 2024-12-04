@@ -112,11 +112,11 @@ void TankServerGame::fixedTimeUpdate(const float dt)
 	Game::fixedTimeUpdate(dt);
 }
 
-void TankServerGame::notPausablePostFrameUpdate(const float dt)
+void TankServerGame::notPausableRenderUpdate(const float frameAlpha)
 {
-	SCOPED_PROFILER("TankServerGame::notPausablePostFrameUpdate");
+	SCOPED_PROFILER("TankServerGame::notPausableRenderUpdate");
 
-	Game::notPausablePostFrameUpdate(dt);
+	Game::notPausableRenderUpdate(frameAlpha);
 
 	mConnectionManager.flushMessagesForAllClientConnections(mServerPort);
 }
@@ -152,7 +152,7 @@ void TankServerGame::initSystems([[maybe_unused]] const bool shouldRender)
 #ifndef DISABLE_SDL
 	if (shouldRender)
 	{
-		getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
+		getNotPausableRenderSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
 	}
 #endif // !DISABLE_SDL
 }

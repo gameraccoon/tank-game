@@ -23,6 +23,7 @@ void MovementSystem::update()
 	auto [timeComponent] = mWorldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<TimeComponent>();
 	const TimeData& time = *timeComponent->getValue();
 	const GameplayTimestamp lastFixedUpdateTime = time.lastFixedUpdateTimestamp;
+	const float dt = time.lastUpdateDt;
 
 	world.getEntityManager().forEachComponentSet<const TransformComponent, MoveInterpolationComponent>(
 		[lastFixedUpdateTime](const TransformComponent* transform, MoveInterpolationComponent* moveInterpolation) {
@@ -39,9 +40,9 @@ void MovementSystem::update()
 	);
 
 	world.getEntityManager().forEachComponentSet<const MovementComponent, TransformComponent>(
-		[](const MovementComponent* movement, TransformComponent* transform) {
+		[dt](const MovementComponent* movement, TransformComponent* transform) {
 			const Vector2D moveDirection = movement->getMoveDirection();
-			transform->setLocation(transform->getLocation() + moveDirection * movement->getSpeed());
+			transform->setLocation(transform->getLocation() + moveDirection * movement->getSpeed() * dt);
 
 			if (!moveDirection.isZeroLength())
 			{

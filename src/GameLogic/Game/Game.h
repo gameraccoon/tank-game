@@ -29,7 +29,7 @@ public:
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) override;
 	void fixedTimeUpdate(float dt) override;
 	void dynamicTimePostFrameUpdate(float dt, int processedFixedTimeUpdates) override;
-	void notPausablePostFrameUpdate(float dt) override;
+	void notPausableRenderUpdate(float frameAlpha) override;
 	void initResources() override;
 
 	template<typename T, typename... Args>
@@ -47,7 +47,7 @@ protected:
 	RaccoonEcs::SystemsManager& getPreFrameSystemsManager() { return mPreFrameSystemsManager; }
 	RaccoonEcs::SystemsManager& getGameLogicSystemsManager() { return mGameLogicSystemsManager; }
 	RaccoonEcs::SystemsManager& getPostFrameSystemsManager() { return mPostFrameSystemsManager; }
-	RaccoonEcs::SystemsManager& getNotPausablePostFrameSystemsManager() { return mNotPausablePostFrameSystemsManager; }
+	RaccoonEcs::SystemsManager& getNotPausableRenderSystemsManager() { return mNotPausableRenderSystemsManager; }
 	HAL::InputControllersData& getInputData() { return mInputControllersData; }
 	ThreadPool& getThreadPool() { return mThreadPool; }
 	GameData& getGameData() { return mGameData; }
@@ -66,7 +66,7 @@ private:
 	RaccoonEcs::SystemsManager mPreFrameSystemsManager;
 	RaccoonEcs::SystemsManager mGameLogicSystemsManager;
 	RaccoonEcs::SystemsManager mPostFrameSystemsManager;
-	RaccoonEcs::SystemsManager mNotPausablePostFrameSystemsManager;
+	RaccoonEcs::SystemsManager mNotPausableRenderSystemsManager;
 	Json::ComponentSerializationHolder mComponentSerializers;
 
 #ifdef ENABLE_SCOPED_PROFILER

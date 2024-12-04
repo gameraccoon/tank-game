@@ -24,7 +24,7 @@ public:
 	void notPausablePreFrameUpdate(float dt) override;
 	void dynamicTimePreFrameUpdate(float dt, int plannedFixedTimeUpdates) override;
 	void fixedTimeUpdate(float dt) override;
-	void notPausablePostFrameUpdate(float dt) override;
+	void notPausableRenderUpdate(float frameAlpha) override;
 
 	bool shouldPauseGame() const override { return mShouldPauseGame; }
 	bool shouldQuitGame() const override { return mShouldQuitGame; }

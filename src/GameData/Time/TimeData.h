@@ -10,5 +10,8 @@ struct TimeData
 	u32 lastFixedUpdateIndex = 0;
 	int countFixedTimeUpdatesThisFrame = 1;
 
+	// at which point between updates we are (0 - just updated, 1 - about to update)
+	float frameAlpha = 0.0f;
+
 	void fixedUpdate(float deltaTime, u32 updatesCount = 1);
 };

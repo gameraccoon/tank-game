@@ -4,7 +4,6 @@
 
 #ifndef DISABLE_SDL
 
-#include <SDL_mouse.h>
 #include <SDL_scancode.h>
 
 #include "GameData/Components/ImguiComponent.generated.h"

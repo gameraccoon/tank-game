@@ -44,7 +44,7 @@ void ImguiSystem::update()
 	GameData& gameData = mDebugData.worldHolder.getGameData();
 
 	// check if we need to render imgui
-	ImguiComponent* imgui = gameData.getGameComponents().getOrAddComponent<ImguiComponent>();
+	const ImguiComponent* imgui = gameData.getGameComponents().getOrAddComponent<ImguiComponent>();
 
 	if (!imgui->getIsImguiVisible())
 	{
@@ -95,7 +95,7 @@ void ImguiSystem::update()
 	syncData.renderThreadFn = [&mutex = mRenderDataMutex, previousFrameProcessed = mHasPreviousFrameProcessedOnRenderThread] {
 		std::lock_guard l(mutex);
 		ImGui_ImplOpenGL2_NewFrame();
-		ImGuiIO& io = ImGui::GetIO();
+		const ImGuiIO& io = ImGui::GetIO();
 		glViewport(0, 0, static_cast<int>(io.DisplaySize.x), static_cast<int>(io.DisplaySize.y));
 		ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 		*previousFrameProcessed = true;

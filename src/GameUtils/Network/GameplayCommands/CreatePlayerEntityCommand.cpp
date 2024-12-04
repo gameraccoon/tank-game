@@ -47,7 +47,7 @@ namespace Network
 			transform->setDirection(Vector2D(0.0f, -1.0f));
 
 			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
-			movement->setSpeed(0.5f);
+			movement->setSpeed(30.0f);
 
 #ifndef DISABLE_SDL
 			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);

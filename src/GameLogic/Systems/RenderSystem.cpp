@@ -81,14 +81,13 @@ void RenderSystem::update()
 	if (!renderMode || renderMode->getIsDrawVisibleEntitiesEnabled())
 	{
 		SCOPED_PROFILER("draw visible entities");
+		const float frameAlpha = time.frameAlpha;
 		dynamicWorldLayer.getEntityManager().forEachComponentSet<const SpriteRenderComponent, const TransformComponent, const MoveInterpolationComponent>(
-			[&drawShift, &renderData, lastFixedUpdateTime](const SpriteRenderComponent* spriteRender, const TransformComponent* transform, const MoveInterpolationComponent* moveInterpolation) {
+			[&drawShift, &renderData, lastFixedUpdateTime, frameAlpha](const SpriteRenderComponent* spriteRender, const TransformComponent* transform, const MoveInterpolationComponent* moveInterpolation) {
 				const Vector2D location = transform->getLocation() + drawShift;
 				const Vector2D direction = transform->getDirection();
 				const float rotation = direction.rotation().getValue() + PI * 0.5f;
 
-				// we need to set that value to the fraction between last and next update in range [0, 1]
-				const float frameAlpha = 1.0f;
 				AssertFatal(moveInterpolation->getTargetTimestamp() != moveInterpolation->getOriginalTimestamp(), "Invalid interpolation timestamps, they should not be equal");
 				float alpha = (static_cast<float>((lastFixedUpdateTime - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount()) + frameAlpha) / static_cast<float>((moveInterpolation->getTargetTimestamp() - moveInterpolation->getOriginalTimestamp()).getFixedFramesCount());
 				alpha = std::clamp(alpha, 0.0f, 1.0f);

@@ -149,6 +149,11 @@ void TankClientGame::dynamicTimePostFrameUpdate(const float dt, const int proces
 	}
 }
 
+void TankClientGame::notPausableRenderUpdate(const float frameAlpha)
+{
+	Game::notPausableRenderUpdate(frameAlpha);
+}
+
 std::chrono::duration<int64_t, std::micro> TankClientGame::getFrameLengthCorrection() const
 {
 	return mFrameTimeCorrector.getFrameLengthCorrection();
@@ -190,16 +195,16 @@ void TankClientGame::initSystems()
 	getGameLogicSystemsManager().registerSystem<SaveCommandsToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<SaveMovementToHistorySystem>(getWorldHolder(), mGameStateRewinder);
 
-	getNotPausablePostFrameSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
+	getNotPausableRenderSystemsManager().registerSystem<ResourceStreamingSystem>(getWorldHolder(), getResourceManager());
 
 #ifndef DISABLE_SDL
-	getNotPausablePostFrameSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
-	getNotPausablePostFrameSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
+	getNotPausableRenderSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
+	getNotPausableRenderSystemsManager().registerSystem<DebugDrawSystem>(getWorldHolder(), mGameStateRewinder, getResourceManager());
 
 #if defined(IMGUI_ENABLED)
 	if (HAL::Engine* engine = getEngine())
 	{
-		getNotPausablePostFrameSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
+		getNotPausableRenderSystemsManager().registerSystem<ImguiSystem>(mImguiDebugData, *engine);
 	}
 #endif // IMGUI_ENABLED
 #endif // !DISABLE_SDL

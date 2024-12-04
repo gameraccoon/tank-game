@@ -7,10 +7,10 @@ class WorldHolder;
 /**
  * System that creates projectiles
  */
-class ShootingSystem : public RaccoonEcs::System
+class ShootingSystem final : public RaccoonEcs::System
 {
 public:
-	ShootingSystem(WorldHolder& worldHolder) noexcept;
+	explicit ShootingSystem(WorldHolder& worldHolder) noexcept;
 
 	void update() override;
 

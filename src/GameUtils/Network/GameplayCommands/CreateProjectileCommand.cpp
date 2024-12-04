@@ -22,7 +22,7 @@
 
 namespace Network
 {
-	CreateProjectileCommand::CreateProjectileCommand(Vector2D pos, Vector2D direction, float speed, NetworkEntityId networkEntityId, NetworkEntityId ownerNetworkEntityId) noexcept
+	CreateProjectileCommand::CreateProjectileCommand(const Vector2D pos, const Vector2D direction, const float speed, const NetworkEntityId networkEntityId, const NetworkEntityId ownerNetworkEntityId) noexcept
 		: mPos(pos)
 		, mDirection(direction)
 		, mSpeed(speed)
