@@ -4,10 +4,11 @@
 
 #include "EngineCommon/Types/TemplateHelpers.h"
 
+#include "EngineData/Time/TimeData.h"
+
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
-#include "GameData/Time/TimeData.h"
 
 #include "EngineUtils/Multithreading/ThreadPool.h"
 #ifdef ENABLE_SCOPED_PROFILER

@@ -4,12 +4,13 @@
 
 #include "EngineCommon/Types/Serialization.h"
 
+#include "EngineData/Time/TimeData.h"
+
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Network/NetworkMessageIds.h"
-#include "GameData/Time/TimeData.h"
 #include "GameData/WorldLayer.h"
 
 #include "GameUtils/Network/GameplayCommands/CreatePlayerEntityCommand.h"

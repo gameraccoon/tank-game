@@ -3,9 +3,9 @@
 #include <array>
 
 #include "EngineData/Input/GameplayInputKeyState.h"
+#include "EngineData/Time/GameplayTimestamp.h"
 
 #include "GameData/Input/GameplayInputConstants.h"
-#include "GameData/Time/GameplayTimestamp.h"
 
 namespace GameplayInput
 {

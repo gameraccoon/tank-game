@@ -12,13 +12,13 @@
 			"name": "originalTimestamp",
 			"type": "GameplayTimestamp",
 			"default": " = GameplayTimestamp(0)",
-			"includes": ["\"GameData/Time/GameplayTimestamp.h\""]
+			"includes": [ "\"EngineData/Time/GameplayTimestamp.h\"" ]
 		},
 		{
 			"name": "targetTimestamp",
 			"type": "GameplayTimestamp",
 			"default": " = GameplayTimestamp(0)",
-			"includes": ["\"GameData/Time/GameplayTimestamp.h\""]
+			"includes": ["\"EngineData/Time/GameplayTimestamp.h\""]
 		}
 	]
 }

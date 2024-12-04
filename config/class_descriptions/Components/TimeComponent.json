@@ -4,7 +4,7 @@
 		{
 			"name": "value",
 			"type": "const TimeData*",
-			"includes": ["\"GameData/Time/TimeData.h\""],
+			"includes": ["\"EngineData/Time/TimeData.h\""],
 			"flags": ["transient"]
 		}
 	]
