@@ -5,12 +5,12 @@
 #include "EngineCommon/TimeConstants.h"
 #include "EngineCommon/Types/Serialization.h"
 
-#include "GameData/Components/CharacterStateComponent.generated.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/MoveInterpolationComponent.generated.h"
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/NetworkOwnedEntitiesComponent.generated.h"
 #include "GameData/Components/ProjectileComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
@@ -53,7 +53,7 @@ namespace Network
 
 			ProjectileComponent* projectile = worldEntityManager.addComponent<ProjectileComponent>(projectileEntity);
 			projectile->setDestroyTime(gameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(static_cast<s32>(1.0f / TimeConstants::ONE_FIXED_UPDATE_SEC)));
-			if (auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId); entityIt != networkIdMapping->getNetworkIdToEntity().end())
+			if (const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId); entityIt != networkIdMapping->getNetworkIdToEntity().end())
 			{
 				projectile->setOwnerEntity(entityIt->second);
 			}
@@ -71,6 +71,13 @@ namespace Network
 					{
 						weapon->setProjectileEntity(projectileEntity);
 					}
+				}
+
+				NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
+				// if we own the owner, we also own the projectile
+				if (std::ranges::find(networkOwnedEntities->getOwnedEntities(), mOwnerNetworkEntityId) != networkOwnedEntities->getOwnedEntities().end())
+				{
+					networkOwnedEntities->getOwnedEntitiesRef().push_back(mNetworkEntityId);
 				}
 			}
 		}

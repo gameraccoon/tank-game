@@ -15,7 +15,7 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
-#include "GameData/Network/MovementHistory.h"
+#include "GameData/Network/EntityMoveData.h"
 
 #include "HAL/Base/Engine.h"
 
@@ -205,7 +205,7 @@ void TankClientGame::initSystems()
 #endif // !DISABLE_SDL
 }
 
-void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
+void TankClientGame::correctUpdates(const u32 firstUpdateToResimulateIdx)
 {
 	SCOPED_PROFILER("TankClientGame::correctUpdates");
 
@@ -215,8 +215,8 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 	const TimeData lastUpdateTime = *std::get<0>(world.getWorldComponents().getComponents<const TimeComponent>())->getValue();
 	const float fixedUpdateDt = lastUpdateTime.lastFixedUpdateDt;
 
-	// save moves from the incorrect history version
-	MovementUpdateData copyOfOldMoves = mGameStateRewinder.getMovesForUpdate(lastUpdateTime.lastFixedUpdateIndex);
+	// save moves from the abandoned history version
+	std::vector<EntityMoveData> copyOfOldMoves = mGameStateRewinder.getMovesForUpdate(lastUpdateTime.lastFixedUpdateIndex);
 
 	LogInfo("Correct client updates from %u to %u", firstUpdateToResimulateIdx, lastUpdateTime.lastFixedUpdateIndex);
 
@@ -242,11 +242,11 @@ void TankClientGame::correctUpdates(u32 firstUpdateToResimulateIdx)
 		getWorldHolder().getDynamicWorldLayer().getEntityManager().forEachComponentSet<MoveInterpolationComponent, const NetworkIdComponent>([&copyOfOldMoves, lastUpdateTime](MoveInterpolationComponent* moveInterpolation, const NetworkIdComponent* networkId) {
 			const NetworkEntityId id = networkId->getId();
 			// this is quite expensive, but we assume we are not doing this often, and there are not many moving entities
-			const auto it = std::ranges::find_if(copyOfOldMoves.moves, [id](const EntityMoveData& moveData) {
+			const auto it = std::ranges::find_if(copyOfOldMoves, [id](const EntityMoveData& moveData) {
 				return moveData.networkEntityId == id;
 			});
 
-			if (it != copyOfOldMoves.moves.end() && (it->location - moveInterpolation->getOriginalPosition()).qSize() > NO_INTERPOLATION_DISTANCE_SQ)
+			if (it != copyOfOldMoves.end() && (it->location - moveInterpolation->getOriginalPosition()).qSize() > NO_INTERPOLATION_DISTANCE_SQ)
 			{
 				moveInterpolation->setOriginalPosition(it->location);
 				moveInterpolation->setOriginalTimestamp(lastUpdateTime.lastFixedUpdateTimestamp);

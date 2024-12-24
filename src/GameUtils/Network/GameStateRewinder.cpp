@@ -8,8 +8,10 @@
 
 #include <neargye/magic_enum.hpp>
 
+#include "GameData/Components/NetworkOwnedEntitiesComponent.generated.h"
 #include "GameData/EcsDefinitions.h"
-#include "GameData/Network/MovementHistory.h"
+#include "GameData/Network/EntityMoveData.h"
+#include "GameData/Network/EntityMoveHash.h"
 #include "GameData/WorldLayer.h"
 
 #include "GameUtils/Network/BoundCheckedHistory.h"
@@ -78,6 +80,20 @@ public:
 			void resetDesyncedData() { desyncedData.reset(); }
 		};
 
+		struct MovementUpdateData
+		{
+			std::vector<EntityMoveHash> updateHash;
+			std::vector<EntityMoveData> moves;
+			bool onlyOwnedEntities = false;
+
+			void reset()
+			{
+				updateHash.clear();
+				moves.clear();
+				onlyOwnedEntities = false;
+			}
+		};
+
 		// flags that describe what data is stored for this update
 		DataState dataState{};
 		// movement produced on previous update (extracted from game state, used as checksum, not used for simulation)
@@ -101,6 +117,12 @@ public:
 		void clear();
 	};
 
+	struct LastNonOwnedEntityMoves
+	{
+		std::vector<EntityMoveData> moves;
+		u32 updateIdx = 0;
+	};
+
 	using History = BoundCheckedHistory<OneUpdateData, u32>;
 
 public:
@@ -117,6 +139,35 @@ public:
 		return updateHistory.getOrCreateRecordByUpdateIdx(updateIdx);
 	}
 
+	static void SplitOutNonOwnedEntities(OneUpdateData::MovementUpdateData& ownedEntities, const OneUpdateData& updateData, const u32 updateIdx, LastNonOwnedEntityMoves& lastNonOwnedEntityMoves)
+	{
+		const NetworkOwnedEntitiesComponent* networkOwnedEntities = updateData.gameState->getWorldComponents().getOrAddComponent<const NetworkOwnedEntitiesComponent>();
+
+		auto nonOwnedRange = std::ranges::partition(ownedEntities.moves, [&networkOwnedEntities](const EntityMoveData& moveData) {
+			return std::ranges::find(networkOwnedEntities->getOwnedEntities(), moveData.networkEntityId) != networkOwnedEntities->getOwnedEntities().end();
+		});
+
+		if (updateIdx > lastNonOwnedEntityMoves.updateIdx)
+		{
+			lastNonOwnedEntityMoves.moves.clear();
+			lastNonOwnedEntityMoves.moves.reserve(std::ranges::distance(nonOwnedRange));
+			std::ranges::move(nonOwnedRange, std::back_inserter(lastNonOwnedEntityMoves.moves));
+			lastNonOwnedEntityMoves.updateIdx = updateIdx;
+		}
+
+		ownedEntities.moves.erase(nonOwnedRange.begin(), ownedEntities.moves.end());
+
+		Assert(ownedEntities.updateHash.empty(), "updateHash wasn't empty, it's not expected");
+		for (const EntityMoveData& moveData : ownedEntities.moves)
+		{
+			ownedEntities.updateHash.emplace_back(moveData.networkEntityId, moveData.location, moveData.direction);
+		}
+
+		std::sort(ownedEntities.updateHash.begin(), ownedEntities.updateHash.end());
+
+		ownedEntities.onlyOwnedEntities = true;
+	}
+
 public:
 	// after reaching this number of input frames, the old input will be cleared
 	constexpr static u32 MAX_INPUT_TO_PREDICT = 10;
@@ -124,6 +175,9 @@ public:
 
 	// history of updates, may contain updates in the future
 	History updateHistory;
+
+	// moves for entities that we don't own, so we care only about latest known
+	LastNonOwnedEntityMoves lastNonOwnedEntityMoves;
 };
 
 GameStateRewinder::GameStateRewinder(const HistoryType historyType, ComponentFactory& componentFactory)
@@ -431,7 +485,7 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 	return std::nullopt;
 }
 
-void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, MovementUpdateData&& newUpdateData)
+void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, std::vector<EntityMoveData>&& newUpdateData)
 {
 	assertClientOnly();
 	assertNotChangingPast(updateIdx);
@@ -443,11 +497,18 @@ void GameStateRewinder::addPredictedMovementDataForUpdate(const u32 updateIdx, M
 	if (previousMovementDataState == Impl::OneUpdateData::SyncState::NoData || previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted)
 	{
 		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Predicted);
-		updateData.clientMovement = std::move(newUpdateData);
+		updateData.clientMovement = {};
+		updateData.clientMovement.moves = std::move(newUpdateData);
+		for (const EntityMoveData& moveData : updateData.clientMovement.moves)
+		{
+			updateData.clientMovement.updateHash.emplace_back(moveData.networkEntityId, moveData.location, moveData.direction);
+		}
+		std::sort(updateData.clientMovement.updateHash.begin(), updateData.clientMovement.updateHash.end());
+		updateData.clientMovement.onlyOwnedEntities = true;
 	}
 }
 
-void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, MovementUpdateData&& authoritativeMovementData)
+void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, std::vector<EntityMoveData>&& authoritativeMovementData)
 {
 	assertClientOnly();
 	assertNotChangingFarFuture(updateIdx);
@@ -460,29 +521,56 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, MovementUpd
 		return;
 	}
 
-	Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
-
-	const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
-
-	if (previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted || previousMovementDataState == Impl::OneUpdateData::SyncState::NoData)
+	// if we already have the record
+	if (updateIdx <= mCurrentTimeData.lastFixedUpdateIndex
+		&& updateIdx <= mPimpl->updateHistory.getLastStoredUpdateIdx()
+		&& updateIdx >= firstRecordUpdateIdx)
 	{
-		// we have predicted data for this update, check if it matches
-		if (updateData.clientMovement.updateHash != authoritativeMovementData.updateHash)
+		Impl::OneUpdateData& updateData = mPimpl->updateHistory.getRecordUnsafe(updateIdx);
+		const Impl::OneUpdateData::SyncState previousMovementDataState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
+
+		// split the movement data into owned and not owned entities
+		Impl::OneUpdateData::MovementUpdateData ownedEntities;
+		ownedEntities.moves = std::move(authoritativeMovementData);
+		Impl::SplitOutNonOwnedEntities(ownedEntities, updateData, updateIdx, mPimpl->lastNonOwnedEntityMoves);
+
+		AssertFatal(previousMovementDataState != Impl::OneUpdateData::SyncState::Authoritative, "Got authoritative movement data for update %u that already has authoritative data", updateIdx);
+		if (previousMovementDataState == Impl::OneUpdateData::SyncState::Predicted)
 		{
-			updateData.clientMovement = std::move(authoritativeMovementData);
-			updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
-			LogInfo("We got desynced movement data for update %u", updateIdx);
+			// we have predicted data for this update, check if it matches
+			AssertFatal(updateData.clientMovement.onlyOwnedEntities, "The predicted moves were mixed with non-owned entities, this should not happen");
+			if (updateData.clientMovement.updateHash != ownedEntities.updateHash)
+			{
+				updateData.clientMovement = std::move(ownedEntities);
+				updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
+				LogInfo("We got desynced movement data for update %u", updateIdx);
+			}
 		}
 
 		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Authoritative);
 	}
+	else
+	{
+		// if the update doesn't exist, we don't yet know which entities are owned by us, so we delay the decision
+		Impl::OneUpdateData& updateData = mPimpl->getOrCreateRecordByUpdateIdx(updateIdx);
+		updateData.clientMovement = Impl::OneUpdateData::MovementUpdateData{};
+		updateData.clientMovement.moves = std::move(authoritativeMovementData);
+		updateData.dataState.setState(Impl::OneUpdateData::StateType::Movement, Impl::OneUpdateData::SyncState::Authoritative);
+	}
 }
 
-const MovementUpdateData& GameStateRewinder::getMovesForUpdate(const u32 updateIdx) const
+const std::vector<EntityMoveData>& GameStateRewinder::getMovesForUpdate(const u32 updateIdx)
 {
 	assertClientOnly();
 
-	return mPimpl->updateHistory.getRecordUnsafe(updateIdx).clientMovement;
+	Impl::OneUpdateData::MovementUpdateData& clientMovement = mPimpl->updateHistory.getRecordUnsafe(updateIdx).clientMovement;
+
+	if (!clientMovement.onlyOwnedEntities)
+	{
+		Impl::SplitOutNonOwnedEntities(clientMovement, mPimpl->updateHistory.getRecordUnsafe(updateIdx), updateIdx, mPimpl->lastNonOwnedEntityMoves);
+	}
+
+	return clientMovement.moves;
 }
 
 bool GameStateRewinder::hasConfirmedMovesForUpdate(const u32 updateIdx) const
@@ -497,6 +585,11 @@ bool GameStateRewinder::hasConfirmedMovesForUpdate(const u32 updateIdx) const
 	}
 
 	return false;
+}
+
+const std::vector<EntityMoveData>& GameStateRewinder::getLatestKnownNonOwnedEntityMoves() const
+{
+	return mPimpl->lastNonOwnedEntityMoves.moves;
 }
 
 std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(const size_t size, const u32 lastUpdateIdx) const
@@ -605,8 +698,7 @@ void GameStateRewinder::Impl::OneUpdateData::clear()
 	dataState.resetDesyncedData();
 	dataState.serverInputConfirmedPlayers.clear();
 	dataState.hasClientInput = false;
-	clientMovement.moves.clear();
-	clientMovement.updateHash.clear();
+	clientMovement.reset();
 	gameplayCommands.gameplayGeneratedCommands.list.clear();
 	gameplayCommands.externalCommands.list.clear();
 	clientInput = {};

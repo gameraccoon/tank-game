@@ -11,6 +11,7 @@
 #include "GameData/Components/MovementComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
+#include "GameData/Components/NetworkOwnedEntitiesComponent.generated.h"
 #include "GameData/Components/RollbackOnCollisionComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
@@ -76,6 +77,9 @@ namespace Network
 			{
 				ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 				clientGameData->setControlledPlayer(controlledEntity);
+
+				NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
+				networkOwnedEntities->getOwnedEntitiesRef().push_back(mNetworkEntityId);
 			}
 			worldEntityManager.addComponent<MoveInterpolationComponent>(controlledEntity);
 		}

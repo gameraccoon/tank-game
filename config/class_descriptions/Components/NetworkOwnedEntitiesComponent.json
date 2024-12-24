@@ -1,0 +1,14 @@
+{
+	"description": "Component that stores ids of entities that are owned by this client",
+	"attributes": [
+		{
+			"name": "ownedEntities",
+			"type": "std::vector<NetworkEntityId>",
+			"includes": [
+				"<vector>",
+				"\"GameData/Network/NetworkEntityIdGenerator.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

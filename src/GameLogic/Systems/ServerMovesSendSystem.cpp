@@ -37,7 +37,7 @@ void ServerMovesSendSystem::update()
 		return;
 	}
 
-	ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+	const ServerConnectionsComponent* serverConnections = mGameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 
 	std::vector<std::pair<ConnectionId, s32>> connections;
 	for (auto [connectionId, clientData] : serverConnections->getClientData())

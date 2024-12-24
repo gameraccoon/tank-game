@@ -11,7 +11,7 @@
 #include "GameData/Network/GameplayCommand.h"
 
 class WorldLayer;
-struct MovementUpdateData;
+struct EntityMoveData;
 
 class GameStateRewinder
 {
@@ -91,13 +91,15 @@ public:
 
 	// meaningful only on client
 	/// Add movement that was simulated locally and is not yet confirmed by the server
-	void addPredictedMovementDataForUpdate(u32 updateIdx, MovementUpdateData&& newUpdateData);
+	void addPredictedMovementDataForUpdate(u32 updateIdx, std::vector<EntityMoveData>&& newUpdateData);
 	/// Apply movement received from the server
-	void applyAuthoritativeMoves(u32 updateIdx, MovementUpdateData&& authoritativeMovementData);
-	/// Returns the movement for the specific update (unsafe)
-	const MovementUpdateData& getMovesForUpdate(u32 updateIdx) const;
+	void applyAuthoritativeMoves(u32 updateIdx, std::vector<EntityMoveData>&& authoritativeMovementData);
+	/// Returns the movemes of owned entities for the specific update (unsafe)
+	const std::vector<EntityMoveData>& getMovesForUpdate(u32 updateIdx);
 	/// Returns true if the update has confirmed movement from the server
 	bool hasConfirmedMovesForUpdate(u32 updateIdx) const;
+	/// Returns the last known moves of non-owned entities
+	const std::vector<EntityMoveData>& getLatestKnownNonOwnedEntityMoves() const;
 	/// Get last player input (limited by size) up to the given update index (unsafe if lastUpdateIdx is too far in the past)
 	std::vector<GameplayInput::FrameState> getLastInputs(size_t size, u32 lastUpdateIdx) const;
 	/// Returns true if the update has input from the client (unsafe)

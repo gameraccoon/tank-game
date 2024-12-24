@@ -3,9 +3,10 @@
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 
 #include "GameData/Components/NetworkIdComponent.generated.h"
+#include "GameData/Components/NetworkOwnedEntitiesComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Network/MovementHistory.h"
+#include "GameData/Network/EntityMoveData.h"
 #include "GameData/WorldLayer.h"
 
 #include "GameUtils/Network/GameStateRewinder.h"
@@ -36,14 +37,19 @@ void SaveMovementToHistorySystem::update()
 	}
 
 	EntityManager& entityManager = world.getEntityManager();
-	MovementUpdateData newUpdateData;
+	ComponentSetHolder& worldComponents = world.getWorldComponents();
+	std::vector<EntityMoveData> movementData;
+	const NetworkOwnedEntitiesComponent* networkOwnedEntities = worldComponents.getOrAddComponent<const NetworkOwnedEntitiesComponent>();
+	const std::vector<NetworkEntityId> ownedEntities = networkOwnedEntities->getOwnedEntities();
 	entityManager.forEachComponentSet<const TransformComponent, const NetworkIdComponent>(
-		[&newUpdateData](const TransformComponent* transform, const NetworkIdComponent* networkId) {
-			newUpdateData.addHash(networkId->getId(), transform->getLocation(), transform->getDirection());
+		[&movementData, &ownedEntities](const TransformComponent* transform, const NetworkIdComponent* networkId) {
+			// only ever consider owned entities here
+			if (std::ranges::find(ownedEntities, networkId->getId()) != ownedEntities.end())
+			{
+				movementData.emplace_back(networkId->getId(), transform->getLocation(), transform->getDirection());
+			}
 		}
 	);
 
-	std::sort(newUpdateData.updateHash.begin(), newUpdateData.updateHash.end());
-
-	mGameStateRewinder.addPredictedMovementDataForUpdate(nextUpdateIdx, std::move(newUpdateData));
+	mGameStateRewinder.addPredictedMovementDataForUpdate(nextUpdateIdx, std::move(movementData));
 }

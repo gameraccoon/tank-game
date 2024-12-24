@@ -6,7 +6,7 @@
 
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
-#include "GameData/Network/MovementHistory.h"
+#include "GameData/Network/EntityMoveData.h"
 #include "GameData/Network/NetworkMessageIds.h"
 
 #include "GameUtils/Network/FrameTimeCorrector.h"
@@ -96,8 +96,8 @@ namespace Network::ServerClient
 
 		AssertFatal(lastReceivedInputUpdateIdx <= updateIdx, "We can't have input update from the future");
 
-		MovementUpdateData currentUpdateData;
-		currentUpdateData.moves.reserve((message.data.size() - streamIndex) / (8 + 4 + 4 + 4));
+		std::vector<EntityMoveData> currentUpdateData;
+		currentUpdateData.reserve((message.data.size() - streamIndex) / (8 + 4 + 4 + 4));
 		const size_t dataSize = message.data.size();
 		while (streamIndex < dataSize)
 		{
@@ -109,10 +109,8 @@ namespace Network::ServerClient
 			direction.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 			direction.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
 
-			currentUpdateData.addMove(networkEntityId, location, direction);
+			currentUpdateData.emplace_back(networkEntityId, location, direction);
 		}
-
-		std::sort(currentUpdateData.updateHash.begin(), currentUpdateData.updateHash.end());
 
 		gameStateRewinder.applyAuthoritativeMoves(updateIdx, std::move(currentUpdateData));
 	}
