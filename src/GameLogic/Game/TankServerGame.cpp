@@ -50,7 +50,7 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 
 	mServerPort = static_cast<u16>(arguments.getIntArgumentValue("open-port").getValueOr(14436));
 
-	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getCurrentDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
 	const bool shouldRender = renderAccessor.has_value();
 
@@ -107,7 +107,7 @@ void TankServerGame::fixedTimeUpdate(const float dt)
 	const auto [time] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
-	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(thisUpdateIdx));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getCurrentDynamicWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 }

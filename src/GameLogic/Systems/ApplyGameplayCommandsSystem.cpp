@@ -21,7 +21,7 @@ void ApplyGameplayCommandsSystem::update()
 	GameplayCommandsComponent* gameplayCommands = world.getWorldComponents().getOrAddComponent<GameplayCommandsComponent>();
 	for (const Network::GameplayCommand::Ptr& gameplayCommand : gameplayCommands->getData().list)
 	{
-		gameplayCommand->execute(mGameStateRewinder, world);
+		gameplayCommand->execute(mGameStateRewinder, mWorldHolder);
 	}
 
 	gameplayCommands->getDataRef().list.clear();

@@ -16,23 +16,20 @@ ProjectileLifetimeSystem::ProjectileLifetimeSystem(WorldHolder& worldHolder) noe
 
 void ProjectileLifetimeSystem::update()
 {
-	SCOPED_PROFILER("MovementSystem::update");
-	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
+	SCOPED_PROFILER("ProjectileLifetimeSystem::update");
 
-	auto [timeComponent] = world.getWorldComponents().getComponents<TimeComponent>();
+	auto [timeComponent] = mWorldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<TimeComponent>();
 	const TimeData& time = *timeComponent->getValue();
 	const GameplayTimestamp currentTime = time.lastFixedUpdateTimestamp;
 
-	EntityManager& entityManager = world.getEntityManager();
-
-	entityManager.forEachComponentSetWithEntity<ProjectileComponent>(
-		[currentTime, &entityManager](Entity entity, ProjectileComponent* timeLimitedLifetime) {
-			if (currentTime > timeLimitedLifetime->getDestroyTime() && !entityManager.doesEntityHaveComponent<DeathComponent>(entity))
+	mWorldHolder.getMutableEntities().forEachComponentSetWithEntity<const ProjectileComponent>(
+		[currentTime](EntityView entity, const ProjectileComponent* timeLimitedLifetime) {
+			if (currentTime > timeLimitedLifetime->getDestroyTime() && !entity.hasComponent<DeathComponent>())
 			{
-				entityManager.scheduleAddComponent<DeathComponent>(entity);
+				entity.scheduleAddComponent<DeathComponent>();
 			}
 		}
 	);
 
-	entityManager.executeScheduledActions();
+	mWorldHolder.getMutableEntities().executeScheduledActions();
 }

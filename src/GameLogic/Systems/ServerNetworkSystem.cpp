@@ -37,30 +37,30 @@ ServerNetworkSystem::ServerNetworkSystem(
 {
 }
 
-static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
+static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder, const ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
 {
 	connectionManager.sendMessageToClient(
 		newPlayerConnectionId,
-		Network::ServerClient::CreateWorldSnapshotMessage(gameStateRewinder, world, newPlayerConnectionId)
+		Network::ServerClient::CreateWorldSnapshotMessage(gameStateRewinder, worldHolder, newPlayerConnectionId)
 	);
 }
 
-static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
+static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
 {
 	const Network::ClientServer::ConnectMessageResult result = Network::ClientServer::ApplyConnectMessage(gameStateRewinder, message, connectionId);
 	if (result.clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
 	{
-		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
+		const auto [time] = worldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 		const TimeData& timeValue = *time->getValue();
 
-		NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = world.getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
+		NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
 
 		connectionManager.sendMessageToClient(
 			connectionId,
 			Network::ServerClient::CreateConnectionAcceptedMessage(timeValue.lastFixedUpdateIndex + 1, result.forwardedTimestamp)
 		);
 
-		SynchronizeServerStateToNewPlayer(gameStateRewinder, world, connectionId, connectionManager);
+		SynchronizeServerStateToNewPlayer(gameStateRewinder, worldHolder, connectionId, connectionManager);
 
 		// figuring out if this is the first or the second player
 		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
@@ -112,7 +112,7 @@ void ServerNetworkSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
-			OnClientConnected(*connectionManager, world, mGameStateRewinder, message, connectionId);
+			OnClientConnected(*connectionManager, mWorldHolder, mGameStateRewinder, message, connectionId);
 			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;

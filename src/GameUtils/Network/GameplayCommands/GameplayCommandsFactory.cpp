@@ -26,9 +26,9 @@ namespace Network
 			ReportError("Command type out of bounds %u", commandTypeIndex);
 			return nullptr;
 		}
-		GameplayCommandType type = static_cast<GameplayCommandType>(commandTypeIndex);
+		const GameplayCommandType type = static_cast<GameplayCommandType>(commandTypeIndex);
 
-		auto it = mDeserializators.find(type);
+		const auto it = mDeserializators.find(type);
 		AssertFatal(it != mDeserializators.end(), "Gameplay command wasn't found, id=%u", type);
 		return it->second(stream, inOutStreamPos);
 	}

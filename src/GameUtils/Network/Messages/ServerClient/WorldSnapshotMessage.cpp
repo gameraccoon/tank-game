@@ -15,14 +15,15 @@
 
 #include "GameUtils/Network/GameplayCommands/CreatePlayerEntityCommand.h"
 #include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId connectionId)
+	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder, const ConnectionId connectionId)
 	{
 		// for players, we need to only send creation command to replicate the data
-		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
+		const ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<const ServerConnectionsComponent>();
+		const NetworkIdMappingComponent* networkIdMapping = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 
 		std::vector<GameplayCommand::Ptr> commands;
 		commands.reserve(10);
@@ -31,7 +32,7 @@ namespace Network::ServerClient
 			if (oneClientData.playerEntity.isValid())
 			{
 				const Entity playerEntity = oneClientData.playerEntity.getEntity();
-				const auto [transform] = world.getEntityManager().getEntityComponents<const TransformComponent>(playerEntity);
+				const auto [transform] = worldHolder.getDynamicWorldLayer().getEntityManager().getEntityComponents<const TransformComponent>(playerEntity);
 
 				auto networkIdIt = networkIdMapping->getEntityToNetworkId().find(playerEntity);
 				if (transform && networkIdIt != networkIdMapping->getEntityToNetworkId().end())
@@ -47,10 +48,10 @@ namespace Network::ServerClient
 		Serialization::AppendNumber<u32>(messageData, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 
 		Serialization::AppendNumber<u16>(messageData, static_cast<u16>(commands.size()));
-		for (Network::GameplayCommand::Ptr& command : commands)
+		for (const GameplayCommand::Ptr& command : commands)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(command->getType()));
-			command->serverSerialize(world, messageData, connectionId);
+			command->serverSerialize(worldHolder, messageData, connectionId);
 		}
 
 		LogInfo("Send CreateWorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);

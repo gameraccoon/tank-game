@@ -4,13 +4,14 @@
 
 #include "HAL/Network/ConnectionManager.h"
 
+class WorldHolder;
 class WorldLayer;
 
 class GameStateRewinder;
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId connectionId);
+	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder, ConnectionId connectionId);
 
 	void ApplyWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message);
 

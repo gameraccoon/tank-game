@@ -21,6 +21,7 @@
 
 #include "GameUtils/Network/GameplayCommands/GameplayCommandTypes.h"
 #include "GameUtils/Network/GameStateRewinder.h"
+#include "GameUtils/SharedManagers/WorldHolder.h"
 
 namespace Network
 {
@@ -34,54 +35,61 @@ namespace Network
 		return Ptr(HS_NEW CreatePlayerEntityCommand(pos, networkEntityId, isOwner, InvalidConnectionId));
 	}
 
-	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
+	void CreatePlayerEntityCommand::execute(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder) const
 	{
-		EntityManager& worldEntityManager = world.getEntityManager();
-		Entity controlledEntity = worldEntityManager.addEntity();
-		{
-			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, controlledEntity);
-			networkIdMapping->getEntityToNetworkIdRef().emplace(controlledEntity, mNetworkEntityId);
+		EntityManager& targetEntityManager = [&]() -> EntityManager& {
+			if (!gameStateRewinder.isServer() && mIsOwner == IsOwner::No)
+			{
+				return worldHolder.getReflectedWorldLayer().getEntityManager();
+			}
+			return worldHolder.getDynamicWorldLayer().getEntityManager();
+		}();
 
-			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(controlledEntity);
+		EntityView controlledEntityView{ targetEntityManager.addEntity(), targetEntityManager };
+		{
+			NetworkIdMappingComponent* networkIdMapping = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
+			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, controlledEntityView.getEntity());
+			networkIdMapping->getEntityToNetworkIdRef().emplace(controlledEntityView.getEntity(), mNetworkEntityId);
+
+			TransformComponent* transform = controlledEntityView.addComponent<TransformComponent>();
 			transform->setLocation(mPos);
 			transform->setDirection(Vector2D(0.0f, -1.0f));
 
-			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(controlledEntity);
+			MovementComponent* movement = controlledEntityView.addComponent<MovementComponent>();
 			movement->setSpeed(30.0f);
 
 #ifndef DISABLE_SDL
-			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(controlledEntity);
+			SpriteCreatorComponent* spriteCreator = controlledEntityView.addComponent<SpriteCreatorComponent>();
 			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{ Vector2D(16, 16), Vector2D{ 0.5f, 0.5f } }, RelativeResourcePath("resources/textures/tank-enemy-level1-1.png"));
 #endif // !DISABLE_SDL
 
-			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(controlledEntity);
+			NetworkIdComponent* networkId = controlledEntityView.addComponent<NetworkIdComponent>();
 			networkId->setId(mNetworkEntityId);
 
-			CollisionComponent* collision = worldEntityManager.addComponent<CollisionComponent>(controlledEntity);
+			CollisionComponent* collision = controlledEntityView.addComponent<CollisionComponent>();
 			collision->setBoundingBox(BoundingBox{ Vector2D(-8, -8), Vector2D(8, 8) });
 
-			worldEntityManager.addComponent<CharacterStateComponent>(controlledEntity);
-			worldEntityManager.addComponent<WeaponComponent>(controlledEntity);
-			worldEntityManager.addComponent<RollbackOnCollisionComponent>(controlledEntity);
+			controlledEntityView.addComponent<CharacterStateComponent>();
+			controlledEntityView.addComponent<WeaponComponent>();
+			controlledEntityView.addComponent<RollbackOnCollisionComponent>();
 		}
 
 		if (gameStateRewinder.isServer())
 		{
 			ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
-			serverConnections->getClientDataRef()[mOwnerConnectionId].playerEntity = controlledEntity;
+			serverConnections->getClientDataRef()[mOwnerConnectionId].playerEntity = controlledEntityView.getEntity();
 		}
 		else
 		{
 			if (mIsOwner == IsOwner::Yes)
 			{
-				ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-				clientGameData->setControlledPlayer(controlledEntity);
+				ClientGameDataComponent* clientGameData = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+				clientGameData->setControlledPlayer(controlledEntityView.getEntity());
 
-				NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
+				NetworkOwnedEntitiesComponent* networkOwnedEntities = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
 				networkOwnedEntities->getOwnedEntitiesRef().push_back(mNetworkEntityId);
 			}
-			worldEntityManager.addComponent<MoveInterpolationComponent>(controlledEntity);
+			controlledEntityView.addComponent<MoveInterpolationComponent>();
 		}
 
 		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, gameStateRewinder.isServer() ? "server" : "client");
@@ -92,7 +100,7 @@ namespace Network
 		return std::make_unique<CreatePlayerEntityCommand>(*this);
 	}
 
-	void CreatePlayerEntityCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
+	void CreatePlayerEntityCommand::serverSerialize(WorldHolder& /*worldHolder*/, std::vector<std::byte>& inOutStream, const ConnectionId receiverConnectionId) const
 	{
 		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4 * 2);
 
@@ -121,7 +129,7 @@ namespace Network
 		return GameplayCommandType::CreatePlayerEntity;
 	}
 
-	CreatePlayerEntityCommand::CreatePlayerEntityCommand(const Vector2D pos, NetworkEntityId networkEntityId, const IsOwner isOwner, const ConnectionId ownerConnectionId)
+	CreatePlayerEntityCommand::CreatePlayerEntityCommand(const Vector2D pos, const NetworkEntityId networkEntityId, const IsOwner isOwner, const ConnectionId ownerConnectionId)
 		: mIsOwner(isOwner)
 		, mPos(pos)
 		, mNetworkEntityId(networkEntityId)

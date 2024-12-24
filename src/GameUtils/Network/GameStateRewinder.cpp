@@ -220,7 +220,7 @@ void GameStateRewinder::unwindBackInHistory(const u32 firstUpdateToResimulate)
 	mCurrentTimeData.lastFixedUpdateTimestamp = mCurrentTimeData.lastFixedUpdateTimestamp.getDecreasedByUpdateCount(static_cast<s32>(updatesToResimulate));
 }
 
-WorldLayer& GameStateRewinder::getDynamicWorld(const u32 updateIdx) const
+WorldLayer& GameStateRewinder::getCurrentDynamicWorld(const u32 updateIdx) const
 {
 	return *mPimpl->updateHistory.getRecordUnsafe(updateIdx).gameState;
 }

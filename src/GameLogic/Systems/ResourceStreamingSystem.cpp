@@ -33,7 +33,7 @@ ResourceStreamingSystem::ResourceStreamingSystem(
 void ResourceStreamingSystem::update()
 {
 	SCOPED_PROFILER("ResourceStreamingSystem::update");
-	CombinedEntityManagerView& entityManager = mWorldHolder.getFullWorld();
+	CombinedEntityManagerView& entityManager = mWorldHolder.getAllEntities();
 
 #ifndef DISABLE_SDL
 	// load sprites

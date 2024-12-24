@@ -57,7 +57,8 @@ private:
 	ComponentFactory mComponentFactory;
 	GameData mGameData{ mComponentFactory };
 	WorldLayer mStaticWorld{ mComponentFactory };
-	WorldHolder mWorldHolder{ mStaticWorld, mGameData };
+	WorldLayer mReflectedWorld{ mComponentFactory };
+	WorldHolder mWorldHolder{ mStaticWorld, mReflectedWorld, mGameData };
 
 	HAL::InputControllersData mInputControllersData;
 

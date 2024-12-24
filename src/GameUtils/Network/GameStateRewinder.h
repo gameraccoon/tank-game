@@ -54,7 +54,7 @@ public:
 	/// Goes back in history to the update with the given index, and invalidates all updates after it
 	void unwindBackInHistory(u32 firstUpdateToResimulate);
 
-	WorldLayer& getDynamicWorld(u32 updateIdx) const;
+	WorldLayer& getCurrentDynamicWorld(u32 updateIdx) const;
 	/// After we done with simulating the update, call this to switch to the new one
 	void advanceSimulationToNextUpdate(u32 newUpdateIdx);
 
