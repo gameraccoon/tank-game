@@ -102,7 +102,7 @@ namespace PlayerConnectedToServerTestCaseInternal
 PlayerConnectedToServerTestCase::PlayerConnectedToServerTestCase()
 	: BaseNetworkingTestCase(1)
 
-	// set these values to imitate laggging and set up scenarios to reproduce issues
+	// set these values to imitate network lag and reliably reproduce specific bugs
 	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 {

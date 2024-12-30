@@ -22,7 +22,7 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 			, mKeepConnectedCheck(keepConnectedCheck)
 		{}
 
-		void update() final
+		void update() override
 		{
 			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 			const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
@@ -58,10 +58,9 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 			, mGotOtherPlayerReplicatedCheck(gotOtherPlayerReplicatedCheck)
 		{}
 
-		void update() final
+		void update() override
 		{
-			WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
-			ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+			const ClientGameDataComponent* clientGameData = mWorldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<const ClientGameDataComponent>();
 			if (clientGameData->getControlledPlayer().isValid())
 			{
 				mConnectionCheck.checkAsPassed();
@@ -77,7 +76,7 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 			}
 
 			std::vector<std::tuple<WeaponComponent*>> weaponComponents;
-			world.getEntityManager().getComponents<WeaponComponent>(weaponComponents);
+			mWorldHolder.getMutableEntities().getComponents<WeaponComponent>(weaponComponents);
 			const size_t weaponComponentsCount = weaponComponents.size();
 			if (weaponComponentsCount == 2)
 			{
@@ -101,7 +100,7 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 
 TwoPlayersSeeEachOtherTestCase::TwoPlayersSeeEachOtherTestCase()
 	: BaseNetworkingTestCase(2)
-	// set these values to imitate laggging and set up scenarios to reproduce issues
+	// set these values to imitate network lag and reliably reproduce specific bugs
 	, mServer0FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient1FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
 	, mClient2FramePauses({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
