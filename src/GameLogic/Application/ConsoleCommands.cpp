@@ -38,6 +38,7 @@ namespace ConsoleCommands
 			{ "autotests", "autotests", "run autotests" },
 			{ "list", "list", "used together with --autotests, list all available tests" },
 			{ "case", "case <test_name>", "used together with --autotests, run the test case with the given name" },
+			{ "randseed", "randseed <number>", "used together with --autotests, specify RNG seed value" },
 		};
 
 		// check that the given commands are valid

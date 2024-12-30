@@ -79,7 +79,8 @@ namespace AutoTests
 
 	bool RunTests(const ArgumentsParser& arguments)
 	{
-		unsigned int seed = std::random_device()();
+		// limit values of seed, to be able to pass any of the possible seeds through command line
+		int seed = std::random_device()() % static_cast<unsigned int>(std::numeric_limits<int>::max());
 		if (arguments.hasArgument("randseed"))
 		{
 			const auto seedValue = arguments.getIntArgumentValue("randseed");
