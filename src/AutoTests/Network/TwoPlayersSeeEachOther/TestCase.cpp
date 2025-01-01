@@ -75,9 +75,7 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 				mKeepConnectedCheck.checkAsFailed();
 			}
 
-			std::vector<std::tuple<WeaponComponent*>> weaponComponents;
-			mWorldHolder.getMutableEntities().getComponents<WeaponComponent>(weaponComponents);
-			const size_t weaponComponentsCount = weaponComponents.size();
+			const size_t weaponComponentsCount = mWorldHolder.getMutableEntities().getMatchingEntitiesCount<WeaponComponent>();
 			if (weaponComponentsCount == 2)
 			{
 				mGotOtherPlayerReplicatedCheck.checkAsPassed();
