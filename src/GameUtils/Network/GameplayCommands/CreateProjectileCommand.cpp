@@ -19,7 +19,6 @@
 
 #include "GameUtils/Network/GameplayCommands/GameplayCommandTypes.h"
 #include "GameUtils/Network/GameStateRewinder.h"
-#include "GameUtils/SharedManagers/WorldHolder.h"
 
 namespace Network
 {
@@ -32,49 +31,34 @@ namespace Network
 	{
 	}
 
-	void CreateProjectileCommand::execute(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder) const
+	void CreateProjectileCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
 	{
-		auto [networkOwnedEntities] = worldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<NetworkOwnedEntitiesComponent>();
-		// client-side entity that is not owned by this client
-		const bool isClient = gameStateRewinder.isClient();
-		const bool isReflectedEntity = isClient
-			&& (mOwnerNetworkEntityId == InvalidNetworkEntityId
-				|| networkOwnedEntities == nullptr
-				|| std::ranges::find(networkOwnedEntities->getOwnedEntities(), mOwnerNetworkEntityId) == networkOwnedEntities->getOwnedEntities().end());
-
-		EntityManager& targetEntityManager = [isReflectedEntity, &worldHolder]() -> EntityManager& {
-			if (isReflectedEntity)
-			{
-				return worldHolder.getReflectedWorldLayer().getEntityManager();
-			}
-			return worldHolder.getDynamicWorldLayer().getEntityManager();
-		}();
-
-		EntityView projectileEntityView{ targetEntityManager.addEntity(), targetEntityManager };
+		EntityManager& worldEntityManager = world.getEntityManager();
+		Entity projectileEntity = worldEntityManager.addEntity();
 		{
-			NetworkIdMappingComponent* networkIdMapping = worldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
-			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, projectileEntityView.getEntity());
-			networkIdMapping->getEntityToNetworkIdRef().emplace(projectileEntityView.getEntity(), mNetworkEntityId);
+			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
+			networkIdMapping->getNetworkIdToEntityRef().emplace(mNetworkEntityId, projectileEntity);
+			networkIdMapping->getEntityToNetworkIdRef().emplace(projectileEntity, mNetworkEntityId);
 
-			TransformComponent* transform = projectileEntityView.addComponent<TransformComponent>();
+			TransformComponent* transform = worldEntityManager.addComponent<TransformComponent>(projectileEntity);
 			transform->setLocation(mPos);
 
-			MovementComponent* movement = projectileEntityView.addComponent<MovementComponent>();
+			MovementComponent* movement = worldEntityManager.addComponent<MovementComponent>(projectileEntity);
 			movement->setSpeed(mSpeed);
 			movement->setMoveDirection(mDirection);
 #ifndef DEDICATED_SERVER
-			SpriteCreatorComponent* spriteCreator = projectileEntityView.addComponent<SpriteCreatorComponent>();
+			SpriteCreatorComponent* spriteCreator = worldEntityManager.addComponent<SpriteCreatorComponent>(projectileEntity);
 			spriteCreator->getDescriptionsRef().emplace_back(SpriteParams{ Vector2D(16, 16), Vector2D(0.5f, 0.5f) }, RelativeResourcePath("resources/textures/spawn-1.png"));
 #endif // !DEDICATED_SERVER
 
-			ProjectileComponent* projectile = projectileEntityView.addComponent<ProjectileComponent>();
+			ProjectileComponent* projectile = worldEntityManager.addComponent<ProjectileComponent>(projectileEntity);
 			projectile->setDestroyTime(gameStateRewinder.getTimeData().lastFixedUpdateTimestamp.getIncreasedByUpdateCount(static_cast<s32>(1.0f / TimeConstants::ONE_FIXED_UPDATE_SEC)));
 			if (const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId); entityIt != networkIdMapping->getNetworkIdToEntity().end())
 			{
 				projectile->setOwnerEntity(entityIt->second);
 			}
 
-			NetworkIdComponent* networkId = projectileEntityView.addComponent<NetworkIdComponent>();
+			NetworkIdComponent* networkId = worldEntityManager.addComponent<NetworkIdComponent>(projectileEntity);
 			networkId->setId(mNetworkEntityId);
 
 			if (mOwnerNetworkEntityId != InvalidNetworkEntityId)
@@ -82,25 +66,25 @@ namespace Network
 				const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId);
 				if (entityIt != networkIdMapping->getNetworkIdToEntity().end())
 				{
-					// by design, the weapon can't shoot when the previous projectile is still alive
-					auto [weapon] = targetEntityManager.getEntityComponents<WeaponComponent>(entityIt->second);
+					auto [weapon] = worldEntityManager.getEntityComponents<WeaponComponent>(entityIt->second);
 					if (weapon != nullptr)
 					{
-						weapon->setProjectileEntity(projectileEntityView.getEntity());
+						weapon->setProjectileEntity(projectileEntity);
 					}
 				}
 
+				NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
 				// if we own the owner, we also own the projectile
-				if (isClient && !isReflectedEntity && networkOwnedEntities != nullptr)
+				if (std::ranges::find(networkOwnedEntities->getOwnedEntities(), mOwnerNetworkEntityId) != networkOwnedEntities->getOwnedEntities().end())
 				{
 					networkOwnedEntities->getOwnedEntitiesRef().push_back(mNetworkEntityId);
 				}
 			}
 		}
 
-		if (isClient)
+		if (gameStateRewinder.isClient())
 		{
-			projectileEntityView.addComponent<MoveInterpolationComponent>();
+			worldEntityManager.addComponent<MoveInterpolationComponent>(projectileEntity);
 		}
 	}
 
@@ -109,7 +93,7 @@ namespace Network
 		return std::make_unique<CreateProjectileCommand>(*this);
 	}
 
-	void CreateProjectileCommand::serverSerialize(WorldHolder& /*worldHolder*/, std::vector<std::byte>& inOutStream, ConnectionId /*receiverConnectionId*/) const
+	void CreateProjectileCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId /*receiverConnectionId*/) const
 	{
 		inOutStream.reserve(inOutStream.size() + 8 + 4 * 2 + 4 * 2 + 4);
 

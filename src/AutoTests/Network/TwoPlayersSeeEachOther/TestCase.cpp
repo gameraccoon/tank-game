@@ -75,7 +75,7 @@ namespace TwoPlayersSeeEachOtherTestCaseInternal
 				mKeepConnectedCheck.checkAsFailed();
 			}
 
-			const size_t weaponComponentsCount = mWorldHolder.getMutableEntities().getMatchingEntitiesCount<WeaponComponent>();
+			const size_t weaponComponentsCount = mWorldHolder.getDynamicWorldLayer().getEntityManager().getMatchingEntitiesCount<WeaponComponent>();
 			if (weaponComponentsCount == 2)
 			{
 				mGotOtherPlayerReplicatedCheck.checkAsPassed();

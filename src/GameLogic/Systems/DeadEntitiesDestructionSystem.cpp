@@ -19,32 +19,32 @@ DeadEntitiesDestructionSystem::DeadEntitiesDestructionSystem(WorldHolder& worldH
 void DeadEntitiesDestructionSystem::update()
 {
 	SCOPED_PROFILER("DeadEntitiesDestructionSystem::update");
+	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
-	const size_t deadEntitiesCount = mWorldHolder.getMutableEntities().getMatchingEntitiesCount<DeathComponent>();
+	TupleVector<Entity, const DeathComponent*> entitiesWithDeathComponent;
+	world.getEntityManager().getComponentsWithEntities<const DeathComponent>(entitiesWithDeathComponent);
 
-	if (deadEntitiesCount == 0)
+	if (entitiesWithDeathComponent.empty())
 	{
 		return;
 	}
 
 	// ToDo: this all should be done via a network command(s), so it can be corrected from the server
 
-	NetworkOwnedEntitiesComponent* networkOwnedEntities = mWorldHolder.getDynamicWorldLayer().getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
+	NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
 	std::vector<NetworkEntityId>& ownedEntities = networkOwnedEntities->getOwnedEntitiesRef();
 
-	TupleVector<const DeathComponent*, const NetworkIdComponent*> networkIdComponents;
-	mWorldHolder.getMutableEntities().getComponents<const DeathComponent, const NetworkIdComponent>(networkIdComponents);
+	TupleVector<Entity, const DeathComponent*, const NetworkIdComponent*> networkIdComponents;
+	world.getEntityManager().getComponentsWithEntities<const DeathComponent, const NetworkIdComponent>(networkIdComponents);
 
-	for (const auto& [deathComponent, networkIdComponent] : networkIdComponents)
+	for (const auto& [entity, deathComponent, networkIdComponent] : networkIdComponents)
 	{
 		std::erase(ownedEntities, networkIdComponent->getId());
 	}
 
 	// this invalidates all the component pointers stored in this scope
-	mWorldHolder.getMutableEntities().forEachComponentSetWithEntity<DeathComponent>(
-		[](EntityView entityView, const DeathComponent* /*deathComponent*/) {
-			entityView.scheduleRemoveEntity();
-		}
-	);
-	mWorldHolder.getMutableEntities().executeScheduledActions();
+	for (const auto& componentTuple : entitiesWithDeathComponent)
+	{
+		world.getEntityManager().removeEntity(std::get<0>(componentTuple));
+	}
 }

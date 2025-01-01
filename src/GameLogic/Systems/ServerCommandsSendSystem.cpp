@@ -56,7 +56,7 @@ void ServerCommandsSendSystem::update()
 		{
 			connectionManager->sendMessageToClient(
 				connectionId,
-				Network::ServerClient::CreateGameplayCommandsMessage(mWorldHolder, updateCommands, connectionId, updateIdx),
+				Network::ServerClient::CreateGameplayCommandsMessage(world, updateCommands, connectionId, updateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable
 			);
 		}

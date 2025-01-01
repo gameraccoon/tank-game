@@ -63,7 +63,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	ComponentsRegistration::RegisterComponents(getComponentFactory());
 	ComponentsRegistration::RegisterJsonSerializers(getComponentSerializers());
 
-	getWorldHolder().setDynamicWorld(mGameStateRewinder.getCurrentDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(mGameStateRewinder.getTimeData().lastFixedUpdateIndex));
 
 	const std::optional<HAL::Network::NetworkAddress> newNetworkAddress = HAL::Network::NetworkAddress::FromString(arguments.getArgumentValue("connect").value_or("127.0.0.1:14436"));
 	if (newNetworkAddress.has_value())
@@ -124,7 +124,7 @@ void TankClientGame::fixedTimeUpdate(const float dt)
 	const auto [time] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<const TimeComponent>();
 	const u32 thisUpdateIdx = time->getValue()->lastFixedUpdateIndex + 1;
 	mGameStateRewinder.advanceSimulationToNextUpdate(thisUpdateIdx);
-	getWorldHolder().setDynamicWorld(mGameStateRewinder.getCurrentDynamicWorld(thisUpdateIdx));
+	getWorldHolder().setDynamicWorld(mGameStateRewinder.getDynamicWorld(thisUpdateIdx));
 
 	Game::fixedTimeUpdate(dt);
 

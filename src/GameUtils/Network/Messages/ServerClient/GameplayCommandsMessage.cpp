@@ -12,7 +12,7 @@
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateGameplayCommandsMessage(WorldHolder& worldHolder, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
+	HAL::Network::Message CreateGameplayCommandsMessage(WorldLayer& world, const GameplayCommandHistoryRecord& commandList, ConnectionId connectionId, u32 clientUpdateIdx)
 	{
 		std::vector<std::byte> messageData;
 
@@ -24,12 +24,12 @@ namespace Network::ServerClient
 		for (const GameplayCommand::Ptr& gameplayCommand : commandList.externalCommands.list)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(gameplayCommand->getType()));
-			gameplayCommand->serverSerialize(worldHolder, messageData, connectionId);
+			gameplayCommand->serverSerialize(world, messageData, connectionId);
 		}
 		for (const GameplayCommand::Ptr& gameplayCommand : commandList.gameplayGeneratedCommands.list)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(gameplayCommand->getType()));
-			gameplayCommand->serverSerialize(worldHolder, messageData, connectionId);
+			gameplayCommand->serverSerialize(world, messageData, connectionId);
 		}
 
 		return HAL::Network::Message{

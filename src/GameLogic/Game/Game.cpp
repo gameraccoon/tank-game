@@ -10,6 +10,7 @@
 #include "GameData/Components/StateMachineComponent.generated.h"
 #include "GameData/Components/WorldCachedDataComponent.generated.h"
 
+#include "EngineUtils/Multithreading/ThreadPool.h"
 #ifdef ENABLE_SCOPED_PROFILER
 #include "EngineUtils/Profiling/ProfileDataWriter.h"
 #endif

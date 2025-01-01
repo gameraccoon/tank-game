@@ -4,26 +4,16 @@
 
 #include "GameData/WorldLayer.h"
 
-WorldHolder::WorldHolder(WorldLayer& staticWorld, WorldLayer& reflectedWorld, GameData& gameData) noexcept
+WorldHolder::WorldHolder(WorldLayer& staticWorld, GameData& gameData) noexcept
 	: mDynamicWorld(nullptr)
 	, mStaticWorld(staticWorld)
-	, mReflectedWorld(reflectedWorld)
 	, mGameData(gameData)
-	, mAllEntitiesView({ { staticWorld.getEntityManager(), &staticWorld }, { reflectedWorld.getEntityManager(), &reflectedWorld } })
-	, mMutableEntitiesView({ { staticWorld.getEntityManager(), &staticWorld } })
+	, mEntityManagerView({ { staticWorld.getEntityManager(), &staticWorld } })
 {
 }
 
 void WorldHolder::setDynamicWorld(WorldLayer& newDynamicWorld)
 {
 	mDynamicWorld = &newDynamicWorld;
-	mAllEntitiesView = CombinedEntityManagerView{ {
-		{ mDynamicWorld->getEntityManager(), mDynamicWorld },
-		{ mStaticWorld.getEntityManager(), &mStaticWorld },
-		{ mReflectedWorld.getEntityManager(), &mReflectedWorld },
-	} };
-	mMutableEntitiesView = CombinedEntityManagerView{ {
-		{ mDynamicWorld->getEntityManager(), mDynamicWorld },
-		{ mReflectedWorld.getEntityManager(), &mReflectedWorld },
-	} };
+	mEntityManagerView = CombinedEntityManagerView{ { { mDynamicWorld->getEntityManager(), mDynamicWorld }, { mStaticWorld.getEntityManager(), &mStaticWorld } } };
 }

@@ -14,9 +14,9 @@ namespace Network
 		~CreateProjectileCommand() override = default;
 
 		[[nodiscard]] GameplayCommandType getType() const override { return GetType(); }
-		void execute(GameStateRewinder& gameStateRewinder, WorldHolder& worldHolder) const override;
+		void execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const override;
 		[[nodiscard]] Ptr clone() const override;
-		void serverSerialize(WorldHolder& worldHolder, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const override;
+		void serverSerialize(WorldLayer& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const override;
 		[[nodiscard]] static Ptr ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos);
 		static GameplayCommandType GetType();
 
