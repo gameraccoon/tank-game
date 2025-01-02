@@ -34,6 +34,12 @@ namespace Network
 	void CreateProjectileCommand::execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const
 	{
 		EntityManager& worldEntityManager = world.getEntityManager();
+
+		NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
+		const bool isOwningClient = gameStateRewinder.isClient()
+			&& mOwnerNetworkEntityId != InvalidNetworkEntityId
+			&& std::ranges::find(networkOwnedEntities->getOwnedEntities(), mOwnerNetworkEntityId) != networkOwnedEntities->getOwnedEntities().end();
+
 		Entity projectileEntity = worldEntityManager.addEntity();
 		{
 			NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<NetworkIdMappingComponent>();
@@ -63,19 +69,18 @@ namespace Network
 
 			if (mOwnerNetworkEntityId != InvalidNetworkEntityId)
 			{
-				const auto entityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId);
-				if (entityIt != networkIdMapping->getNetworkIdToEntity().end())
+				const auto playerEntityIt = networkIdMapping->getNetworkIdToEntity().find(mOwnerNetworkEntityId);
+				if (playerEntityIt != networkIdMapping->getNetworkIdToEntity().end())
 				{
-					auto [weapon] = worldEntityManager.getEntityComponents<WeaponComponent>(entityIt->second);
+					auto [weapon] = worldEntityManager.getEntityComponents<WeaponComponent>(playerEntityIt->second);
 					if (weapon != nullptr)
 					{
 						weapon->setProjectileEntity(projectileEntity);
 					}
 				}
 
-				NetworkOwnedEntitiesComponent* networkOwnedEntities = world.getWorldComponents().getOrAddComponent<NetworkOwnedEntitiesComponent>();
 				// if we own the owner, we also own the projectile
-				if (std::ranges::find(networkOwnedEntities->getOwnedEntities(), mOwnerNetworkEntityId) != networkOwnedEntities->getOwnedEntities().end())
+				if (isOwningClient)
 				{
 					networkOwnedEntities->getOwnedEntitiesRef().push_back(mNetworkEntityId);
 				}
