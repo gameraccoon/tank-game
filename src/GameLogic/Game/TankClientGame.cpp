@@ -48,6 +48,7 @@
 #include "GameLogic/Systems/RenderSystem.h"
 #include "GameLogic/Systems/ResourceStreamingSystem.h"
 #include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
+#include "GameLogic/Systems/SaveMovementForInterpolationSystem.h"
 #include "GameLogic/Systems/SaveMovementToHistorySystem.h"
 #include "GameLogic/Systems/ShootingSystem.h"
 
@@ -176,6 +177,7 @@ void TankClientGame::initSystems()
 
 	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchClientInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
+	getGameLogicSystemsManager().registerSystem<SaveMovementForInterpolationSystem>(getWorldHolder());
 	getGameLogicSystemsManager().registerSystem<ApplyConfirmedMovesSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyGameplayCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<ApplyInputToEntitySystem>(getWorldHolder());
