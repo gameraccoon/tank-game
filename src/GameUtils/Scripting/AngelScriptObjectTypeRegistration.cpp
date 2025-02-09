@@ -4,6 +4,8 @@
 
 #include <angelscript.h>
 
+#include "GameData/LogCategories.h"
+
 namespace AngelScript
 {
 	void RegisterObjectType(asIScriptEngine& scriptEngine, const char* objectTypeName, const int sizeBytes, const uint64_t flags) noexcept
@@ -39,7 +41,7 @@ namespace AngelScript
 				ReportErrorRelease("Unhandled error code %d during registration of object type '%s'", resCode, objectTypeName);
 				break;
 			}
-			LogError("Failed to register object type '%s'. Error code: %d, Error reason: '%s'", objectTypeName, resCode, errorReason);
+			LogError(LOG_ANGELSCRIPT, "Failed to register object type '%s'. Error code: %d, Error reason: '%s'", objectTypeName, resCode, errorReason);
 		}
 	}
 
@@ -70,7 +72,7 @@ namespace AngelScript
 				ReportErrorRelease("Unhandled error code %d during registration of object property '%s' of type '%s", resCode, propertyDeclaration, objectTypeName);
 				break;
 			}
-			LogError("Failed to register object property '%s' of type '%s'. Error code: %d, Error reason: '%s'", propertyDeclaration, objectTypeName, resCode, errorReason);
+			LogError(LOG_ANGELSCRIPT, "Failed to register object property '%s' of type '%s'. Error code: %d, Error reason: '%s'", propertyDeclaration, objectTypeName, resCode, errorReason);
 		}
 	}
 
@@ -110,7 +112,7 @@ namespace AngelScript
 				ReportErrorRelease("Unhandled error code %d during registration of object method '%s' of type '%s", resCode, methodDeclaration, objectTypeName);
 				break;
 			}
-			LogError("Failed to register object method '%s' of type '%s'. Error code: %d, Error reason: '%s'", methodDeclaration, objectTypeName, resCode, errorReason);
+			LogError(LOG_ANGELSCRIPT, "Failed to register object method '%s' of type '%s'. Error code: %d, Error reason: '%s'", methodDeclaration, objectTypeName, resCode, errorReason);
 		}
 	}
 } // namespace AngelScript

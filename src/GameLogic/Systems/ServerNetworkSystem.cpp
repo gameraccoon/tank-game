@@ -7,6 +7,7 @@
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/WorldLayer.h"
@@ -25,7 +26,7 @@
 ServerNetworkSystem::ServerNetworkSystem(
 	WorldHolder& worldHolder,
 	GameStateRewinder& gameStateRewinder,
-	u16 serverPort,
+	const u16 serverPort,
 	bool& shouldPauseGame,
 	bool& shouldQuitGame
 ) noexcept
@@ -132,14 +133,14 @@ void ServerNetworkSystem::update()
 	{
 		if (!mShouldPauseGame)
 		{
-			LogInfo("No activity from clients during some time. Pausing the server simulation");
+			LogInfo(LOG_NETWORK, "No activity from clients during some time. Pausing the server simulation");
 			mShouldPauseGame = true;
 		}
 	}
 
 	if (mLastClientInteractionUpdateIdx + SERVER_IDLE_TIMEOUT_UPDATES_TO_QUIT < timeData.lastFixedUpdateIndex)
 	{
-		LogInfo("No connections or messages from clients during quite some time. Shutting down the server");
+		LogInfo(LOG_NETWORK, "No connections or messages from clients during quite some time. Shutting down the server");
 		mShouldQuitGame = true;
 	}
 }

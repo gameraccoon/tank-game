@@ -4,6 +4,8 @@
 
 #include <angelscript.h>
 
+#include "GameData/LogCategories.h"
+
 #include "GameUtils/Scripting/AngelScriptGlobalEngine.h"
 
 AngelScriptContext::AngelScriptContext()
@@ -16,6 +18,7 @@ AngelScriptContext::AngelScriptContext()
 		const int lineNumber = ctx->GetExceptionLineNumber();
 
 		LogError(
+			LOG_ANGELSCRIPT,
 			"[ScriptException]: %s\n"
 			"function: %s\n"
 			"module: %s\n"

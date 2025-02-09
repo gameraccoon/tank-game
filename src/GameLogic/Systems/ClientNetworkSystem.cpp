@@ -7,6 +7,7 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/GameData.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
 
@@ -98,7 +99,7 @@ void ClientNetworkSystem::update()
 			break;
 		case NetworkMessageId::Disconnect: {
 			const auto reason = Network::ServerClient::ApplyDisconnectMessage(message);
-			LogInfo(Network::ServerClient::ReasonToString(reason));
+			LogInfo(LOG_NETWORK, Network::ServerClient::ReasonToString(reason));
 			mShouldQuitGameRef = true;
 			break;
 		}

@@ -9,6 +9,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "EngineCommon/EngineLogCategories.h"
 #include "EngineCommon/Types/String/ResourcePath.h"
 
 #include "HAL/Graphics/Sprite.h"
@@ -36,7 +37,7 @@ namespace Graphics
 		}
 		catch (const std::exception& e)
 		{
-			LogError("Can't open animation data '%s': %s", path.getAbsolutePath().c_str(), e.what());
+			LogError(LOG_RESOURCE_LOADING, "Can't open animation data '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
 
 		for (int i = 0; i < framesCount; ++i)

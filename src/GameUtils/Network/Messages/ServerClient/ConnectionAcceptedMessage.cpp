@@ -6,6 +6,7 @@
 #include "EngineCommon/Types/Serialization.h"
 
 #include "GameData/Components/CharacterStateComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 
 #include "GameUtils/Network/GameStateRewinder.h"
@@ -34,7 +35,7 @@ namespace Network::ServerClient
 		const u64 roundTripTimeUs = timestampNow - sentTimestamp;
 		const u64 oneWayTimeUs = roundTripTimeUs / 2;
 		const u32 previousClientUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex;
-		LogInfo("Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", previousClientUpdateIdx, updateIdx, roundTripTimeUs / 1000ull);
+		LogInfo(LOG_NETWORK_MESSAGES, "Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", previousClientUpdateIdx, updateIdx, roundTripTimeUs / 1000ull);
 
 		// estimate the frame we should be simulating on the client
 		const u32 estimatedClientUpdateIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
@@ -44,7 +45,7 @@ namespace Network::ServerClient
 		const u32 storedSimulatedUpdatesCount = gameStateRewinder.getTimeData().lastFixedUpdateIndex - 1 - firstStoredUpdateIdx - 1;
 		const u32 resultingClientUpdateIndex = std::min(estimatedClientUpdateIndex, updateIdx + storedSimulatedUpdatesCount);
 
-		LogInfo("Estimated client update index: %u, resulting client update index: %u", estimatedClientUpdateIndex, resultingClientUpdateIndex);
+		LogInfo(LOG_NETWORK_MESSAGES, "Estimated client update index: %u, resulting client update index: %u", estimatedClientUpdateIndex, resultingClientUpdateIndex);
 
 		gameStateRewinder.setInitialClientUpdateIndex(resultingClientUpdateIndex);
 	}

@@ -8,6 +8,8 @@
 #include <scriptstdstring/scriptstdstring.h>
 #include <weakref/weakref.h>
 
+#include "GameData/LogCategories.h"
+
 class AngelScriptGlobalEngine::Impl
 {
 public:
@@ -26,7 +28,7 @@ public:
 		const int resCode = mEngine->SetMessageCallback(asFUNCTION(MessageCallback), nullptr, asCALL_CDECL);
 		if (resCode < 0)
 		{
-			LogError("Failed to set message callback for AngelScript engine. Error code: %d", resCode);
+			LogError(LOG_ANGELSCRIPT, "Failed to set message callback for AngelScript engine. Error code: %d", resCode);
 		}
 
 		// register std::string as the string type
@@ -44,7 +46,7 @@ public:
 		const int resCode = mEngine->ShutDownAndRelease();
 		if (resCode < 0)
 		{
-			LogError("Failed to shutdown AngelScript engine. Error code: %d", resCode);
+			LogError(LOG_ANGELSCRIPT, "Failed to shutdown AngelScript engine. Error code: %d", resCode);
 		}
 	}
 
@@ -55,15 +57,15 @@ private:
 	{
 		if (msg->type == asMSGTYPE_WARNING)
 		{
-			LogWarning("[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
+			LogWarning(LOG_ANGELSCRIPT, "[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
 		}
 		else if (msg->type == asMSGTYPE_ERROR)
 		{
-			LogError("[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
+			LogError(LOG_ANGELSCRIPT, "[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
 		}
 		else
 		{
-			LogInfo("[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
+			LogInfo(LOG_ANGELSCRIPT, "[Script]: %s (%d, %d) : %s", msg->section, msg->row, msg->col, msg->message);
 		}
 	}
 };

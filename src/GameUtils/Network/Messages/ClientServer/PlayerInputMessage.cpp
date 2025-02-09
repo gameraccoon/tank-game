@@ -7,6 +7,7 @@
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Input/InputHistory.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
 
@@ -59,7 +60,7 @@ namespace Network::ClientServer
 
 		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx) && inputIsNotFromFarFuture(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
 		{
-			LogInfo("Processing input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
+			LogInfo(LOG_NETWORK_MESSAGES, "Processing input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 			// read the input (do it inside the "if", not to waste time on reading the input if it's not needed)
 			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
 
@@ -87,7 +88,7 @@ namespace Network::ClientServer
 		}
 		else
 		{
-			LogInfo("Ignoring input message with updateIdx %u on server frame %u", lastReceivedInputUpdateIdx, lastServerProcessedUpdateIdx);
+			LogInfo(LOG_NETWORK_MESSAGES, "Ignoring input message with updateIdx %u on server frame %u", lastReceivedInputUpdateIdx, lastServerProcessedUpdateIdx);
 		}
 
 		// we would rather get 2 inputs in advance, so we have one input to lose without it being noticeable

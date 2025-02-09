@@ -5,6 +5,7 @@
 #include "EngineCommon/Types/Serialization.h"
 
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
 
@@ -56,7 +57,7 @@ namespace Network::ServerClient
 			{
 				commands.push_back(std::move(command));
 			}
-			LogInfo("Command %u added on client on update %u for update %u", commands.back()->getType(), stateRewinder.getTimeData().lastFixedUpdateIndex + 1, clientUpdateIdx);
+			LogInfo(LOG_COMMANDS, "Command %u added on client on update %u for update %u", commands.back()->getType(), stateRewinder.getTimeData().lastFixedUpdateIndex + 1, clientUpdateIdx);
 		}
 
 		stateRewinder.applyAuthoritativeCommands(clientUpdateIdx, std::move(commands));

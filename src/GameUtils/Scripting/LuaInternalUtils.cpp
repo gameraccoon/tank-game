@@ -6,6 +6,8 @@
 
 #include "EngineCommon/Types/String/StringHelpers.h"
 
+#include "GameData/LogCategories.h"
+
 namespace LuaInternal
 {
 	void PushInt(lua_State& state, const int value) noexcept
@@ -319,7 +321,7 @@ namespace LuaInternal
 		// check if debug is a table
 		if (!lua_istable(&state, -1)) [[unlikely]]
 		{
-			LogError("debug is not a table, can't print stack trace. Enable debug library");
+			LogError(LOG_LUA, "debug is not a table, can't print stack trace. Enable debug library");
 			lua_settop(&state, stackState);
 			return "[no stack trace, enable debug library]";
 		}
@@ -329,7 +331,7 @@ namespace LuaInternal
 		// check if debug.traceback is a function
 		if (!lua_isfunction(&state, -1)) [[unlikely]]
 		{
-			LogError("debug.traceback is not a function, can't print stack trace");
+			LogError(LOG_LUA, "debug.traceback is not a function, can't print stack trace");
 			lua_settop(&state, stackState);
 			return "[no stack trace, enable debug library]";
 		}
@@ -386,7 +388,7 @@ namespace LuaInternal
 
 	void LogScriptError(lua_State& state, const char* message) noexcept
 	{
-		LogError("Lua error: %s\n%s\n%s", message, GetStackTrace(state).c_str(), GetStackValues(state).c_str());
+		LogError(LOG_LUA, "Lua error: %s\n%s\n%s", message, GetStackTrace(state).c_str(), GetStackValues(state).c_str());
 	}
 
 	void ReportScriptError(lua_State& state, const char* message) noexcept

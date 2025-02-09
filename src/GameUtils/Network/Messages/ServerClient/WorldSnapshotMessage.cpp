@@ -10,6 +10,7 @@
 #include "GameData/Components/NetworkIdMappingComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
 
@@ -53,7 +54,7 @@ namespace Network::ServerClient
 			command->serverSerialize(world, messageData, connectionId);
 		}
 
-		LogInfo("Send WorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		LogInfo(LOG_NETWORK_MESSAGES, "Send WorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 
 		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::WorldSnapshot),
@@ -83,7 +84,7 @@ namespace Network::ServerClient
 
 		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));
 
-		LogInfo("Applied WorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		LogInfo(LOG_NETWORK_MESSAGES, "Applied WorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 	}
 
 	void CleanBeforeApplyingSnapshot(WorldLayer& world)

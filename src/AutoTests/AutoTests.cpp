@@ -8,6 +8,8 @@
 
 #include "EngineCommon/Random/Random.h"
 
+#include "GameData/LogCategories.h"
+
 #include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "AutoTests/BaseTestCase.h"
@@ -49,11 +51,11 @@ namespace AutoTests
 			{
 				if (check->hasBeenValidated())
 				{
-					LogInfo("Test check failed: %s", check->getErrorMessage());
+					LogInfo(LOG_AUTOTESTS, "Test check failed: %s", check->getErrorMessage());
 				}
 				else
 				{
-					LogInfo("Test check was not validated, assume failed: %s", check->getErrorMessage());
+					LogInfo(LOG_AUTOTESTS, "Test check was not validated, assume failed: %s", check->getErrorMessage());
 				}
 				++failedChecksCount;
 			}
@@ -67,12 +69,12 @@ namespace AutoTests
 
 		if (failedChecksCount > 0)
 		{
-			LogInfo("Failed %u checks out of %u", failedChecksCount, totalChecksCount);
+			LogInfo(LOG_AUTOTESTS, "Failed %u checks out of %u", failedChecksCount, totalChecksCount);
 			return false;
 		}
 		else
 		{
-			LogInfo("Passed %d checks out of %d", totalChecksCount, totalChecksCount);
+			LogInfo(LOG_AUTOTESTS, "Passed %d checks out of %d", totalChecksCount, totalChecksCount);
 			return true;
 		}
 	}
@@ -127,7 +129,7 @@ namespace AutoTests
 			return false;
 		}
 
-		LogInit("Random seed is %u", seed);
+		LogInit(LOG_AUTOTESTS, "Random seed is %u", seed);
 
 		const std::unique_ptr<BaseTestCase> testCase = caseIt->second();
 		const TestChecklist checklist = testCase->start(arguments);

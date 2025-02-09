@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "GameData/LogCategories.h"
+
 #include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaInstance.h"
 #include "GameUtils/Scripting/LuaInternalUtils.h"
@@ -153,7 +155,7 @@ TEST(LuaInsternalUtils, EmptyStack_AddTableWithFunction_CanBeCalledFromLua)
 	}
 
 	const LuaExecResult execRes = luaInstance.execScript("return table1.function1()");
-	LogInfo(execRes.errorMessage);
+	LogInfo(LOG_UNITTESTS, execRes.errorMessage);
 	ASSERT_EQ(execRes.statusCode, 0);
 
 	EXPECT_EQ(LuaInternal::GetStackTop(luaState), 0); // we have the C string on the stack

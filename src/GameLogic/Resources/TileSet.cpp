@@ -7,6 +7,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "EngineCommon/EngineLogCategories.h"
 #include "EngineCommon/Types/String/ResourcePath.h"
 
 #include "GameData/Resources/TileSetParams.h"
@@ -63,7 +64,7 @@ namespace Graphics
 		}
 		catch (const std::exception& e)
 		{
-			LogError("Can't open tile set file '%s': %s", path.getAbsolutePath().c_str(), e.what());
+			LogError(LOG_RESOURCE_LOADING, "Can't open tile set file '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
 
 		return result;

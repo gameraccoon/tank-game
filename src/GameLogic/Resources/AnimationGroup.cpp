@@ -2,6 +2,8 @@
 
 #include "GameLogic/Resources/AnimationGroup.h"
 
+#include "EngineCommon/EngineLogCategories.h"
+
 #ifndef DISABLE_SDL
 
 #include <filesystem>
@@ -51,7 +53,7 @@ namespace Graphics
 		}
 		catch (const std::exception& e)
 		{
-			LogError("Can't open animation group data '%s': %s", path.getAbsolutePath().c_str(), e.what());
+			LogError(LOG_RESOURCE_LOADING, "Can't open animation group data '%s': %s", path.getAbsolutePath().c_str(), e.what());
 		}
 
 		return result;

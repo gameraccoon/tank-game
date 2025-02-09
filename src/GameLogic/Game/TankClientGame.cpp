@@ -15,6 +15,7 @@
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/EntityMoveData.h"
 
 #include "HAL/Base/Engine.h"
@@ -220,7 +221,7 @@ void TankClientGame::correctUpdates(const u32 firstUpdateToResimulateIdx)
 	// save moves from the abandoned history version
 	std::vector<EntityMoveData> copyOfOldMoves = mGameStateRewinder.getMovesForUpdate(lastUpdateTime.lastFixedUpdateIndex);
 
-	LogInfo("Correct client updates from %u to %u", firstUpdateToResimulateIdx, lastUpdateTime.lastFixedUpdateIndex);
+	LogInfo(LOG_STATE_REWINDING, "Correct client updates from %u to %u", firstUpdateToResimulateIdx, lastUpdateTime.lastFixedUpdateIndex);
 
 	AssertFatal(firstUpdateToResimulateIdx <= lastUpdateTime.lastFixedUpdateIndex, "We can't correct updates from the future");
 	const u32 lastUpdateToResimulateIdx = lastUpdateTime.lastFixedUpdateIndex;

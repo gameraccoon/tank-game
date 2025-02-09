@@ -6,6 +6,7 @@
 
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/EntityMoveData.h"
 #include "GameData/Network/NetworkMessageIds.h"
 
@@ -85,7 +86,7 @@ namespace Network::ServerClient
 		if (hasIndexShift)
 		{
 			indexShift = Serialization::ReadNumber<s32>(message.data, streamIndex).value_or(0);
-			LogInfo("Index shift requested: %d", indexShift);
+			LogInfo(LOG_STATE_REWINDING, "Index shift requested: %d", indexShift);
 		}
 		frameTimeCorrector.updateIndexShift(indexShift);
 

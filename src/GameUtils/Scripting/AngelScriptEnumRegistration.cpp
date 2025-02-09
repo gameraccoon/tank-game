@@ -4,6 +4,8 @@
 
 #include <angelscript.h>
 
+#include "GameData/LogCategories.h"
+
 namespace AngelScript
 {
 	void RegisterEnum(asIScriptEngine& scriptEngine, const char* enumName) noexcept
@@ -30,7 +32,7 @@ namespace AngelScript
 				ReportErrorRelease("Unhandled error code %d during registration of enum '%s'", resCode, enumName);
 				break;
 			}
-			LogError("Failed to register enum '%s'. Error code: %d, Error reason: '%s'", enumName, resCode, errorReason);
+			LogError(LOG_ANGELSCRIPT, "Failed to register enum '%s'. Error code: %d, Error reason: '%s'", enumName, resCode, errorReason);
 		}
 	}
 
@@ -54,7 +56,7 @@ namespace AngelScript
 			default:
 				ReportErrorRelease("Unhandled error code %d during registration of enum value '%s' for enum '%s'", resCode, enumValue, enumName);
 			}
-			LogError("Failed to register enum value '%s' for enum '%s'. Error code: %d, Error reason: '%s'", enumValue, enumName, resCode, errorReason);
+			LogError(LOG_ANGELSCRIPT, "Failed to register enum value '%s' for enum '%s'. Error code: %d, Error reason: '%s'", enumValue, enumName, resCode, errorReason);
 		}
 	}
 } // namespace AngelScript

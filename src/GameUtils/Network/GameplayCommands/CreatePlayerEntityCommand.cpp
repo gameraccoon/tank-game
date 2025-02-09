@@ -17,6 +17,7 @@
 #include "GameData/Components/SpriteCreatorComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/Components/WeaponComponent.generated.h"
+#include "GameData/LogCategories.h"
 #include "GameData/WorldLayer.h"
 
 #include "GameUtils/Network/GameplayCommands/GameplayCommandTypes.h"
@@ -84,7 +85,7 @@ namespace Network
 			worldEntityManager.addComponent<MoveInterpolationComponent>(controlledEntity);
 		}
 
-		LogInfo("CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, gameStateRewinder.isServer() ? "server" : "client");
+		LogInfo(LOG_COMMANDS, "CreatePlayerEntityCommand executed in update %u for %s", gameStateRewinder.getTimeData().lastFixedUpdateIndex, gameStateRewinder.isServer() ? "server" : "client");
 	}
 
 	GameplayCommand::Ptr CreatePlayerEntityCommand::clone() const

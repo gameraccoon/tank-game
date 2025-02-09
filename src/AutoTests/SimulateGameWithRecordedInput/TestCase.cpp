@@ -2,6 +2,8 @@
 
 #include "AutoTests/SimulateGameWithRecordedInput/TestCase.h"
 
+#include "GameData/LogCategories.h"
+
 #include "HAL/Network/ConnectionManager.h"
 
 #include "EngineUtils/Application/ArgumentsParser.h"
@@ -13,7 +15,7 @@ SimulateGameWithRecordedInputTestCase::SimulateGameWithRecordedInputTestCase(con
 	, mInputFilePath(inputFilePath)
 	, mFramesLeft(maxFramesCount)
 {
-	LogInfo("Creating test case with %zu clients", clientsCount);
+	LogInfo(LOG_AUTOTESTS, "Creating test case with %zu clients", clientsCount);
 }
 
 TestChecklist SimulateGameWithRecordedInputTestCase::prepareChecklist()

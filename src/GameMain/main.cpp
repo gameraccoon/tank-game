@@ -6,6 +6,8 @@
 
 #include "EngineCommon/Random/Random.h"
 
+#include "GameData/LogCategories.h"
+
 #include "HAL/Base/GameLoop.h"
 #include "HAL/Network/ConnectionManager.h"
 
@@ -69,7 +71,7 @@ int main(const int argc, char** argv)
 #else
 	if (arguments.hasArgument("autotests"))
 	{
-		LogError("Autotests are not built in this configuration");
+		LogError(LOG_AUTOTESTS, "Autotests are not built in this configuration");
 		return 1;
 	}
 #endif // BUILD_AUTO_TESTS
@@ -77,7 +79,7 @@ int main(const int argc, char** argv)
 	if (arguments.hasArgument("connect-matchmaker"))
 	{
 		const std::string matchmakerAddress = arguments.getArgumentValue("connect-matchmaker").value_or("");
-		LogInfo("Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());
+		LogInfo(LOG_BACKEND, "Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());
 		const std::optional<std::string> address = MatchmakingClient::ReceiveServerAddressFromMatchmaker(matchmakerAddress);
 		if (address.has_value())
 		{

@@ -10,6 +10,7 @@
 
 #include "GameData/Components/NetworkOwnedEntitiesComponent.generated.h"
 #include "GameData/EcsDefinitions.h"
+#include "GameData/LogCategories.h"
 #include "GameData/Network/EntityMoveData.h"
 #include "GameData/Network/EntityMoveHash.h"
 #include "GameData/WorldLayer.h"
@@ -197,7 +198,7 @@ u32 GameStateRewinder::getFirstStoredUpdateIdx() const
 void GameStateRewinder::trimOldUpdates(const u32 firstUpdateToKeep)
 {
 	SCOPED_PROFILER("GameStateRewinder::trimOldUpdates");
-	LogInfo("trimOldUpdates on %s, firstUpdateToKeep=%u", mHistoryType == HistoryType::Client ? "client" : "server", firstUpdateToKeep);
+	LogInfo(LOG_STATE_REWINDING, "trimOldUpdates on %s, firstUpdateToKeep=%u", mHistoryType == HistoryType::Client ? "client" : "server", firstUpdateToKeep);
 
 	mPimpl->updateHistory.trimOldUpdates(firstUpdateToKeep, [](Impl::OneUpdateData& removedUpdateData) {
 		removedUpdateData.clear();
@@ -207,7 +208,7 @@ void GameStateRewinder::trimOldUpdates(const u32 firstUpdateToKeep)
 void GameStateRewinder::unwindBackInHistory(const u32 firstUpdateToResimulate)
 {
 	SCOPED_PROFILER("GameStateRewinder::unwindBackInHistory");
-	LogInfo("unwindBackInHistory(firstUpdateToResimulate=%u)", firstUpdateToResimulate);
+	LogInfo(LOG_STATE_REWINDING, "unwindBackInHistory(firstUpdateToResimulate=%u)", firstUpdateToResimulate);
 
 	const Impl::History::ForwardRange updateDataToReset = mPimpl->updateHistory.getRecordsUnsafe(firstUpdateToResimulate, mCurrentTimeData.lastFixedUpdateIndex);
 	for (const auto [updateData, updateIdx] : updateDataToReset)
@@ -328,6 +329,7 @@ void GameStateRewinder::applyAuthoritativeCommands(const u32 updateIdx, std::vec
 
 	if (updateData.gameplayCommands.gameplayGeneratedCommands.list != commands)
 	{
+		LogInfo(LOG_STATE_REWINDING, "We got desynced commands for update %u", updateIdx);
 		updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Commands, true);
 	}
 
@@ -543,7 +545,7 @@ void GameStateRewinder::applyAuthoritativeMoves(const u32 updateIdx, std::vector
 			{
 				updateData.clientMovement = std::move(ownedEntities);
 				updateData.dataState.setDesynced(Impl::OneUpdateData::DesyncType::Movement, true);
-				LogInfo("We got desynced movement data for update %u", updateIdx);
+				LogInfo(LOG_STATE_REWINDING, "We got desynced movement data for update %u", updateIdx);
 			}
 		}
 
@@ -661,7 +663,7 @@ void GameStateRewinder::setInitialClientUpdateIndex(const u32 newUpdateIndex)
 {
 	assertClientOnly();
 
-	LogInfo("Client sets initial update index from %u to %u (mLastStoredUpdateIdx was %u)", mCurrentTimeData.lastFixedUpdateIndex, newUpdateIndex, mPimpl->updateHistory.getLastStoredUpdateIdx());
+	LogInfo(LOG_STATE_REWINDING, "Client sets initial update index from %u to %u (mLastStoredUpdateIdx was %u)", mCurrentTimeData.lastFixedUpdateIndex, newUpdateIndex, mPimpl->updateHistory.getLastStoredUpdateIdx());
 
 	const s32 updateShift = static_cast<s32>(newUpdateIndex) - static_cast<s32>(mCurrentTimeData.lastFixedUpdateIndex);
 

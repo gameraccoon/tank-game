@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "GameData/LogCategories.h"
+
 #include "UnitTests/TestAssertHelper.h"
 
 using ::testing::EmptyTestEventListener;
@@ -43,7 +45,7 @@ void SGTestingEnvironment::TearDown()
 // Called before a test starts.
 void TestInfoLogger::OnTestStart(const TestInfo& /*test_info*/)
 {
-	//	LogInfo("======= Test %s.%s starting.", test_info.test_case_name(), test_info.name());
+	//	LogInfo(LOG_UNITTESTS, "======= Test %s.%s starting.", test_info.test_case_name(), test_info.name());
 }
 
 // Called after a failed assertion or a SUCCEED() invocation.
@@ -51,14 +53,14 @@ void TestInfoLogger::OnTestPartResult(const TestPartResult& test_part_result)
 {
 	if (test_part_result.failed())
 	{
-		LogError("======= %s in %s:%d\n%s", (test_part_result.failed() ? "Failure" : "Success"), test_part_result.file_name(), test_part_result.line_number(), test_part_result.summary());
+		LogError(LOG_UNITTESTS, "======= %s in %s:%d\n%s", (test_part_result.failed() ? "Failure" : "Success"), test_part_result.file_name(), test_part_result.line_number(), test_part_result.summary());
 	}
 }
 
 // Called after a test ends.
 void TestInfoLogger::OnTestEnd(const TestInfo& /*test_info*/)
 {
-	//	LogInfo("======= Test %s.%s ending.", test_info.test_case_name(), test_info.name());
+	//	LogInfo(LOG_UNITTESTS, "======= Test %s.%s ending.", test_info.test_case_name(), test_info.name());
 	EnableFailOnAssert();
 }
 

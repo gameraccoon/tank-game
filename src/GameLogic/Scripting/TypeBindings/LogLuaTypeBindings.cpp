@@ -2,6 +2,8 @@
 
 #include "GameLogic/Scripting/TypeBindings/LogLuaTypeBindings.h"
 
+#include "GameData/LogCategories.h"
+
 #include "GameUtils/Scripting/LuaBasicTypeBindings.h"
 #include "GameUtils/Scripting/LuaType.h"
 
@@ -13,7 +15,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			LogInfo(message);
+			LogInfo(LOG_LUA, message);
 		}
 
 		return 0;
@@ -25,7 +27,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			LogWarning(message);
+			LogWarning(LOG_LUA, message);
 		}
 
 		return 0;
@@ -37,7 +39,7 @@ namespace LuaInternal
 		for (int i = 0; i < argumentsCount; ++i)
 		{
 			const char* message = LuaType::ReadValue<const char*>(*state, i).value_or("[wrong type]");
-			LogError(message);
+			LogError(LOG_LUA, message);
 		}
 
 		return 0;

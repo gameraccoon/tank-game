@@ -87,7 +87,7 @@ int main(const int argc, char** argv)
 
 #ifdef MATCHMAKER_ADDRESS
 	const std::string matchmakerAddress = #MATCHMAKER_ADDRESS;
-	LogInfo("Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());
+	LogInfo(LOG_BACKEND, "Connecting to the matchmaker address '%s'", matchmakerAddress.c_str());
 	const std::optional<std::string> address = MatchmakingClient::ReceiveServerAddressFromMatchmaker(matchmakerAddress);
 
 	if (address.has_value())

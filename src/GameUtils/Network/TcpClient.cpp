@@ -7,6 +7,8 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "GameData/LogCategories.h"
+
 #if USED_COMPILER == COMPILER_MSVC
 
 #include <WinSock2.h>
@@ -33,7 +35,7 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	WSADATA wsaData;
 	if (int result = WSAStartup(MAKEWORD(2, 2), &wsaData); result != 0)
 	{
-		LogError("WSAStartup failed: %d", result);
+		LogError(LOG_NETWORK, "WSAStartup failed: %d", result);
 		return false;
 	}
 
@@ -45,7 +47,7 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	addrinfo* servinfo;
 	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0)
 	{
-		LogInfo("getaddrinfo: %s", gai_strerror(rv));
+		LogInfo(LOG_NETWORK, "getaddrinfo: %s", gai_strerror(rv));
 		return false;
 	}
 
@@ -55,13 +57,13 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	{
 		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			LogError("client: can't create socket");
+			LogError(LOG_NETWORK, "client: can't create socket");
 			continue;
 		}
 
 		if (connect(mPimpl->socket, p->ai_addr, static_cast<int>(p->ai_addrlen)) == -1)
 		{
-			LogError("client: can't connect to the server");
+			LogError(LOG_NETWORK, "client: can't connect to the server");
 			closesocket(mPimpl->socket);
 			continue;
 		}
@@ -71,7 +73,7 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 
 	if (p == NULL)
 	{
-		LogError("client: failed to connect to the server");
+		LogError(LOG_NETWORK, "client: failed to connect to the server");
 		return false;
 	}
 
@@ -84,7 +86,7 @@ void TcpClient::sendMessage(const std::string& message)
 {
 	if (int numBytes = send(mPimpl->socket, message.data(), static_cast<int>(message.size()), 0); numBytes == -1)
 	{
-		LogError("client: can't send message");
+		LogError(LOG_NETWORK, "client: can't send message");
 	}
 }
 
@@ -98,7 +100,7 @@ std::optional<std::string> TcpClient::receiveMessage()
 	}
 	else
 	{
-		LogError("client: error while receiving message");
+		LogError(LOG_NETWORK, "client: error while receiving message");
 		return std::nullopt;
 	}
 }
@@ -136,9 +138,9 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	hints.ai_socktype = SOCK_STREAM;
 
 	addrinfo* servinfo;
-	if (int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0)
+	if (const int rv = getaddrinfo(serverIp.data(), serverPort.data(), &hints, &servinfo); rv != 0)
 	{
-		LogInfo("getaddrinfo: %s", gai_strerror(rv));
+		LogInfo(LOG_NETWORK, "getaddrinfo: %s", gai_strerror(rv));
 		return false;
 	}
 
@@ -148,13 +150,13 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 	{
 		if ((mPimpl->socket = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
 		{
-			LogError("client: can't create socket");
+			LogError(LOG_NETWORK, "client: can't create socket");
 			continue;
 		}
 
 		if (connect(mPimpl->socket, p->ai_addr, p->ai_addrlen) == -1)
 		{
-			LogError("client: can't connect to the server");
+			LogError(LOG_NETWORK, "client: can't connect to the server");
 			close(mPimpl->socket);
 			continue;
 		}
@@ -164,19 +166,19 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 
 	if (p == NULL)
 	{
-		LogError("client: failed to connect to the server");
+		LogError(LOG_NETWORK, "client: failed to connect to the server");
 		return false;
 	}
 
 	sockaddr* sa = p->ai_addr;
-	void* in_addr = nullptr;
+	const void* in_addr = nullptr;
 	if (sa->sa_family == AF_INET)
 	{
-		in_addr = &(((struct sockaddr_in*)sa)->sin_addr);
+		in_addr = &reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr;
 	}
 	else
 	{
-		in_addr = &(((struct sockaddr_in6*)sa)->sin6_addr);
+		in_addr = &reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr;
 	}
 
 	inet_ntop(p->ai_family, in_addr, s, sizeof s);
@@ -188,9 +190,9 @@ bool TcpClient::connectToServer(const std::string& serverIp, const std::string& 
 
 void TcpClient::sendMessage(const std::string& message)
 {
-	if (int numBytes = send(mPimpl->socket, message.data(), message.size(), 0); numBytes == -1)
+	if (const int numBytes = send(mPimpl->socket, message.data(), message.size(), 0); numBytes == -1)
 	{
-		LogError("client: can't send message");
+		LogError(LOG_NETWORK, "client: can't send message");
 	}
 }
 
@@ -204,7 +206,7 @@ std::optional<std::string> TcpClient::receiveMessage()
 	}
 	else
 	{
-		LogError("client: error while receiving message");
+		LogError(LOG_NETWORK, "client: error while receiving message");
 		return std::nullopt;
 	}
 }
