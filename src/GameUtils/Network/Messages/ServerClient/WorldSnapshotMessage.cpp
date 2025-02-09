@@ -18,10 +18,10 @@
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId connectionId)
+	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, const ConnectionId connectionId)
 	{
 		// for players, we need to only send creation command to replicate the data
-		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
+		const ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<const ServerConnectionsComponent>();
 		const NetworkIdMappingComponent* networkIdMapping = world.getWorldComponents().getOrAddComponent<const NetworkIdMappingComponent>();
 
 		std::vector<GameplayCommand::Ptr> commands;
@@ -47,13 +47,13 @@ namespace Network::ServerClient
 		Serialization::AppendNumber<u32>(messageData, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 
 		Serialization::AppendNumber<u16>(messageData, static_cast<u16>(commands.size()));
-		for (Network::GameplayCommand::Ptr& command : commands)
+		for (const GameplayCommand::Ptr& command : commands)
 		{
 			Serialization::AppendNumber<u16>(messageData, static_cast<u16>(command->getType()));
 			command->serverSerialize(world, messageData, connectionId);
 		}
 
-		LogInfo("Send CreateWorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		LogInfo("Send WorldSnapshotMessage on frame %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 
 		return HAL::Network::Message{
 			static_cast<u32>(NetworkMessageId::WorldSnapshot),
@@ -83,7 +83,7 @@ namespace Network::ServerClient
 
 		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));
 
-		LogInfo("Applied CreateWorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		LogInfo("Applied WorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
 	}
 
 	void CleanBeforeApplyingSnapshot(WorldLayer& world)
