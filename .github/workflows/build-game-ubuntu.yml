@@ -73,7 +73,7 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ./tools/package/build_and_prepare_dedicated_server.sh
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: dedicated-server
         path: ./package/dedicated_server
