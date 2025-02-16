@@ -52,6 +52,11 @@ jobs:
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v4
 
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        create-symlink: true
+
     - name: Generate project
       shell: bash
       working-directory: ${{github.workspace}}/build/game
