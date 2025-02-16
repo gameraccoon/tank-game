@@ -28,7 +28,7 @@ jobs:
       run: sudo apt-get update
 
     - name: Install dependencies
-      run: sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler
+      run: sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler
 
     - name: Install LLVM and Clang
       uses: KyleMayes/install-llvm-action@v1

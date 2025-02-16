@@ -24,7 +24,7 @@ ECS pattern has been chosen here **not** for performance reasons, but to get bet
 - python3
 - GCC 13 (or higher), or ~~clang-16 (or higher),~~ or the latest Visual Studio 2022 (or newer)
 - for Linux, you need to install dependencies of SLD2, also libssl, and protobuf using your packet manager  
-e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler`
+e.g. for apt: `sudo apt-get install libopusfile-dev libflac-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack-dev libmodplug-dev libssl-dev libprotobuf-dev protobuf-compiler`
 
 ### Prerequisites for building the dedicated server
 - git with git-lfs
