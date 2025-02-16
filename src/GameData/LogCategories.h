@@ -4,7 +4,6 @@
 
 constexpr LogCategory LOG_STATE_REWINDING{ "STATE_REWINDING" };
 constexpr LogCategory LOG_NETWORK_MESSAGES{ "NETWORK_MESSAGES" };
-constexpr LogCategory LOG_NETWORK{ "NETWORK" };
 constexpr LogCategory LOG_ANGELSCRIPT{ "ANGELSCRIPT" };
 constexpr LogCategory LOG_LUA{ "LUA" };
 constexpr LogCategory LOG_AUTOTESTS{ "AUTOTESTS" };

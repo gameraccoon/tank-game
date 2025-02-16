@@ -7,7 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "GameData/LogCategories.h"
+#include "EngineCommon/EngineLogCategories.h"
 
 #if USED_COMPILER == COMPILER_MSVC
 

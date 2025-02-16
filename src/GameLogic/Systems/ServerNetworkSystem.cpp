@@ -2,12 +2,13 @@
 
 #include "GameLogic/Systems/ServerNetworkSystem.h"
 
+#include "EngineCommon/EngineLogCategories.h"
+
 #include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/NetworkEntityIdGeneratorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
-#include "GameData/LogCategories.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/Network/NetworkProtocolVersion.h"
 #include "GameData/WorldLayer.h"
