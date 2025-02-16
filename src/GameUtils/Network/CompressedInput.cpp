@@ -2,6 +2,7 @@
 
 #include "GameUtils/Network/CompressedInput.h"
 
+#include <algorithm>
 #include <array>
 #include <vector>
 
