@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 template<typename T, typename IndexType, bool IsForward>
 class HistoryRange
 {
