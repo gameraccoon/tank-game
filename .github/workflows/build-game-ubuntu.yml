@@ -58,9 +58,6 @@ jobs:
     - name: Generate project
       shell: bash
       working-directory: ${{github.workspace}}/build/game
-      env:
-        CC: gcc
-        CXX: g++
       run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache --preset linux-ninja
 
     - name: Build game
