@@ -50,13 +50,16 @@ jobs:
     - name: Install ninja-build tool
       uses: seanmiddleditch/gha-setup-ninja@v4
 
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+
     - name: Generate project
       shell: bash
       working-directory: ${{github.workspace}}/build/game
       env:
         CC: clang-16
         CXX: clang++-16
-      run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE --preset linux-ninja-clang
+      run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache --preset linux-ninja-clang
 
     - name: Build game
       working-directory: ${{github.workspace}}/build/game
