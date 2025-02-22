@@ -3,7 +3,7 @@ set -e
 
 mkdir build/dedicated_server -p
 pushd build/dedicated_server
-	cmake ../.. -DDEDICATED_SERVER=ON -DBUILD_UNIT_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+	cmake ../.. -DDEDICATED_SERVER=ON -DBUILD_UNIT_TESTS=OFF -DCMAKE_BUILD_TYPE=Release --preset linux-ninja
 	cmake --build .
 popd
 
