@@ -2,7 +2,7 @@
 
 #include "GameLogic/Debug/DebugGameBehavior.h"
 
-#include "GameData/Components/ClientNetworkMessagesComponent.generated.h"
+#include "GameData/Components/ReceivedNetworkMessagesComponent.generated.h"
 
 #include "EngineUtils/Application/ArgumentsParser.h"
 
@@ -22,10 +22,9 @@ void DebugGameBehavior::preInnerUpdate(Game& game)
 		game.quitGame();
 	}
 
-	// for now only record network messages on clients
-	if (ClientNetworkMessagesComponent* clientNetworkMessagesComponent = std::get<0>(game.getGameData().getGameComponents().getComponents<ClientNetworkMessagesComponent>()))
+	if (ReceivedNetworkMessagesComponent* receivedNetworkMessagesComponent = std::get<0>(game.getGameData().getGameComponents().getComponents<ReceivedNetworkMessagesComponent>()))
 	{
-		mDebugRecordedNetwork.processFrame(clientNetworkMessagesComponent->getMessagesRef());
+		mDebugRecordedNetwork.processFrame(receivedNetworkMessagesComponent->getMessagesRef());
 	}
 }
 

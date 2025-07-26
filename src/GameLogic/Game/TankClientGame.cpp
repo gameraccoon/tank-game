@@ -10,10 +10,10 @@
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ClientNetworkInterfaceComponent.generated.h"
-#include "GameData/Components/ClientNetworkMessagesComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/MoveInterpolationComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
+#include "GameData/Components/ReceivedNetworkMessagesComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/LogCategories.h"
@@ -92,7 +92,7 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 		ClientNetworkInterfaceComponent* networkInterface = getWorldHolder().getGameData().getGameComponents().addComponent<ClientNetworkInterfaceComponent>();
 		networkInterface->setNetwork(HAL::ClientNonRecordableNetworkInterface(getConnectionManager()));
 	}
-	getWorldHolder().getGameData().getGameComponents().addComponent<ClientNetworkMessagesComponent>();
+	getWorldHolder().getGameData().getGameComponents().addComponent<ReceivedNetworkMessagesComponent>();
 
 	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().addComponent<GameplayCommandFactoryComponent>();
 	RegisterGameplayCommands(gameplayFactory->getInstanceRef());
@@ -229,7 +229,7 @@ void TankClientGame::consumeNetworkMessages()
 
 	const ConnectionId connectionId = clientGameData->getClientConnectionId();
 
-	auto [networkMessages] = getWorldHolder().getGameData().getGameComponents().getComponents<ClientNetworkMessagesComponent>();
+	auto [networkMessages] = getWorldHolder().getGameData().getGameComponents().getComponents<ReceivedNetworkMessagesComponent>();
 	networkMessages->getMessagesRef() = getConnectionManager().consumeReceivedClientMessages(connectionId);
 }
 

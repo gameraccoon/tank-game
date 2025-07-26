@@ -5,7 +5,7 @@
 #include "GameLogic/Game/ApplicationData.h"
 #include "GameLogic/Game/GraphicalClient.h"
 
-GraphicalClient::GraphicalClient(ApplicationData& applicationData, int instanceIndex)
+GraphicalClient::GraphicalClient(ApplicationData& applicationData, const int instanceIndex)
 	: game(&applicationData.engine.value(), applicationData.resourceManager, applicationData.threadPool, instanceIndex)
 	, engine(applicationData.engine.value())
 {

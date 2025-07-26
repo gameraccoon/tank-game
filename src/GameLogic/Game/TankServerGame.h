@@ -34,6 +34,7 @@ protected:
 
 private:
 	void initSystems(bool shouldRender);
+	void consumeNetworkMessages();
 	void updateHistory();
 
 private:

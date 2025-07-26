@@ -1,8 +1,5 @@
 #pragma once
 
-#include <chrono>
-#include <string>
-
 #include <raccoon-ecs/utils/system.h>
 
 #include "EngineCommon/Types/BasicTypes.h"
@@ -11,15 +8,14 @@ class WorldHolder;
 class GameStateRewinder;
 
 /**
- * System that handles network communication on the server
+ * System that handles messages coming from clients
  */
-class ServerNetworkSystem : public RaccoonEcs::System
+class ServerNetworkMessageSystem final : public RaccoonEcs::System
 {
 public:
-	ServerNetworkSystem(
+	ServerNetworkMessageSystem(
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
-		u16 serverPort,
 		bool& shouldPauseGame,
 		bool& shouldQuitGame
 	) noexcept;
@@ -29,7 +25,6 @@ public:
 private:
 	WorldHolder& mWorldHolder;
 	GameStateRewinder& mGameStateRewinder;
-	const u16 mServerPort;
 	u32 mLastClientInteractionUpdateIdx = 0;
 	bool& mShouldPauseGame;
 	bool& mShouldQuitGame;

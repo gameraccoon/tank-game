@@ -14,6 +14,7 @@ namespace HAL
 		}
 
 		bool isValid() const { return mConnectionManager != nullptr; }
+
 		bool isServerConnectionOpen(const ConnectionId connectionId) const
 		{
 			return mConnectionManager->isServerConnectionOpen(connectionId);
@@ -41,7 +42,9 @@ namespace HAL
 			: mConnectionManager(&connectionManager)
 		{
 		}
+
 		bool isValid() const { return mConnectionManager != nullptr; }
+
 		ConnectionManager::OpenPortResult startListeningToPort(const u16 port)
 		{
 			return mConnectionManager->startListeningToPort(port);
@@ -51,18 +54,17 @@ namespace HAL
 		{
 			return mConnectionManager->isPortOpen(port);
 		}
-		std::vector<std::pair<ConnectionId, Network::Message>> consumeReceivedServerMessages(const u16 port)
-		{
-			return mConnectionManager->consumeReceivedServerMessages(port);
-		}
+
 		ConnectionManager::SendMessageResult sendMessageToClient(const ConnectionId connectionId, const Network::Message& message, const ConnectionManager::MessageReliability reliability = ConnectionManager::MessageReliability::Reliable, const ConnectionManager::UseNagle useNagle = ConnectionManager::UseNagle::Yes) const
 		{
 			return mConnectionManager->sendMessageToClient(connectionId, message, reliability, useNagle);
 		}
+
 		void broadcastMessageToClients(const u16 port, const Network::Message& message, const ConnectionId except = InvalidConnectionId, const ConnectionManager::MessageReliability reliability = ConnectionManager::MessageReliability::Reliable, const ConnectionManager::UseNagle useNagle = ConnectionManager::UseNagle::Yes) const
 		{
 			mConnectionManager->broadcastMessageToClients(port, message, except, reliability, useNagle);
 		}
+
 		void disconnectClient(const ConnectionId connectionId) const
 		{
 			mConnectionManager->disconnectClient(connectionId);

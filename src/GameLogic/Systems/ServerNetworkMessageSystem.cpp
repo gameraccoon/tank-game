@@ -1,10 +1,11 @@
 #include "EngineCommon/precomp.h"
 
-#include "GameLogic/Systems/ServerNetworkSystem.h"
+#include "GameLogic/Systems/ServerNetworkMessageSystem.h"
 
 #include "EngineCommon/EngineLogCategories.h"
 
 #include "GameData/Components/NetworkEntityIdGeneratorComponent.generated.h"
+#include "GameData/Components/ReceivedNetworkMessagesComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
@@ -24,16 +25,14 @@
 #include "GameUtils/Network/Messages/ServerClient/WorldSnapshotMessage.h"
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
-ServerNetworkSystem::ServerNetworkSystem(
+ServerNetworkMessageSystem::ServerNetworkMessageSystem(
 	WorldHolder& worldHolder,
 	GameStateRewinder& gameStateRewinder,
-	const u16 serverPort,
 	bool& shouldPauseGame,
 	bool& shouldQuitGame
 ) noexcept
 	: mWorldHolder(worldHolder)
 	, mGameStateRewinder(gameStateRewinder)
-	, mServerPort(serverPort)
 	, mShouldPauseGame(shouldPauseGame)
 	, mShouldQuitGame(shouldQuitGame)
 {
@@ -84,9 +83,9 @@ static void OnClientConnected(HAL::ServerNonRecordableNetworkInterface& serverNe
 	}
 }
 
-void ServerNetworkSystem::update()
+void ServerNetworkMessageSystem::update()
 {
-	SCOPED_PROFILER("ServerNetworkSystem::update");
+	SCOPED_PROFILER("ServerNetworkMessageSystem::update");
 
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
@@ -99,15 +98,9 @@ void ServerNetworkSystem::update()
 		return;
 	}
 
-	if (!networkInterface->getNetwork().isPortOpen(mServerPort))
-	{
-		networkInterface->getNetworkRef().startListeningToPort(mServerPort);
-		return;
-	}
+	auto [networkMessages] = gameData.getGameComponents().getComponents<ReceivedNetworkMessagesComponent>();
 
-	auto newMessages = networkInterface->getNetworkRef().consumeReceivedServerMessages(mServerPort);
-
-	for (const auto& [connectionId, message] : newMessages)
+	for (const auto& [connectionId, message] : networkMessages->getMessages())
 	{
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{

@@ -5,7 +5,7 @@
 #include "EngineCommon/EngineLogCategories.h"
 #include "EngineCommon/Types/Serialization.h"
 
-#include "GameData/Components/ClientNetworkMessagesComponent.generated.h"
+#include "GameData/Components/ReceivedNetworkMessagesComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
 #include "GameData/WorldLayer.h"
@@ -37,7 +37,7 @@ void ClientNetworkMessageSystem::update()
 	SCOPED_PROFILER("ClientNetworkMessageSystem::update");
 
 	GameData& gameData = mWorldHolder.getGameData();
-	auto [networkMessages] = gameData.getGameComponents().getComponents<ClientNetworkMessagesComponent>();
+	auto [networkMessages] = gameData.getGameComponents().getComponents<ReceivedNetworkMessagesComponent>();
 	for (auto&& [_, message] : networkMessages->getMessagesRef())
 	{
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))

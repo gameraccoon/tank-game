@@ -4,6 +4,7 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
+#include "GameData/Components/ReceivedNetworkMessagesComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
 #include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
@@ -33,7 +34,8 @@
 #include "GameLogic/Systems/SaveCommandsToHistorySystem.h"
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 #include "GameLogic/Systems/ServerMovesSendSystem.h"
-#include "GameLogic/Systems/ServerNetworkSystem.h"
+#include "GameLogic/Systems/ServerNetworkConnectionSystem.h"
+#include "GameLogic/Systems/ServerNetworkMessageSystem.h"
 #include "GameLogic/Systems/ShootingSystem.h"
 
 TankServerGame::TankServerGame(ResourceManager& resourceManager, ThreadPool& threadPool, const int instanceIndex) noexcept
@@ -72,6 +74,7 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 		ServerNetworkInterfaceComponent* networkInterface = getWorldHolder().getGameData().getGameComponents().addComponent<ServerNetworkInterfaceComponent>();
 		networkInterface->setNetwork(HAL::ServerNonRecordableNetworkInterface(getConnectionManager()));
 	}
+	getWorldHolder().getGameData().getGameComponents().addComponent<ReceivedNetworkMessagesComponent>();
 
 	Game::preStart(arguments);
 }
@@ -95,6 +98,8 @@ void TankServerGame::notPausablePreFrameUpdate(const float dt)
 void TankServerGame::dynamicTimePreFrameUpdate(const float dt, const int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankServerGame::dynamicTimePreFrameUpdate");
+	consumeNetworkMessages();
+
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
 
 	updateHistory();
@@ -130,7 +135,8 @@ void TankServerGame::initSystems([[maybe_unused]] const bool shouldRender)
 {
 	SCOPED_PROFILER("TankServerGame::initSystems");
 
-	getNotPausablePreFrameSystemsManager().registerSystem<ServerNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerPort, mShouldPauseGame, mShouldQuitGame);
+	getNotPausablePreFrameSystemsManager().registerSystem<ServerNetworkConnectionSystem>(getWorldHolder(), mServerPort);
+	getNotPausablePreFrameSystemsManager().registerSystem<ServerNetworkMessageSystem>(getWorldHolder(), mGameStateRewinder, mShouldPauseGame, mShouldQuitGame);
 
 	getGameLogicSystemsManager().registerSystem<FetchServerInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchExternalCommandsSystem>(getWorldHolder(), mGameStateRewinder);
@@ -155,6 +161,14 @@ void TankServerGame::initSystems([[maybe_unused]] const bool shouldRender)
 		getNotPausableRenderSystemsManager().registerSystem<RenderSystem>(getWorldHolder(), getResourceManager());
 	}
 #endif // !DISABLE_SDL
+}
+
+void TankServerGame::consumeNetworkMessages()
+{
+	SCOPED_PROFILER("TankServerGame::consumeNetworkMessages");
+
+	auto [networkMessages] = getWorldHolder().getGameData().getGameComponents().getComponents<ReceivedNetworkMessagesComponent>();
+	networkMessages->getMessagesRef() = getConnectionManager().consumeReceivedServerMessages(mServerPort);
 }
 
 void TankServerGame::updateHistory()

@@ -8,7 +8,7 @@ class GameStateRewinder;
 /**
  * System that sends commands generated during the frame
  */
-class ServerCommandsSendSystem : public RaccoonEcs::System
+class ServerCommandsSendSystem final : public RaccoonEcs::System
 {
 public:
 	ServerCommandsSendSystem(WorldHolder& worldHolder, GameStateRewinder& gameStateRewinder) noexcept;
