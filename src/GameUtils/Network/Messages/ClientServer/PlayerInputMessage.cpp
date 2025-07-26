@@ -18,51 +18,51 @@ namespace Network::ClientServer
 {
 	HAL::Network::Message CreatePlayerInputMessage(GameStateRewinder& gameStateRewinder)
 	{
-		HAL::Network::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
-
 		// at this point we already has input for the next frame (at least, may be more)
 		const u32 lastInputUpdateIdx = gameStateRewinder.getTimeData().lastFixedUpdateIndex + 1;
 
 		const std::vector<GameplayInput::FrameState> inputs = gameStateRewinder.getLastInputs(Input::MAX_INPUT_HISTORY_SEND_SIZE, lastInputUpdateIdx);
 		const size_t inputsToSend = std::min(inputs.size(), Input::MAX_INPUT_HISTORY_SEND_SIZE);
 
-		resultMessage.reserve(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
+		HAL::Network::Message resultMessage(static_cast<u32>(NetworkMessageId::PlayerInput));
+		resultMessage.reservePayload(4 + 1 + inputsToSend * ((4 + 4) * 2 + (1 + 8) * 1));
+		std::vector<std::byte>& resultMessageData = resultMessage.getDataMutRef();
 
-		Serialization::AppendNumber<u32>(resultMessage.data, lastInputUpdateIdx);
+		Serialization::AppendNumber<u32>(resultMessageData, lastInputUpdateIdx);
 		static_assert(Input::MAX_INPUT_HISTORY_SEND_SIZE < std::numeric_limits<u8>::max(), "u8 is too small to fit input history size");
-		Serialization::AppendNumberNarrowCast<u8>(resultMessage.data, inputsToSend);
+		Serialization::AppendNumberNarrowCast<u8>(resultMessageData, inputsToSend);
 
-		Utils::AppendInputHistory(resultMessage.data, inputs, inputsToSend);
+		Utils::AppendInputHistory(resultMessageData, inputs, inputsToSend);
 
 		return resultMessage;
 	}
 
-	static bool hasNewInput(u32 oldFrameIndex, u32 newFrameIndex)
+	static bool hasNewInput(const u32 oldFrameIndex, const u32 newFrameIndex)
 	{
 		return oldFrameIndex < newFrameIndex;
 	}
 
-	static bool inputIsNotFromFarFuture(u32 oldFrameIndex, u32 newFrameIndex)
+	static bool inputIsNotFromFarFuture(const u32 oldFrameIndex, const u32 newFrameIndex)
 	{
 		return oldFrameIndex + 10 > newFrameIndex;
 	}
 
-	void ApplyPlayerInputMessage(WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
+	void ApplyPlayerInputMessage(WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, const ConnectionId connectionId)
 	{
-		size_t streamIndex = HAL::Network::Message::payloadStartPos;
-		const std::vector<std::byte>& data = message.data;
+		size_t streamIndex = 0;
+		const std::span<const std::byte> payload = message.getPayloadRef();
 
 		const auto [time] = world.getWorldComponents().getComponents<const TimeComponent>();
 		const u32 lastServerProcessedUpdateIdx = time->getValue()->lastFixedUpdateIndex;
 
-		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(data, streamIndex).value_or(0);
-		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(data, streamIndex).value_or(0);
+		const u32 lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(payload, streamIndex).value_or(0);
+		const size_t receivedInputsCount = Serialization::ReadNumber<u8>(payload, streamIndex).value_or(0);
 
 		if (hasNewInput(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx) && inputIsNotFromFarFuture(lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx))
 		{
 			LogInfo(LOG_NETWORK_MESSAGES, "Processing input message on server frame %u with updateIdx: %u", lastServerProcessedUpdateIdx, lastReceivedInputUpdateIdx);
 			// read the input (do it inside the "if", not to waste time on reading the input if it's not needed)
-			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(data, receivedInputsCount, streamIndex);
+			const std::vector<GameplayInput::FrameState> receivedFrameStates = Utils::ReadInputHistory(payload, receivedInputsCount, streamIndex);
 
 			const u32 firstReceivedUpdateIdx = lastReceivedInputUpdateIdx - static_cast<u32>(receivedInputsCount) + 1;
 

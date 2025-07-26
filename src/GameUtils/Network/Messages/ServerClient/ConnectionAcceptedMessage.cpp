@@ -26,11 +26,11 @@ namespace Network::ServerClient
 		};
 	}
 
-	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, const u64 timestampNow, const HAL::Network::Message& message)
+	void ApplyConnectionAcceptedMessage(GameStateRewinder& gameStateRewinder, const u64 timestampNow, const std::span<const std::byte> messagePayload)
 	{
-		size_t streamIndex = HAL::Network::Message::payloadStartPos;
-		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
-		const u64 sentTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
+		size_t streamIndex = 0;
+		const u32 updateIdx = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
+		const u64 sentTimestamp = Serialization::ReadNumber<u64>(messagePayload, streamIndex).value_or(0);
 		// time in microseconds
 		const u64 roundTripTimeUs = timestampNow - sentTimestamp;
 		const u64 oneWayTimeUs = roundTripTimeUs / 2;

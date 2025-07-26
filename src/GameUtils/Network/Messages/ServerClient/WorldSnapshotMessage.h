@@ -12,7 +12,7 @@ namespace Network::ServerClient
 {
 	HAL::Network::Message CreateWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId connectionId);
 
-	void ApplyWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message);
+	void ApplyWorldSnapshotMessage(GameStateRewinder& gameStateRewinder, std::span<const std::byte> messagePayload);
 
 	void CleanBeforeApplyingSnapshot(WorldLayer& world);
 }

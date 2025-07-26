@@ -30,11 +30,13 @@ namespace Network::ClientServer
 	{
 		ConnectMessageResult result;
 
-		size_t streamIndex = HAL::Network::Message::payloadStartPos;
-		result.clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
-		result.forwardedTimestamp = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
+		const std::span<const std::byte> payload = message.getPayloadRef();
+		size_t streamIndex = 0;
 
-		if (result.clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
+		result.clientNetworkProtocolVersion = Serialization::ReadNumber<u32>(payload, streamIndex).value_or(0);
+		result.forwardedTimestamp = Serialization::ReadNumber<u64>(payload, streamIndex).value_or(0);
+
+		if (result.clientNetworkProtocolVersion == NetworkProtocolVersion)
 		{
 			ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
 			serverConnections->getClientDataRef().emplace(connectionId, OneClientData{ OptionalEntity{} });

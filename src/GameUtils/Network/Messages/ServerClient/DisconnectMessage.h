@@ -38,5 +38,5 @@ namespace Network::ServerClient
 	[[nodiscard]] std::string ReasonToString(const DisconnectReason::Value& reason);
 
 	HAL::Network::Message CreateDisconnectMessage(DisconnectReason::Value reason);
-	DisconnectReason::Value ApplyDisconnectMessage(const HAL::Network::Message& message);
+	DisconnectReason::Value ApplyDisconnectMessage(std::span<const std::byte> messagePayload);
 } // namespace Network::ServerClient

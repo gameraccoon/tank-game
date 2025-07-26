@@ -69,28 +69,28 @@ namespace Network::ServerClient
 		};
 	}
 
-	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, const HAL::Network::Message& message)
+	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, const std::span<const std::byte> messagePayload)
 	{
-		size_t streamIndex = HAL::Network::Message::payloadStartPos;
+		size_t streamIndex = 0;
 		u32 lastReceivedInputUpdateIdx = 0;
-		const u8 bitset = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
+		const u8 bitset = Serialization::ReadNumber<u8>(messagePayload, streamIndex).value_or(0);
 		const bool hasMissingInput = isBitSet<u8, 0>(bitset);
 		const bool hasIndexShift = isBitSet<u8, 1>(bitset);
 
 		if (hasMissingInput)
 		{
-			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+			lastReceivedInputUpdateIdx = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
 		}
 
 		s32 indexShift = 0;
 		if (hasIndexShift)
 		{
-			indexShift = Serialization::ReadNumber<s32>(message.data, streamIndex).value_or(0);
+			indexShift = Serialization::ReadNumber<s32>(messagePayload, streamIndex).value_or(0);
 			LogInfo(LOG_STATE_REWINDING, "Index shift requested: %d", indexShift);
 		}
 		frameTimeCorrector.updateIndexShift(indexShift);
 
-		const u32 updateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+		const u32 updateIdx = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
 		// we are not interested in values greater than the update idx of input that we are processing
 		// for any non-relevant value, assume it is equal to updateIdx
 		lastReceivedInputUpdateIdx = hasMissingInput ? std::min(lastReceivedInputUpdateIdx, updateIdx) : updateIdx;
@@ -98,17 +98,17 @@ namespace Network::ServerClient
 		AssertFatal(lastReceivedInputUpdateIdx <= updateIdx, "We can't have input update from the future");
 
 		std::vector<EntityMoveData> currentUpdateData;
-		currentUpdateData.reserve((message.data.size() - streamIndex) / (8 + 4 + 4 + 4));
-		const size_t dataSize = message.data.size();
+		currentUpdateData.reserve((messagePayload.size() - streamIndex) / (8 + 4 + 4 + 4));
+		const size_t dataSize = messagePayload.size();
 		while (streamIndex < dataSize)
 		{
-			const u64 networkEntityId = Serialization::ReadNumber<u64>(message.data, streamIndex).value_or(0);
+			const u64 networkEntityId = Serialization::ReadNumber<u64>(messagePayload, streamIndex).value_or(0);
 			Vector2D location{};
-			location.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
-			location.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
+			location.x = Serialization::ReadNumber<f32>(messagePayload, streamIndex).value_or(0);
+			location.y = Serialization::ReadNumber<f32>(messagePayload, streamIndex).value_or(0);
 			Vector2D direction{};
-			direction.x = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
-			direction.y = Serialization::ReadNumber<f32>(message.data, streamIndex).value_or(0);
+			direction.x = Serialization::ReadNumber<f32>(messagePayload, streamIndex).value_or(0);
+			direction.y = Serialization::ReadNumber<f32>(messagePayload, streamIndex).value_or(0);
 
 			currentUpdateData.emplace_back(networkEntityId, location, direction);
 		}

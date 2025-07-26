@@ -84,8 +84,8 @@ void DebugRecordedNetwork::appendNetworkDataToFile(const OneFrameNetworkData& ne
 	}
 
 	std::vector<std::byte> recordedDataBytes;
-	// assume the message payload is 8 bytes on average
-	recordedDataBytes.reserve(networkData.size() * (sizeof(ConnectionId) + sizeof(u32) + HAL::Network::Message::headerSize + 8));
+	// assume one message size is 16 bytes on average
+	recordedDataBytes.reserve(networkData.size() * (sizeof(ConnectionId) + sizeof(u32) + 16));
 
 	Serialization::AppendNumber<u32>(recordedDataBytes, static_cast<u32>(networkData.size()));
 	for (const auto& [connectionId, message] : networkData)
@@ -93,16 +93,9 @@ void DebugRecordedNetwork::appendNetworkDataToFile(const OneFrameNetworkData& ne
 		// keep it in case of reconnects, peer-to-peer, or recording on server
 		Serialization::AppendNumber<ConnectionId>(recordedDataBytes, connectionId);
 
-		if (message.cursorPos == 0)
-		{
-			Serialization::AppendNumber<u32>(recordedDataBytes, static_cast<u32>(message.data.size()));
-			recordedDataBytes.insert(recordedDataBytes.end(), message.data.begin(), message.data.end());
-		}
-		else
-		{
-			Serialization::AppendNumber<u32>(recordedDataBytes, static_cast<u32>(message.cursorPos));
-			recordedDataBytes.insert(recordedDataBytes.end(), message.data.begin(), message.data.begin() + message.cursorPos);
-		}
+		const std::span<const std::byte> dataSpan = message.getDataRef();
+		Serialization::AppendNumber<u32>(recordedDataBytes, static_cast<u32>(dataSpan.size()));
+		recordedDataBytes.insert(recordedDataBytes.end(), dataSpan.begin(), dataSpan.end());
 	}
 
 	std::fwrite(recordedDataBytes.data(), sizeof(std::byte), recordedDataBytes.size(), mRecordedNetworkDataFile);

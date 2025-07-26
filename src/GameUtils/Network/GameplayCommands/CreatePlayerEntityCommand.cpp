@@ -93,7 +93,7 @@ namespace Network
 		return std::make_unique<CreatePlayerEntityCommand>(*this);
 	}
 
-	void CreatePlayerEntityCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const
+	void CreatePlayerEntityCommand::serverSerialize(WorldLayer& /*world*/, std::vector<std::byte>& inOutStream, const ConnectionId receiverConnectionId) const
 	{
 		inOutStream.reserve(inOutStream.size() + 1 + 8 + 4 * 2);
 
@@ -103,7 +103,7 @@ namespace Network
 		Serialization::AppendNumber<f32>(inOutStream, mPos.y);
 	}
 
-	GameplayCommand::Ptr CreatePlayerEntityCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
+	GameplayCommand::Ptr CreatePlayerEntityCommand::ClientDeserialize(const std::span<const std::byte> stream, size_t& inOutCursorPos)
 	{
 		const IsOwner isOwner = (Serialization::ReadNumber<u8>(stream, inOutCursorPos) != 0) ? IsOwner::Yes : IsOwner::No;
 		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0.0f);
@@ -122,7 +122,7 @@ namespace Network
 		return GameplayCommandType::CreatePlayerEntity;
 	}
 
-	CreatePlayerEntityCommand::CreatePlayerEntityCommand(const Vector2D pos, NetworkEntityId networkEntityId, const IsOwner isOwner, const ConnectionId ownerConnectionId)
+	CreatePlayerEntityCommand::CreatePlayerEntityCommand(const Vector2D pos, const NetworkEntityId networkEntityId, const IsOwner isOwner, const ConnectionId ownerConnectionId)
 		: mIsOwner(isOwner)
 		, mPos(pos)
 		, mNetworkEntityId(networkEntityId)

@@ -43,22 +43,22 @@ void ClientNetworkMessageSystem::update()
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::EntityMove:
-			Network::ServerClient::ApplyMovesMessage(mGameStateRewinder, mFrameTimeCorrector, message);
+			Network::ServerClient::ApplyMovesMessage(mGameStateRewinder, mFrameTimeCorrector, message.getPayloadRef());
 			break;
 		case NetworkMessageId::GameplayCommand:
-			Network::ServerClient::ApplyGameplayCommandsMessage(mGameStateRewinder, message);
+			Network::ServerClient::ApplyGameplayCommandsMessage(mGameStateRewinder, message.getPayloadRef());
 			break;
 		case NetworkMessageId::WorldSnapshot:
-			Network::ServerClient::ApplyWorldSnapshotMessage(mGameStateRewinder, message);
+			Network::ServerClient::ApplyWorldSnapshotMessage(mGameStateRewinder, message.getPayloadRef());
 			break;
 		case NetworkMessageId::Disconnect: {
-			const auto reason = Network::ServerClient::ApplyDisconnectMessage(message);
+			const auto reason = Network::ServerClient::ApplyDisconnectMessage(message.getPayloadRef());
 			LogInfo(LOG_NETWORK, Network::ServerClient::ReasonToString(reason));
 			mShouldQuitGameRef = true;
 			break;
 		}
 		case NetworkMessageId::ConnectionAccepted:
-			Network::ServerClient::ApplyConnectionAcceptedMessage(mGameStateRewinder, HAL::ConnectionManager::GetTimestampNow(), message);
+			Network::ServerClient::ApplyConnectionAcceptedMessage(mGameStateRewinder, HAL::ConnectionManager::GetTimestampNow(), message.getPayloadRef());
 			break;
 		default:
 			ReportError("Unhandled message");

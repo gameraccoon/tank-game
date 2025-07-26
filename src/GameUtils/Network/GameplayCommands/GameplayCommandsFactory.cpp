@@ -10,7 +10,7 @@
 
 namespace Network
 {
-	GameplayCommand::Ptr GameplayCommandFactory::deserialize(const std::vector<std::byte>& stream, size_t& inOutStreamPos) const
+	GameplayCommand::Ptr GameplayCommandFactory::deserialize(const std::span<const std::byte> stream, size_t& inOutStreamPos) const
 	{
 		const std::optional<u16> commandTypeIndexOption = Serialization::ReadNumber<u16>(stream, inOutStreamPos);
 		if (!commandTypeIndexOption.has_value())
@@ -26,9 +26,9 @@ namespace Network
 			ReportError("Command type out of bounds %u", commandTypeIndex);
 			return nullptr;
 		}
-		GameplayCommandType type = static_cast<GameplayCommandType>(commandTypeIndex);
+		const GameplayCommandType type = static_cast<GameplayCommandType>(commandTypeIndex);
 
-		auto it = mDeserializators.find(type);
+		const auto it = mDeserializators.find(type);
 		AssertFatal(it != mDeserializators.end(), "Gameplay command wasn't found, id=%u", type);
 		return it->second(stream, inOutStreamPos);
 	}

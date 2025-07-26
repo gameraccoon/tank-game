@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EngineCommon/Types/BasicTypes.h"
+#include <span>
 
 #include "EngineData/Geometry/Vector2D.h"
 
@@ -28,7 +28,7 @@ namespace Network
 		void execute(GameStateRewinder& gameStateRewinder, WorldLayer& world) const override;
 		[[nodiscard]] Ptr clone() const override;
 		void serverSerialize(WorldLayer& world, std::vector<std::byte>& inOutStream, ConnectionId receiverConnectionId) const override;
-		[[nodiscard]] static Ptr ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos);
+		[[nodiscard]] static Ptr ClientDeserialize(std::span<const std::byte> stream, size_t& inOutCursorPos);
 		static GameplayCommandType GetType();
 
 	private:

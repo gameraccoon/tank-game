@@ -115,7 +115,8 @@ CONNECTION_MANAGER_TEST(SendMessageToOpenPortAndRecieve)
 			std::vector<std::pair<ConnectionId, HAL::Network::Message>> messages = connectionManagerServer.consumeReceivedServerMessages(port);
 			if (!messages.empty())
 			{
-				EXPECT_EQ(testMessageData, std::vector(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
+				const std::span<const std::byte> messagePayload = messages[0].second.getPayloadRef();
+				EXPECT_EQ(testMessageData, std::vector(messagePayload.begin(), messagePayload.end()));
 				return;
 			}
 			std::this_thread::yield();
@@ -172,7 +173,8 @@ CONNECTION_MANAGER_TEST(SendMessageBackFromServerAndRecieve)
 			{
 				EXPECT_EQ(connectionResult.connectionId, messages[0].first);
 				EXPECT_EQ(1u, messages[0].second.readMessageType());
-				EXPECT_EQ(testMessageData2, std::vector(messages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, messages[0].second.data.end()));
+				const std::span<const std::byte> messagePayload = messages[0].second.getPayloadRef();
+				EXPECT_EQ(testMessageData2, std::vector(messagePayload.begin(), messagePayload.end()));
 				return;
 			}
 			std::this_thread::yield();
@@ -245,10 +247,12 @@ CONNECTION_MANAGER_TEST(ClientAndServer_ServerSendsTwoReliableMessages_MessagesA
 				ASSERT_EQ(receivedMessages.size(), 2u);
 				EXPECT_EQ(connectionResult.connectionId, receivedMessages[0].first);
 				EXPECT_EQ(1u, receivedMessages[0].second.readMessageType());
-				EXPECT_EQ(testMessageData2, std::vector(receivedMessages[0].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[0].second.data.end()));
+				const std::span<const std::byte> message1Payload = receivedMessages[0].second.getPayloadRef();
+				EXPECT_EQ(testMessageData2, std::vector(message1Payload.begin(), message1Payload.end()));
 				EXPECT_EQ(connectionResult.connectionId, receivedMessages[1].first);
 				EXPECT_EQ(2u, receivedMessages[1].second.readMessageType());
-				EXPECT_EQ(testMessageData3, std::vector(receivedMessages[1].second.data.begin() + HAL::Network::Message::payloadStartPos, receivedMessages[1].second.data.end()));
+				const std::span<const std::byte> message2Payload = receivedMessages[1].second.getPayloadRef();
+				EXPECT_EQ(testMessageData3, std::vector(message2Payload.begin(), message2Payload.end()));
 				return;
 			}
 			std::this_thread::yield();

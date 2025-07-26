@@ -111,7 +111,7 @@ namespace Network
 		Serialization::AppendNumber<f32>(inOutStream, mDirection.y);
 	}
 
-	GameplayCommand::Ptr CreateProjectileCommand::ClientDeserialize(const std::vector<std::byte>& stream, size_t& inOutCursorPos)
+	GameplayCommand::Ptr CreateProjectileCommand::ClientDeserialize(const std::span<const std::byte> stream, size_t& inOutCursorPos)
 	{
 		const NetworkEntityId serverEntityId = Serialization::ReadNumber<u64>(stream, inOutCursorPos).value_or(0);
 		const float projectilePosX = Serialization::ReadNumber<f32>(stream, inOutCursorPos).value_or(0.0f);

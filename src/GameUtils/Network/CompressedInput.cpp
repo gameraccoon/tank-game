@@ -109,7 +109,7 @@ namespace Utils
 		}
 	}
 
-	std::vector<GameplayInput::FrameState> ReadInputHistory(const std::vector<std::byte>& stream, size_t inputsToRead, size_t& streamIndex)
+	std::vector<GameplayInput::FrameState> ReadInputHistory(const std::span<const std::byte> stream, const size_t inputsToRead, size_t& streamIndex)
 	{
 		std::vector<GameplayInput::FrameState> result;
 		result.resize(inputsToRead);

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <span>
 #include <unordered_map>
-#include <vector>
 
 #include "EngineCommon/Types/BasicTypes.h"
 
@@ -19,14 +19,14 @@ namespace Network
 		void RegisterCommand()
 		{
 			GameplayCommandType type = Command::GetType();
-			mDeserializators.emplace(type, [](const std::vector<std::byte>& stream, size_t& inOutStreamPos) -> GameplayCommand::Ptr {
+			mDeserializators.emplace(type, [](const std::span<const std::byte> stream, size_t& inOutStreamPos) -> GameplayCommand::Ptr {
 				return Command::ClientDeserialize(stream, inOutStreamPos);
 			});
 		}
 
-		GameplayCommand::Ptr deserialize(const std::vector<std::byte>& stream, size_t& inOutStreamPos) const;
+		GameplayCommand::Ptr deserialize(std::span<const std::byte> stream, size_t& inOutStreamPos) const;
 
 	private:
-		std::unordered_map<GameplayCommandType, std::function<GameplayCommand::Ptr(const std::vector<std::byte>&, size_t&)>> mDeserializators;
+		std::unordered_map<GameplayCommandType, std::function<GameplayCommand::Ptr(std::span<const std::byte>, size_t&)>> mDeserializators;
 	};
 } // namespace Network

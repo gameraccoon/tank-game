@@ -13,7 +13,7 @@ TEST(CompressedInput, WriteAndReadEmptyInput)
 	Utils::AppendInputHistory(stream, originalStates, 10);
 
 	size_t streamIndex = 0;
-	std::vector<GameplayInput::FrameState> newStates = Utils::ReadInputHistory(stream, 10, streamIndex);
+	const std::vector<GameplayInput::FrameState> newStates = Utils::ReadInputHistory(stream, 10, streamIndex);
 
 	EXPECT_EQ(newStates, originalStates);
 }

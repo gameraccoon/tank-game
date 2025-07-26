@@ -72,12 +72,12 @@ namespace Network::ServerClient
 		};
 	}
 
-	DisconnectReason::Value ApplyDisconnectMessage(const HAL::Network::Message& message)
+	DisconnectReason::Value ApplyDisconnectMessage(const std::span<const std::byte> messagePayload)
 	{
 		using namespace DisconnectMessageInternal;
 
-		size_t streamIndex = message.payloadStartPos;
-		const u8 reasonIdx = Serialization::ReadNumber<u8>(message.data, streamIndex).value_or(0);
+		size_t streamIndex = 0;
+		const u8 reasonIdx = Serialization::ReadNumber<u8>(messagePayload, streamIndex).value_or(0);
 
 		if (reasonIdx >= std::variant_size_v<DisconnectReason::Value>)
 		{
@@ -89,9 +89,9 @@ namespace Network::ServerClient
 		CreateVariant(reason, reasonIdx);
 
 		std::visit(Overload{
-					   [&streamIndex, &message](DisconnectReason::IncompatibleNetworkProtocolVersion& value) {
-						   value.serverVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
-						   value.clientVersion = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+					   [&streamIndex, messagePayload](DisconnectReason::IncompatibleNetworkProtocolVersion& value) {
+						   value.serverVersion = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
+						   value.clientVersion = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
 					   },
 					   [reasonIdx](DisconnectReason::Unknown& value) {
 						   value.reasonIdx = reasonIdx;

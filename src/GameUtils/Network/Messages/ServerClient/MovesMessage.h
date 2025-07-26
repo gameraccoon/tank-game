@@ -13,6 +13,6 @@ class WorldLayer;
 
 namespace Network::ServerClient
 {
-	HAL::Network::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, const u32 updateIdx, const u32 lastKnownPlayerInputUpdateIdx, const s32 indexShift);
-	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, const HAL::Network::Message& message);
+	HAL::Network::Message CreateMovesMessage(const TupleVector<const TransformComponent*, const NetworkIdComponent*>& components, u32 updateIdx, u32 lastKnownPlayerInputUpdateIdx, s32 indexShift);
+	void ApplyMovesMessage(GameStateRewinder& gameStateRewinder, FrameTimeCorrector& frameTimeCorrector, std::span<const std::byte> messagePayload);
 } // namespace Network::ServerClient

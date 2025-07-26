@@ -39,21 +39,21 @@ namespace Network::ServerClient
 		};
 	}
 
-	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const HAL::Network::Message& message)
+	void ApplyGameplayCommandsMessage(GameStateRewinder& stateRewinder, const std::span<const std::byte> messagePayload)
 	{
-		size_t streamIndex = message.payloadStartPos;
+		size_t streamIndex = 0;
 
 		const auto [gameplayCommandFactory] = stateRewinder.getNotRewindableComponents().getComponents<const GameplayCommandFactoryComponent>();
 
-		const u32 clientUpdateIdx = Serialization::ReadNumber<u32>(message.data, streamIndex).value_or(0);
+		const u32 clientUpdateIdx = Serialization::ReadNumber<u32>(messagePayload, streamIndex).value_or(0);
 
-		const size_t itemsCount = static_cast<size_t>(Serialization::ReadNumber<u16>(message.data, streamIndex).value_or(0));
+		const size_t itemsCount = static_cast<size_t>(Serialization::ReadNumber<u16>(messagePayload, streamIndex).value_or(0));
 
 		std::vector<GameplayCommand::Ptr> commands;
 		commands.reserve(itemsCount);
 		for (size_t i = 0; i < itemsCount; ++i)
 		{
-			if (auto command = gameplayCommandFactory->getInstance().deserialize(message.data, streamIndex))
+			if (auto command = gameplayCommandFactory->getInstance().deserialize(messagePayload, streamIndex))
 			{
 				commands.push_back(std::move(command));
 			}
