@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GameLogic/Debug/DebugRecordedInput.h"
+#include "GameLogic/Debug/DebugRecordedNetwork.h"
 
 class Game;
 class ArgumentsParser;
@@ -16,6 +17,7 @@ public:
 
 private:
 	DebugRecordedInput mDebugRecordedInput;
+	DebugRecordedNetwork mDebugRecordedNetwork;
 
 	int mFramesBeforeShutdown = -1;
 };

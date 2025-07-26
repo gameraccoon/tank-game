@@ -31,6 +31,8 @@ namespace ConsoleCommands
 			{ "disable-input", "disable-input", "disable keyboard/mouse/controller input" },
 			{ "record-input", "record-input <file>", "record input to the given file" },
 			{ "replay-input", "replay-input <file>", "replay input from the given file" },
+			{ "record-network", "record-network <file>", "record incoming network messages to the given file" },
+			{ "replay-network", "replay-network <file>", "replay incoming network messages from the given file" },
 			{ "continue-after-input-end", "continue-after-input-end", "continue running the game after the input file ends" },
 			{ "time-limit", "time-limit n", "end the game after the given amount of frames" },
 			{ "network-protocol-version", "network-protocol-version", "print network protocol version number" },

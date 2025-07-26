@@ -6,7 +6,8 @@
 			"name": "messages",
 			"type": "std::vector<std::pair<ConnectionId, HAL::Network::Message>>",
 			"includes": [
-				"\"HAL/Network/ConnectionManager.h\""
+				"\"EngineData/Network/ConnectionId.h\"",
+				"\"HAL/Network/NetworkStructs.h\""
 			],
 			"flags": ["get_by_ref"]
 		}

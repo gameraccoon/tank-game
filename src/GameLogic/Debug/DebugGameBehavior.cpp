@@ -2,12 +2,15 @@
 
 #include "GameLogic/Debug/DebugGameBehavior.h"
 
+#include "GameData/Components/ClientNetworkMessagesComponent.generated.h"
+
 #include "EngineUtils/Application/ArgumentsParser.h"
 
 #include "GameLogic/Game/Game.h"
 
 DebugGameBehavior::DebugGameBehavior(const int instanceIndex)
 	: mDebugRecordedInput(instanceIndex)
+	, mDebugRecordedNetwork(instanceIndex)
 {
 }
 
@@ -17,6 +20,12 @@ void DebugGameBehavior::preInnerUpdate(Game& game)
 	if (shouldQuit)
 	{
 		game.quitGame();
+	}
+
+	// for now only record network messages on clients
+	if (ClientNetworkMessagesComponent* clientNetworkMessagesComponent = std::get<0>(game.getGameData().getGameComponents().getComponents<ClientNetworkMessagesComponent>()))
+	{
+		mDebugRecordedNetwork.processFrame(clientNetworkMessagesComponent->getMessagesRef());
 	}
 }
 
@@ -35,6 +44,7 @@ void DebugGameBehavior::postInnerUpdate(Game& game)
 void DebugGameBehavior::processArguments(const ArgumentsParser& arguments)
 {
 	mDebugRecordedInput.processArguments(arguments);
+	mDebugRecordedNetwork.processArguments(arguments);
 
 	if (arguments.hasArgument("time-limit"))
 	{
