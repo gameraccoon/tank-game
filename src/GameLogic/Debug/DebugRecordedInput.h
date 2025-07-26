@@ -42,6 +42,6 @@ private:
 	// right now STL doesn't support reading std::byte from file, so we resort to C-style file IO
 	std::FILE* mRecordedInputDataFile = nullptr;
 
-	int mInstanceIndex = 0;
+	const int mInstanceIndex;
 	bool mShouldQuitOnEndOfInputData = true;
 };

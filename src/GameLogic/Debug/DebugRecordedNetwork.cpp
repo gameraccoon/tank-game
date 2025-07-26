@@ -71,7 +71,13 @@ void DebugRecordedNetwork::processArguments(const ArgumentsParser& arguments)
 			ReportError("No file name specified for replaying network data");
 			return;
 		}
-		mRecordedNetworkData = loadNetworkDataFromFile(*argumentOption + std::format("_{}.netmsgs", mInstanceIndex));
+		int instanceIndex = mInstanceIndex;
+		if (arguments.hasArgument("set-replay-instance"))
+		{
+			instanceIndex = arguments.getIntArgumentValue("set-replay-instance").getValueOr(mInstanceIndex);
+		}
+
+		mRecordedNetworkData = loadNetworkDataFromFile(*argumentOption + std::format("_{}.netmsgs", instanceIndex));
 	}
 }
 

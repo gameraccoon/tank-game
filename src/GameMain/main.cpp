@@ -24,6 +24,8 @@
 
 static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 {
+	const bool pretendConnected = arguments.hasArgument("pretend-connected");
+
 	if (arguments.hasArgument("net-lag"))
 	{
 		HAL::Network::DebugBehavior networkDebugBehavior;
@@ -41,7 +43,14 @@ static void SetupDebugNetworkBehavior(const ArgumentsParser& arguments)
 		networkDebugBehavior.rateLimitBps_Recv = 32 * 1024;
 		networkDebugBehavior.rateLimitOneBurstBytes_Send = 4 * 1024;
 		networkDebugBehavior.rateLimitOneBurstBytes_Recv = 4 * 1024;
+		networkDebugBehavior.pretendConnected = pretendConnected;
 
+		HAL::ConnectionManager::SetDebugBehavior(networkDebugBehavior);
+	}
+	else
+	{
+		HAL::Network::DebugBehavior networkDebugBehavior;
+		networkDebugBehavior.pretendConnected = pretendConnected;
 		HAL::ConnectionManager::SetDebugBehavior(networkDebugBehavior);
 	}
 }

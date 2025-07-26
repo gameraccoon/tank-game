@@ -82,7 +82,14 @@ void DebugRecordedInput::processArguments(const ArgumentsParser& arguments)
 			ReportError("No file name specified for replaying input data");
 			return;
 		}
-		mRecordedInputData = loadInputDataFromFile(*argumentOption + std::format("_{}.rawinput", mInstanceIndex));
+
+		int instanceIndex = mInstanceIndex;
+		if (arguments.hasArgument("set-replay-instance"))
+		{
+			instanceIndex = arguments.getIntArgumentValue("set-replay-instance").getValueOr(mInstanceIndex);
+		}
+
+		mRecordedInputData = loadInputDataFromFile(*argumentOption + std::format("_{}.rawinput", instanceIndex));
 	}
 
 	if (arguments.hasArgument("continue-after-input-end"))

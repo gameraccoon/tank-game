@@ -39,5 +39,5 @@ private:
 	// right now STL doesn't support reading std::byte from file, so we resort to C-style file IO
 	std::FILE* mRecordedNetworkDataFile = nullptr;
 
-	int mInstanceIndex;
+	const int mInstanceIndex;
 };
