@@ -1,0 +1,14 @@
+{
+	"description": "Component that stores network messages received this frame",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "messages",
+			"type": "std::vector<std::pair<ConnectionId, HAL::Network::Message>>",
+			"includes": [
+				"\"HAL/Network/ConnectionManager.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

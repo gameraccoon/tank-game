@@ -2,22 +2,19 @@
 
 #include <raccoon-ecs/utils/system.h>
 
-#include "HAL/Network/ConnectionManager.h"
-
 class WorldHolder;
 class GameStateRewinder;
 class FrameTimeCorrector;
 
 /**
- * System that handles network communication on client
+ * System that handles network messages from the server
  */
-class ClientNetworkSystem : public RaccoonEcs::System
+class ClientNetworkMessageSystem final : public RaccoonEcs::System
 {
 public:
-	ClientNetworkSystem(
+	ClientNetworkMessageSystem(
 		WorldHolder& worldHolder,
 		GameStateRewinder& gameStateRewinder,
-		const HAL::Network::NetworkAddress& serverAddress,
 		FrameTimeCorrector& frameTimeCorrector,
 		bool& shouldQuitGame
 	) noexcept;
@@ -27,7 +24,6 @@ public:
 private:
 	WorldHolder& mWorldHolder;
 	GameStateRewinder& mGameStateRewinder;
-	HAL::Network::NetworkAddress mServerAddress;
 	FrameTimeCorrector& mFrameTimeCorrector;
 	bool& mShouldQuitGameRef;
 };

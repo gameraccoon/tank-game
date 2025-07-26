@@ -2,8 +2,8 @@
 
 #include "GameLogic/Systems/ServerCommandsSendSystem.h"
 
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
@@ -24,11 +24,9 @@ void ServerCommandsSendSystem::update()
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
-	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
+	auto [networkInterface] = gameData.getGameComponents().getComponents<ServerNetworkInterfaceComponent>();
 
-	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
-
-	if (connectionManager == nullptr)
+	if (!networkInterface->getNetwork().isValid())
 	{
 		return;
 	}
@@ -54,7 +52,7 @@ void ServerCommandsSendSystem::update()
 		const Network::GameplayCommandHistoryRecord& updateCommands = mGameStateRewinder.getCommandsForUpdate(updateIdx);
 		for (const auto [connectionId, oneClientData] : connections)
 		{
-			connectionManager->sendMessageToClient(
+			networkInterface->getNetworkRef().sendMessageToClient(
 				connectionId,
 				Network::ServerClient::CreateGameplayCommandsMessage(world, updateCommands, connectionId, updateIdx),
 				HAL::ConnectionManager::MessageReliability::Reliable

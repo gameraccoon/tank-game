@@ -6,8 +6,6 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
-#include "HAL/Network/ConnectionManager.h"
-
 #include "GameUtils/Network/GameStateRewinder.h"
 
 #include "GameLogic/Game/Game.h"
@@ -40,7 +38,6 @@ private:
 
 private:
 	GameStateRewinder mGameStateRewinder{ GameStateRewinder::HistoryType::Server, getComponentFactory() };
-	HAL::ConnectionManager mConnectionManager;
 	bool mShouldPauseGame = false;
 	bool mShouldQuitGame = false;
 	u16 mServerPort = 14436;

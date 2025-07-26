@@ -4,9 +4,9 @@
 
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/RenderAccessorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 
 #include "HAL/Base/Engine.h"
@@ -69,8 +69,8 @@ void TankServerGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 		renderAccessorComponent->setAccessor(renderAccessor);
 	}
 	{
-		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().addComponent<ConnectionManagerComponent>();
-		connectionManager->setManagerPtr(&mConnectionManager);
+		ServerNetworkInterfaceComponent* networkInterface = getWorldHolder().getGameData().getGameComponents().addComponent<ServerNetworkInterfaceComponent>();
+		networkInterface->setNetwork(HAL::ServerNonRecordableNetworkInterface(getConnectionManager()));
 	}
 
 	Game::preStart(arguments);
@@ -87,7 +87,7 @@ void TankServerGame::notPausablePreFrameUpdate(const float dt)
 {
 	SCOPED_PROFILER("TankServerGame::notPausablePreFrameUpdate");
 
-	mConnectionManager.processNetworkEvents();
+	getConnectionManager().processNetworkEvents();
 
 	Game::notPausablePreFrameUpdate(dt);
 }
@@ -118,7 +118,7 @@ void TankServerGame::notPausableRenderUpdate(const float frameAlpha)
 
 	Game::notPausableRenderUpdate(frameAlpha);
 
-	mConnectionManager.flushMessagesForAllClientConnections(mServerPort);
+	getConnectionManager().flushMessagesForAllClientConnections(mServerPort);
 }
 
 TimeData& TankServerGame::getTimeData()

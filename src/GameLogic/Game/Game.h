@@ -8,6 +8,7 @@
 
 #include "HAL/GameBase.h"
 #include "HAL/InputControllersData.h"
+#include "HAL/Network/ConnectionManager.h"
 
 #include "GameUtils/SharedManagers/WorldHolder.h"
 
@@ -52,6 +53,7 @@ protected:
 	ThreadPool& getThreadPool() { return mThreadPool; }
 	GameData& getGameData() { return mGameData; }
 	Json::ComponentSerializationHolder& getComponentSerializers() { return mComponentSerializers; }
+	HAL::ConnectionManager& getConnectionManager() { return mConnectionManager; }
 
 private:
 	ComponentFactory mComponentFactory;
@@ -68,6 +70,8 @@ private:
 	RaccoonEcs::SystemsManager mPostFrameSystemsManager;
 	RaccoonEcs::SystemsManager mNotPausableRenderSystemsManager;
 	Json::ComponentSerializationHolder mComponentSerializers;
+
+	HAL::ConnectionManager mConnectionManager;
 
 #ifdef ENABLE_SCOPED_PROFILER
 	std::string mFrameDurationsOutputPath = "./frame_times.csv";

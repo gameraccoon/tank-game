@@ -3,7 +3,7 @@
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
 
 #include "GameData/Components/ClientGameDataComponent.generated.h"
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/ClientNetworkInterfaceComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/WorldLayer.h"
 
@@ -26,18 +26,17 @@ void ClientInputSendSystem::update()
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
-	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
+	auto [networkInterface] = gameData.getGameComponents().getComponents<ClientNetworkInterfaceComponent>();
 
-	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
-	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
+	const ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
 
-	if (connectionManager == nullptr)
+	if (!networkInterface->getNetwork().isValid())
 	{
 		return;
 	}
 
 	const ConnectionId connectionId = clientGameData->getClientConnectionId();
-	if (connectionId == InvalidConnectionId || !connectionManager->isServerConnectionOpen(connectionId))
+	if (connectionId == InvalidConnectionId || !networkInterface->getNetwork().isServerConnectionOpen(connectionId))
 	{
 		return;
 	}
@@ -47,7 +46,7 @@ void ClientInputSendSystem::update()
 		return;
 	}
 
-	connectionManager->sendMessageToServer(
+	networkInterface->getNetworkRef().sendMessageToServer(
 		connectionId,
 		Network::ClientServer::CreatePlayerInputMessage(mGameStateRewinder),
 		HAL::ConnectionManager::MessageReliability::Unreliable

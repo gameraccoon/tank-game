@@ -1,0 +1,14 @@
+{
+	"description": "Component that stores ClientNetworkMessageSender interface",
+	"flags": ["transient"],
+	"attributes": [
+		{
+			"name": "network",
+			"type": "HAL::ClientNonRecordableNetworkInterface",
+			"includes": [
+				"\"GameData/Network/NetworkInterfaces.h\""
+			],
+			"flags": ["get_by_ref"]
+		}
+	]
+}

@@ -4,9 +4,9 @@
 
 #include "EngineCommon/Types/TemplateAliases.h"
 
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/Components/TransformComponent.generated.h"
 #include "GameData/GameData.h"
@@ -28,11 +28,9 @@ void ServerMovesSendSystem::update()
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 	GameData& gameData = mWorldHolder.getGameData();
 
-	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
+	auto [networkInterface] = gameData.getGameComponents().getComponents<ServerNetworkInterfaceComponent>();
 
-	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
-
-	if (connectionManager == nullptr)
+	if (!networkInterface->getNetwork().isValid())
 	{
 		return;
 	}
@@ -65,7 +63,7 @@ void ServerMovesSendSystem::update()
 		const std::optional<u32> lastPlayerInputUpdateIdxOption = mGameStateRewinder.getLastKnownInputUpdateIdxForPlayer(connectionId);
 		const u32 lastPlayerInputUpdateIdx = lastPlayerInputUpdateIdxOption.value_or(0);
 
-		connectionManager->sendMessageToClient(
+		networkInterface->getNetworkRef().sendMessageToClient(
 			connectionId,
 			Network::ServerClient::CreateMovesMessage(components, timeValue.lastFixedUpdateIndex + 1, lastPlayerInputUpdateIdx, indexShift),
 			HAL::ConnectionManager::MessageReliability::Unreliable

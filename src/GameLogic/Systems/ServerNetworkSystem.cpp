@@ -4,9 +4,9 @@
 
 #include "EngineCommon/EngineLogCategories.h"
 
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
 #include "GameData/Components/NetworkEntityIdGeneratorComponent.generated.h"
 #include "GameData/Components/ServerConnectionsComponent.generated.h"
+#include "GameData/Components/ServerNetworkInterfaceComponent.generated.h"
 #include "GameData/Components/TimeComponent.generated.h"
 #include "GameData/GameData.h"
 #include "GameData/Network/NetworkMessageIds.h"
@@ -39,15 +39,15 @@ ServerNetworkSystem::ServerNetworkSystem(
 {
 }
 
-static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, WorldLayer& world, ConnectionId newPlayerConnectionId, HAL::ConnectionManager& connectionManager)
+static void SynchronizeServerStateToNewPlayer(GameStateRewinder& gameStateRewinder, WorldLayer& world, const ConnectionId newPlayerConnectionId, HAL::ServerNonRecordableNetworkInterface& serverNetworkInterface)
 {
-	connectionManager.sendMessageToClient(
+	serverNetworkInterface.sendMessageToClient(
 		newPlayerConnectionId,
 		Network::ServerClient::CreateWorldSnapshotMessage(gameStateRewinder, world, newPlayerConnectionId)
 	);
 }
 
-static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, ConnectionId connectionId)
+static void OnClientConnected(HAL::ServerNonRecordableNetworkInterface& serverNetworkInterface, WorldLayer& world, GameStateRewinder& gameStateRewinder, const HAL::Network::Message& message, const ConnectionId connectionId)
 {
 	const Network::ClientServer::ConnectMessageResult result = Network::ClientServer::ApplyConnectMessage(gameStateRewinder, message, connectionId);
 	if (result.clientNetworkProtocolVersion == Network::NetworkProtocolVersion)
@@ -57,12 +57,12 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLa
 
 		NetworkEntityIdGeneratorComponent* networkEntityIdGenerator = world.getWorldComponents().getOrAddComponent<NetworkEntityIdGeneratorComponent>();
 
-		connectionManager.sendMessageToClient(
+		serverNetworkInterface.sendMessageToClient(
 			connectionId,
 			Network::ServerClient::CreateConnectionAcceptedMessage(timeValue.lastFixedUpdateIndex + 1, result.forwardedTimestamp)
 		);
 
-		SynchronizeServerStateToNewPlayer(gameStateRewinder, world, connectionId, connectionManager);
+		SynchronizeServerStateToNewPlayer(gameStateRewinder, world, connectionId, serverNetworkInterface);
 
 		// figuring out if this is the first or the second player
 		ServerConnectionsComponent* serverConnections = gameStateRewinder.getNotRewindableComponents().getOrAddComponent<ServerConnectionsComponent>();
@@ -79,8 +79,8 @@ static void OnClientConnected(HAL::ConnectionManager& connectionManager, WorldLa
 	}
 	else
 	{
-		connectionManager.sendMessageToClient(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(Network::NetworkProtocolVersion, result.clientNetworkProtocolVersion)));
-		connectionManager.disconnectClient(connectionId);
+		serverNetworkInterface.sendMessageToClient(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::IncompatibleNetworkProtocolVersion(Network::NetworkProtocolVersion, result.clientNetworkProtocolVersion)));
+		serverNetworkInterface.disconnectClient(connectionId);
 	}
 }
 
@@ -92,29 +92,27 @@ void ServerNetworkSystem::update()
 	GameData& gameData = mWorldHolder.getGameData();
 	const TimeData& timeData = mGameStateRewinder.getTimeData();
 
-	auto [connectionManagerCmp] = gameData.getGameComponents().getComponents<ConnectionManagerComponent>();
+	auto [networkInterface] = gameData.getGameComponents().getComponents<ServerNetworkInterfaceComponent>();
 
-	HAL::ConnectionManager* connectionManager = connectionManagerCmp->getManagerPtr();
-
-	if (connectionManager == nullptr)
+	if (!networkInterface->getNetwork().isValid())
 	{
 		return;
 	}
 
-	if (!connectionManager->isPortOpen(mServerPort))
+	if (!networkInterface->getNetwork().isPortOpen(mServerPort))
 	{
-		connectionManager->startListeningToPort(mServerPort);
+		networkInterface->getNetworkRef().startListeningToPort(mServerPort);
 		return;
 	}
 
-	auto newMessages = connectionManager->consumeReceivedServerMessages(mServerPort);
+	auto newMessages = networkInterface->getNetworkRef().consumeReceivedServerMessages(mServerPort);
 
 	for (const auto& [connectionId, message] : newMessages)
 	{
 		switch (static_cast<NetworkMessageId>(message.readMessageType()))
 		{
 		case NetworkMessageId::Connect:
-			OnClientConnected(*connectionManager, world, mGameStateRewinder, message, connectionId);
+			OnClientConnected(networkInterface->getNetworkRef(), world, mGameStateRewinder, message, connectionId);
 			break;
 		case NetworkMessageId::Disconnect:
 			mShouldQuitGame = true;

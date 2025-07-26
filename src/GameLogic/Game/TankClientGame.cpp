@@ -9,7 +9,8 @@
 #include "GameData/ComponentRegistration/ComponentFactoryRegistration.h"
 #include "GameData/ComponentRegistration/ComponentJsonSerializerRegistration.h"
 #include "GameData/Components/ClientGameDataComponent.generated.h"
-#include "GameData/Components/ConnectionManagerComponent.generated.h"
+#include "GameData/Components/ClientNetworkInterfaceComponent.generated.h"
+#include "GameData/Components/ClientNetworkMessagesComponent.generated.h"
 #include "GameData/Components/GameplayCommandFactoryComponent.generated.h"
 #include "GameData/Components/MoveInterpolationComponent.generated.h"
 #include "GameData/Components/NetworkIdComponent.generated.h"
@@ -34,7 +35,8 @@
 #include "GameLogic/Systems/ApplyInputToEntitySystem.h"
 #include "GameLogic/Systems/CharacterStateSystem.h"
 #include "GameLogic/Systems/ClientInpuntSendSystem.h"
-#include "GameLogic/Systems/ClientNetworkSystem.h"
+#include "GameLogic/Systems/ClientNetworkConnectionSystem.h"
+#include "GameLogic/Systems/ClientNetworkMessageSystem.h"
 #include "GameLogic/Systems/CollisionResolutionSystem.h"
 #include "GameLogic/Systems/ControlSystem.h"
 #include "GameLogic/Systems/DeadEntitiesDestructionSystem.h"
@@ -78,16 +80,19 @@ void TankClientGame::preStart(const ArgumentsParser& arguments, std::optional<Re
 	GameDataLoader::LoadWorld(getWorldHolder().getStaticWorldLayer(), std::filesystem::current_path(), arguments.getArgumentValue("world").value_or("test"), getComponentSerializers());
 	GameDataLoader::LoadGameData(getGameData(), std::filesystem::current_path(), arguments.getArgumentValue("gameData").value_or("gameData"), getComponentSerializers());
 
-	RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
-	renderAccessorComponent->setAccessor(renderAccessor);
-
-	TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
-	timeComponent->setValue(&mGameStateRewinder.getTimeData());
-
 	{
-		ConnectionManagerComponent* connectionManager = getWorldHolder().getGameData().getGameComponents().addComponent<ConnectionManagerComponent>();
-		connectionManager->setManagerPtr(&mConnectionManager);
+		RenderAccessorComponent* renderAccessorComponent = getGameData().getGameComponents().addComponent<RenderAccessorComponent>();
+		renderAccessorComponent->setAccessor(renderAccessor);
 	}
+	{
+		TimeComponent* timeComponent = getWorldHolder().getDynamicWorldLayer().getWorldComponents().addComponent<TimeComponent>();
+		timeComponent->setValue(&mGameStateRewinder.getTimeData());
+	}
+	{
+		ClientNetworkInterfaceComponent* networkInterface = getWorldHolder().getGameData().getGameComponents().addComponent<ClientNetworkInterfaceComponent>();
+		networkInterface->setNetwork(HAL::ClientNonRecordableNetworkInterface(getConnectionManager()));
+	}
+	getWorldHolder().getGameData().getGameComponents().addComponent<ClientNetworkMessagesComponent>();
 
 	GameplayCommandFactoryComponent* gameplayFactory = mGameStateRewinder.getNotRewindableComponents().addComponent<GameplayCommandFactoryComponent>();
 	RegisterGameplayCommands(gameplayFactory->getInstanceRef());
@@ -112,9 +117,12 @@ void TankClientGame::initResources()
 void TankClientGame::dynamicTimePreFrameUpdate(const float dt, const int plannedFixedTimeUpdates)
 {
 	SCOPED_PROFILER("TankClientGame::dynamicTimePreFrameUpdate");
+
+	consumeNetworkMessages();
+
 	Game::dynamicTimePreFrameUpdate(dt, plannedFixedTimeUpdates);
 
-	mConnectionManager.processNetworkEvents();
+	getConnectionManager().processNetworkEvents();
 
 	processCorrections();
 }
@@ -147,7 +155,7 @@ void TankClientGame::dynamicTimePostFrameUpdate(const float dt, const int proces
 	if (clientGameData != nullptr)
 	{
 		const ConnectionId connectionId = clientGameData->getClientConnectionId();
-		mConnectionManager.flushMessagesForServerConnection(connectionId);
+		getConnectionManager().flushMessagesForServerConnection(connectionId);
 	}
 }
 
@@ -174,7 +182,8 @@ void TankClientGame::initSystems()
 #endif // !DISABLE_SDL
 	getPreFrameSystemsManager().registerSystem<PopulateInputHistorySystem>(getWorldHolder(), mGameStateRewinder);
 	getPreFrameSystemsManager().registerSystem<ClientInputSendSystem>(getWorldHolder(), mGameStateRewinder);
-	getPreFrameSystemsManager().registerSystem<ClientNetworkSystem>(getWorldHolder(), mGameStateRewinder, mServerAddress, mFrameTimeCorrector, mShouldQuitGameNextTick);
+	getPreFrameSystemsManager().registerSystem<ClientNetworkConnectionSystem>(getWorldHolder(), mServerAddress, mShouldQuitGameNextTick);
+	getPreFrameSystemsManager().registerSystem<ClientNetworkMessageSystem>(getWorldHolder(), mGameStateRewinder, mFrameTimeCorrector, mShouldQuitGameNextTick);
 
 	getGameLogicSystemsManager().registerSystem<FetchConfirmedCommandsSystem>(getWorldHolder(), mGameStateRewinder);
 	getGameLogicSystemsManager().registerSystem<FetchClientInputFromHistorySystem>(getWorldHolder(), mGameStateRewinder);
@@ -206,6 +215,22 @@ void TankClientGame::initSystems()
 	}
 #endif // IMGUI_ENABLED
 #endif // !DISABLE_SDL
+}
+
+void TankClientGame::consumeNetworkMessages()
+{
+	SCOPED_PROFILER("TankClientGame::consumeNetworkMessages");
+
+	auto [clientGameData] = getWorldHolder().getDynamicWorldLayer().getWorldComponents().getComponents<ClientGameDataComponent>();
+	if (clientGameData == nullptr)
+	{
+		return;
+	}
+
+	const ConnectionId connectionId = clientGameData->getClientConnectionId();
+
+	auto [networkMessages] = getWorldHolder().getGameData().getGameComponents().getComponents<ClientNetworkMessagesComponent>();
+	networkMessages->getMessagesRef() = getConnectionManager().consumeReceivedClientMessages(connectionId);
 }
 
 void TankClientGame::correctUpdates(const u32 firstUpdateToResimulateIdx)

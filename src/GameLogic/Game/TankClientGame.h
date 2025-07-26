@@ -4,8 +4,6 @@
 
 #include "GameData/Render/RenderAccessorGameRef.h"
 
-#include "HAL/Network/ConnectionManager.h"
-
 #include "GameUtils/Network/FrameTimeCorrector.h"
 #include "GameUtils/Network/GameStateRewinder.h"
 
@@ -38,13 +36,13 @@ protected:
 
 private:
 	void initSystems();
+	void consumeNetworkMessages();
 	void correctUpdates(u32 firstUpdateToResimulateIdx);
 	void removeOldUpdates();
 	void processCorrections();
 
 private:
 	GameStateRewinder mGameStateRewinder{ GameStateRewinder::HistoryType::Client, getComponentFactory() };
-	HAL::ConnectionManager mConnectionManager;
 	bool mShouldPauseGame = false;
 	bool mShouldQuitGameNextTick = false;
 	bool mShouldQuitGame = false;
