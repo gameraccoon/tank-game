@@ -1,7 +1,5 @@
 @echo off
 
-python tools/build/run_code_generation.py
-
 mkdir build\game
 
 pushd build\game
