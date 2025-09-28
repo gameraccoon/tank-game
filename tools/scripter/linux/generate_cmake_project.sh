@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 tools/build/code_generate.py
+python3 tools/build/run_code_generation.py
 
 mkdir -p cmake-build-linux-ninja
 

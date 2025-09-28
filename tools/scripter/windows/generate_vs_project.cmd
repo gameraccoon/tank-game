@@ -1,6 +1,6 @@
 @echo off
 
-python tools/build/code_generate.py
+python tools/build/run_code_generation.py
 
 mkdir build\game
 
