@@ -339,7 +339,7 @@ void TankClientGame::removeOldUpdates()
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
 	const std::optional<u32> lastFullyConfirmedUpdateIdxOpt = mGameStateRewinder.getLastConfirmedClientUpdateIdx();
 
-	if (lastUpdateIdx == std::numeric_limits<u32>::max() || !lastFullyConfirmedUpdateIdxOpt.has_value())
+	if (!lastFullyConfirmedUpdateIdxOpt.has_value())
 	{
 		return;
 	}
