@@ -1,9 +1,10 @@
 {
-  "version": "0.16.2",
+  "version": "1.1.0",
   "rewritable": {
     "window_status_reactions": true,
     "keep_window_size": false,
     "enable_script_filtering": true,
+    "show_working_directory": true,
     "enable_title_editing": true,
     "config_version_update_behavior": "OnManualSave",
     "custom_theme": {
@@ -157,7 +158,7 @@
         }
       },
       {
-        "action": "RemoveCursorScript",
+        "action": "RemoveSelectedScripts",
         "keybind": {
           "key": "Delete",
           "modifiers": ""
@@ -173,7 +174,16 @@
     ],
     "script_keybinds": [],
     "show_current_git_branch": false,
-    "quick_launch_scripts": []
+    "quick_launch_scripts": [],
+    "file_associations": [
+      {
+        "extension": "py",
+        "executor": [
+          "python"
+        ],
+        "executor_arguments": []
+      }
+    ]
   },
   "script_definitions": [
     {
@@ -188,37 +198,52 @@
           {
             "uid": "b5d53eee-8b27-4396-b3a2-8dbb1c71746b",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "e119791a-f4c1-4217-8c17-5aa1150452b5",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "0ee11768-69ef-4390-9016-5e4dd1dfc00f",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "802ce303-567e-41e8-aafc-abfa5e55d3f4",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "0a48c3b8-c7c6-46d4-b316-8f8ef4f39cb4",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           }
         ]
       }
@@ -235,37 +260,52 @@
           {
             "uid": "0ca50748-c6e8-442c-8c15-5f72211022cb",
             "name": "Pull",
-            "arguments": "pull",
+            "arguments_line": "pull",
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "e119791a-f4c1-4217-8c17-5aa1150452b5",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "0ee11768-69ef-4390-9016-5e4dd1dfc00f",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "802ce303-567e-41e8-aafc-abfa5e55d3f4",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           },
           {
             "uid": "0a48c3b8-c7c6-46d4-b316-8f8ef4f39cb4",
             "name": null,
-            "arguments": null,
+            "arguments_line": null,
+            "executor_arguments": [],
+            "overridden_placeholder_values": {},
             "autorerun_count": null,
-            "ignore_previous_failures": null
+            "reaction_to_previous_failures": null,
+            "autoclean_on_success": false
           }
         ]
       }
@@ -286,11 +326,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Required",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": true,
-        "arguments_hint": "branch_name"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "branch_name",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -309,11 +355,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 5,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -332,11 +384,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -355,11 +413,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -378,11 +442,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -401,11 +471,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -424,11 +500,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Optional",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": false,
-        "arguments_hint": "no arguments"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "no arguments",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     },
     {
@@ -447,11 +529,17 @@
           "path": ".",
           "path_type": "WorkingDirRelative"
         },
-        "arguments": "",
+        "arguments_line": "",
+        "argument_placeholders": [],
+        "arguments_requirement": "Required",
         "autorerun_count": 0,
-        "ignore_previous_failures": false,
-        "requires_arguments": true,
-        "arguments_hint": "subcommand"
+        "reaction_to_previous_failures": "SkipOnFailure",
+        "arguments_hint": "subcommand",
+        "custom_executor": null,
+        "executor_arguments": [],
+        "is_hidden": false,
+        "autoclean_on_success": false,
+        "ignore_output": false
       }
     }
   ],
