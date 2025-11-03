@@ -129,6 +129,8 @@ class BoundCheckedHistory
 public:
 	using ForwardRange = HistoryRange<T, IndexType, true>;
 	using ReverseRange = HistoryRange<T, IndexType, false>;
+	using ConstForwardRange = HistoryRange<const T, IndexType, true>;
+	using ConstReverseRange = HistoryRange<const T, IndexType, false>;
 
 public:
 	explicit BoundCheckedHistory(int capacity = 1)
@@ -197,7 +199,25 @@ public:
 		return ForwardRange{ mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx() + 1), firstIdx };
 	}
 
+	ConstForwardRange getRecordsUnsafeConst(IndexType firstIdx, IndexType lastIdx) const
+	{
+		AssertFatal(firstIdx <= lastIdx, "Trying to get forward history range with first idx greater than last (%u <= %u)", firstIdx, lastIdx);
+		AssertFatal(firstIdx >= getFirstStoredUpdateIdx(), "Trying to get forward history range with first idx before the first stored (%u >= %u)", firstIdx, getFirstStoredUpdateIdx());
+		AssertFatal(lastIdx <= getLastStoredUpdateIdx(), "Trying to get forward history range with last idx after the last stored (%u <= %u)", lastIdx, getLastStoredUpdateIdx());
+
+		return ConstForwardRange{ mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx() + 1), firstIdx };
+	}
+
 	ReverseRange getRecordsReverseUnsafe(IndexType firstIdx, IndexType lastIdx)
+	{
+		AssertFatal(firstIdx <= lastIdx, "Trying to get reverse history range with first idx greater than last (%u <= %u)", firstIdx, lastIdx);
+		AssertFatal(firstIdx >= getFirstStoredUpdateIdx(), "Trying to get reverse history range with first idx before the first stored (%u >= %u)", firstIdx, getFirstStoredUpdateIdx());
+		AssertFatal(lastIdx <= getLastStoredUpdateIdx(), "Trying to get reverse history range with last idx after the last stored (%u <= %u)", lastIdx, getLastStoredUpdateIdx());
+
+		return ReverseRange{ mRecords.data() + static_cast<size_t>(lastIdx - getFirstStoredUpdateIdx()), mRecords.data() + static_cast<size_t>(firstIdx - getFirstStoredUpdateIdx() - 1), lastIdx };
+	}
+
+	ConstReverseRange getRecordsReverseUnsafeConst(IndexType firstIdx, IndexType lastIdx) const
 	{
 		AssertFatal(firstIdx <= lastIdx, "Trying to get reverse history range with first idx greater than last (%u <= %u)", firstIdx, lastIdx);
 		AssertFatal(firstIdx >= getFirstStoredUpdateIdx(), "Trying to get reverse history range with first idx before the first stored (%u >= %u)", firstIdx, getFirstStoredUpdateIdx());
@@ -211,9 +231,19 @@ public:
 		return ForwardRange{ mRecords.data(), mRecords.data() + mRecords.size(), getFirstStoredUpdateIdx() };
 	}
 
+	ConstForwardRange getAllRecordsConst() const
+	{
+		return ConstForwardRange{ mRecords.data(), mRecords.data() + mRecords.size(), getFirstStoredUpdateIdx() };
+	}
+
 	ReverseRange getAllRecordsReverse()
 	{
 		return ReverseRange{ mRecords.data() + (mRecords.size() - 1), mRecords.data() - 1, getLastStoredUpdateIdx() };
+	}
+
+	ConstReverseRange getAllRecordsReverseConst() const
+	{
+		return ConstReverseRange{ mRecords.data() + (mRecords.size() - 1), mRecords.data() - 1, getLastStoredUpdateIdx() };
 	}
 
 	void setLastStoredUpdateIdxAndCleanNegativeUpdates(IndexType lastUpdateIdx)

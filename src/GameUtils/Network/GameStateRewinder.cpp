@@ -250,7 +250,7 @@ u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 {
 	assertClientOnly();
 
-	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
+	const Impl::History::ConstReverseRange records = mPimpl->updateHistory.getAllRecordsReverseConst();
 	for (const auto [updateData, updateIdx] : records)
 	{
 		const Impl::OneUpdateData::SyncState moveState = updateData.dataState.getState(Impl::OneUpdateData::StateType::Movement);
@@ -270,7 +270,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 	assertClientOnly();
 
 	// find last non-empty update
-	const Impl::History::ReverseRange allRecords = mPimpl->updateHistory.getAllRecordsReverse();
+	const Impl::History::ConstReverseRange allRecords = mPimpl->updateHistory.getAllRecordsReverseConst();
 	auto lastRealUpdateIt = std::find_if(allRecords.begin(), allRecords.end(), [](const auto recordPair) {
 		return !recordPair.record.isEmpty();
 	});
@@ -283,7 +283,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
 	const u32 lastRealUpdateIdx = (*lastRealUpdateIt).updateIdx;
 
-	const Impl::History::ForwardRange realRecords = mPimpl->updateHistory.getRecordsUnsafe(firstStoredUpdateIdx, lastRealUpdateIdx);
+	const Impl::History::ConstForwardRange realRecords = mPimpl->updateHistory.getRecordsUnsafeConst(firstStoredUpdateIdx, lastRealUpdateIdx);
 	for (const auto [updateData, updateIdx] : realRecords)
 	{
 		if (updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Movement) || updateData.dataState.isDesynced(Impl::OneUpdateData::DesyncType::Commands))
@@ -454,7 +454,7 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayer(const 
 {
 	assertServerOnly();
 
-	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
+	const Impl::History::ConstReverseRange records = mPimpl->updateHistory.getAllRecordsReverseConst();
 	auto lastKnownInputUpdateIt = std::find_if(records.begin(), records.end(), [connectionId](const auto recordPair) {
 		return recordPair.record.dataState.serverInputConfirmedPlayers.contains(connectionId);
 	});
@@ -471,7 +471,7 @@ std::optional<u32> GameStateRewinder::getLastKnownInputUpdateIdxForPlayers(const
 {
 	assertServerOnly();
 
-	const Impl::History::ReverseRange records = mPimpl->updateHistory.getAllRecordsReverse();
+	const Impl::History::ConstReverseRange records = mPimpl->updateHistory.getAllRecordsReverseConst();
 
 	auto lastKnownInputUpdateIt = std::find_if(records.begin(), records.end(), [connections](const auto recordPair) {
 		return std::all_of(connections.begin(), connections.end(), [recordPair](const auto& pair) {
@@ -607,7 +607,7 @@ std::vector<GameplayInput::FrameState> GameStateRewinder::getLastInputs(const si
 
 	const u32 firstInputUpdate = std::max(getFirstStoredUpdateIdx(), static_cast<u32>(lastUpdateIdx + 1 - inputSize));
 
-	const Impl::History::ForwardRange records = mPimpl->updateHistory.getRecordsUnsafe(firstInputUpdate, lastUpdateIdx);
+	const Impl::History::ConstForwardRange records = mPimpl->updateHistory.getRecordsUnsafeConst(firstInputUpdate, lastUpdateIdx);
 	for (const auto [updateData, updateIdx] : records)
 	{
 		// first update may not have input set yet
