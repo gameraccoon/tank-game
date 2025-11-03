@@ -288,30 +288,34 @@ void TankClientGame::processCorrections()
 {
 	SCOPED_PROFILER("TankGameClient::processCorrections");
 
-	if (mGameStateRewinder.getTimeData().lastFixedUpdateIndex == 0 || mGameStateRewinder.getTimeData().lastFixedUpdateIndex == GameStateRewinder::INVALID_UPDATE_IDX)
+	if (mGameStateRewinder.getTimeData().lastFixedUpdateIndex == 0)
 	{
 		return;
 	}
 
-	// local scope because after the corrections the values can change
+	// local scope because after the corrections the values are not valid anymote
 	{
-		const u32 firstUpdateIdx = mGameStateRewinder.getFirstStoredUpdateIdx();
-		u32 firstDesyncedUpdate = mGameStateRewinder.getFirstDesyncedUpdateIdx();
+		const std::optional<u32> firstDesyncedUpdateOpt = mGameStateRewinder.getFirstDesyncedUpdateIdx();
 
-		if (firstDesyncedUpdate == firstUpdateIdx)
+		if (firstDesyncedUpdateOpt.has_value())
 		{
-			ReportError("We tried to correct the first update that we store, we can't do that");
-			// we can't correct the first update, since we don't have the previous state
-			firstDesyncedUpdate += 1;
-		}
-
-		// if the desynced update in the past
-		if (firstDesyncedUpdate <= mGameStateRewinder.getTimeData().lastFixedUpdateIndex)
-		{
-			// if we need to process corrections
-			if (firstDesyncedUpdate + 1 >= firstUpdateIdx && firstDesyncedUpdate != GameStateRewinder::INVALID_UPDATE_IDX)
+			const u32 firstUpdateIdx = mGameStateRewinder.getFirstStoredUpdateIdx();
+			u32 firstDesyncedUpdate = *firstDesyncedUpdateOpt;
+			if (firstDesyncedUpdate == firstUpdateIdx)
 			{
-				correctUpdates(firstDesyncedUpdate);
+				ReportError("We tried to correct the first update that we store, we can't do that");
+				// we can't correct the first update, since we don't have the previous state
+				firstDesyncedUpdate += 1;
+			}
+
+			// if the desynced update in the past
+			if (firstDesyncedUpdate <= mGameStateRewinder.getTimeData().lastFixedUpdateIndex)
+			{
+				// if we need to process corrections
+				if (firstDesyncedUpdate + 1 >= firstUpdateIdx)
+				{
+					correctUpdates(firstDesyncedUpdate);
+				}
 			}
 		}
 	}
@@ -333,12 +337,13 @@ void TankClientGame::removeOldUpdates()
 	const u32 lastUpdateIdx = lastUpdateTime.lastFixedUpdateIndex;
 	const u32 firstUpdateIdx = mGameStateRewinder.getFirstStoredUpdateIdx();
 	// for this update we can be sure that server won't do any corrections, but we may still be missing moves for it
-	const u32 lastFullyConfirmedUpdateIdx = mGameStateRewinder.getLastConfirmedClientUpdateIdx();
+	const std::optional<u32> lastFullyConfirmedUpdateIdxOpt = mGameStateRewinder.getLastConfirmedClientUpdateIdx();
 
-	if (lastUpdateIdx == std::numeric_limits<u32>::max() || lastFullyConfirmedUpdateIdx == GameStateRewinder::INVALID_UPDATE_IDX)
+	if (lastUpdateIdx == std::numeric_limits<u32>::max() || !lastFullyConfirmedUpdateIdxOpt.has_value())
 	{
 		return;
 	}
+	const u32 lastFullyConfirmedUpdateIdx = *lastFullyConfirmedUpdateIdxOpt;
 
 	const size_t updatesCountBeforeTrim = lastUpdateIdx - firstUpdateIdx + 1;
 	// don't keep more frames than max

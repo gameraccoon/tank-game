@@ -246,7 +246,7 @@ void GameStateRewinder::advanceSimulationToNextUpdate(const u32 newUpdateIdx)
 	}
 }
 
-u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
+std::optional<u32> GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 {
 	assertClientOnly();
 
@@ -262,10 +262,10 @@ u32 GameStateRewinder::getLastConfirmedClientUpdateIdx() const
 		}
 	}
 
-	return INVALID_UPDATE_IDX;
+	return std::nullopt;
 }
 
-u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
+std::optional<u32> GameStateRewinder::getFirstDesyncedUpdateIdx() const
 {
 	assertClientOnly();
 
@@ -277,7 +277,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 
 	if (lastRealUpdateIt == allRecords.end())
 	{
-		return INVALID_UPDATE_IDX;
+		return std::nullopt;
 	}
 
 	const u32 firstStoredUpdateIdx = getFirstStoredUpdateIdx();
@@ -292,7 +292,7 @@ u32 GameStateRewinder::getFirstDesyncedUpdateIdx() const
 		}
 	}
 
-	return INVALID_UPDATE_IDX;
+	return std::nullopt;
 }
 
 void GameStateRewinder::appendExternalCommandToHistory(const u32 updateIdx, Network::GameplayCommand::Ptr&& newCommand)

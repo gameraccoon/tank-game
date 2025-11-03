@@ -24,10 +24,6 @@ public:
 	};
 
 public:
-	/// An index that will never be used, indicating that the update is invalid
-	static constexpr u32 INVALID_UPDATE_IDX = std::numeric_limits<u32>::max();
-
-public:
 	GameStateRewinder(HistoryType historyType, ComponentFactory& componentFactory);
 	~GameStateRewinder();
 	GameStateRewinder(const GameStateRewinder&) = delete;
@@ -59,9 +55,9 @@ public:
 	void advanceSimulationToNextUpdate(u32 newUpdateIdx);
 
 	/// Client-specific. Returns the last update index that is fully acknowledged by the server
-	u32 getLastConfirmedClientUpdateIdx() const;
+	std::optional<u32> getLastConfirmedClientUpdateIdx() const;
 	/// Client-specific. Returns the first update index that the server disagrees with, and that is needs to be resimulated
-	u32 getFirstDesyncedUpdateIdx() const;
+	std::optional<u32> getFirstDesyncedUpdateIdx() const;
 
 	// command-related
 	/// Server-specific. Appends a command that is added not by simulation, but by external events
