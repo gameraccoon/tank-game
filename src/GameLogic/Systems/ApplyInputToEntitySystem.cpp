@@ -23,7 +23,7 @@ void ApplyInputToEntitySystem::update()
 	const GameplayInputComponent* worldGameplayInput = world.getWorldComponents().getOrAddComponent<const GameplayInputComponent>();
 	const GameplayInput::FrameState& gameplayInputState = worldGameplayInput->getCurrentFrameState();
 
-	ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<ClientGameDataComponent>();
+	const ClientGameDataComponent* clientGameData = world.getWorldComponents().getOrAddComponent<const ClientGameDataComponent>();
 	const OptionalEntity controlledEntity = clientGameData->getControlledPlayer();
 	if (controlledEntity.isValid())
 	{

@@ -38,7 +38,7 @@ namespace Network::ServerClient
 		LogInfo(LOG_NETWORK_MESSAGES, "Received connection accepted message on client frame %u with updateIdx: %u RTT: %llums", previousClientUpdateIdx, updateIdx, roundTripTimeUs / 1000ull);
 
 		// estimate the frame we should be simulating on the client
-		const u32 estimatedClientUpdateIndex = updateIdx + static_cast<u32>(std::ceil(float(oneWayTimeUs) / float(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
+		const u32 estimatedClientUpdateIndex = updateIdx + static_cast<u32>(std::ceil(static_cast<float>(oneWayTimeUs) / static_cast<float>(std::chrono::microseconds(TimeConstants::ONE_FIXED_UPDATE_DURATION).count())));
 
 		// we can still receive updates from updateIdx - 1, so we need to make sure we have enough frames in the history
 		const u32 firstStoredUpdateIdx = gameStateRewinder.getFirstStoredUpdateIdx();

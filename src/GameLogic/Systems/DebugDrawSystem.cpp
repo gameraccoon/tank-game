@@ -62,7 +62,7 @@ void DebugDrawSystem::update()
 
 	auto [renderMode] = gameData.getGameComponents().getComponents<const RenderModeComponent>();
 
-	const Vector2D drawShift = ZERO_VECTOR;
+	constexpr Vector2D drawShift = ZERO_VECTOR;
 
 	auto [renderAccessorCmp] = gameData.getGameComponents().getComponents<RenderAccessorComponent>();
 	if (renderAccessorCmp == nullptr || !renderAccessorCmp->getAccessor().has_value())
@@ -70,7 +70,7 @@ void DebugDrawSystem::update()
 		return;
 	}
 
-	RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
+	const RenderAccessorGameRef renderAccessor = *renderAccessorCmp->getAccessor();
 
 	std::unique_ptr<RenderData> renderData = std::make_unique<RenderData>();
 
@@ -113,7 +113,7 @@ void DebugDrawSystem::update()
 
 			for (const auto& worldPoint : debugDraw->getWorldPoints())
 			{
-				Vector2D screenPos = worldPoint.pos + drawShift;
+				const Vector2D screenPos = worldPoint.pos + drawShift;
 
 				QuadRenderData& quadData = TemplateHelpers::EmplaceVariant<QuadRenderData>(renderData->layers);
 				quadData.position = screenPos;

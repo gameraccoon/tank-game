@@ -16,7 +16,7 @@ public:
 
 	WorldLayer& getDynamicWorldLayer()
 	{
-		AssertFatal(mDynamicWorld, "Dunamic world is not set");
+		AssertFatal(mDynamicWorld, "Dynamic world is not set");
 		return *mDynamicWorld;
 	}
 

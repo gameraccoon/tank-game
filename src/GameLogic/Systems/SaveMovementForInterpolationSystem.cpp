@@ -17,7 +17,7 @@ SaveMovementForInterpolationSystem::SaveMovementForInterpolationSystem(WorldHold
 
 void SaveMovementForInterpolationSystem::update()
 {
-	SCOPED_PROFILER("MovementSystem::update");
+	SCOPED_PROFILER("SaveMovementForInterpolationSystem::update");
 	WorldLayer& world = mWorldHolder.getDynamicWorldLayer();
 
 	auto [timeComponent] = mWorldHolder.getDynamicWorldLayer().getWorldComponents().getComponents<TimeComponent>();

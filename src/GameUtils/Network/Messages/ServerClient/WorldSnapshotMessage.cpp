@@ -84,7 +84,7 @@ namespace Network::ServerClient
 
 		gameStateRewinder.applyAuthoritativeCommands(updateIdx, std::move(commands));
 
-		LogInfo(LOG_NETWORK_MESSAGES, "Applied WorldSnapshotMessage for frame %u on frame %u", updateIdx, gameStateRewinder.getTimeData().lastFixedUpdateIndex);
+		LogInfo(LOG_NETWORK_MESSAGES, "Applied WorldSnapshotMessage on update %u for update %u", gameStateRewinder.getTimeData().lastFixedUpdateIndex, updateIdx);
 	}
 
 	void CleanBeforeApplyingSnapshot(WorldLayer& world)

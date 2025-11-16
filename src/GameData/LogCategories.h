@@ -10,3 +10,4 @@ constexpr LogCategory LOG_AUTOTESTS{ "AUTOTESTS" };
 constexpr LogCategory LOG_UNITTESTS{ "UNITTESTS" };
 constexpr LogCategory LOG_BACKEND{ "BACKEND" };
 constexpr LogCategory LOG_COMMANDS{ "COMMANDS" };
+constexpr LogCategory LOG_CLIENT_LIFETIME{ "CLIENT_LIFETIME" };

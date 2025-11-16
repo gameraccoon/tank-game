@@ -5,6 +5,7 @@
 #include "GameData/Components/ClientGameDataComponent.generated.h"
 #include "GameData/Components/ClientNetworkInterfaceComponent.generated.h"
 #include "GameData/GameData.h"
+#include "GameData/LogCategories.h"
 #include "GameData/WorldLayer.h"
 
 #include "HAL/Network/ConnectionManager.h"
@@ -48,6 +49,7 @@ void ClientNetworkConnectionSystem::update()
 			connectionId = result.connectionId;
 			clientGameData->setClientConnectionId(connectionId);
 
+			LogInfo(LOG_CLIENT_LIFETIME, "Telling the server that we want to connect");
 			networkInterface->getNetworkRef().sendMessageToServer(
 				connectionId,
 				Network::ClientServer::CreateConnectMessage(HAL::ConnectionManager::GetTimestampNow()),
@@ -63,6 +65,7 @@ void ClientNetworkConnectionSystem::update()
 
 	if (mShouldQuitGameRef)
 	{
+		LogInfo(LOG_CLIENT_LIFETIME, "Telling the server that we want to disconnect");
 		networkInterface->getNetworkRef().sendMessageToServer(connectionId, Network::ServerClient::CreateDisconnectMessage(Network::ServerClient::DisconnectReason::ClientShutdown()));
 	}
 }
